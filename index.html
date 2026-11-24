@@ -429,6 +429,13 @@ textarea,input,select,button{font-family:inherit}
 
 .sh-head h2,.pin h2,.row h2{margin-bottom:0}
 
+/* quantity buttons (+ / −) in the brand orange */
+.step{border-color:color-mix(in srgb,var(--sun) 45%,var(--line))}
+.step button{background:var(--sun);color:#fff;font-weight:700}
+.step button:hover{background:var(--sun-ink);color:#fff}
+.step button:active{background:var(--sun-ink)}
+.step input{color:var(--fg)}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -1476,14 +1483,31 @@ function branchesView(){
 }
 
 /* new order */
+/* most requested first: how many of this branch's orders included each item (then total quantity) */
+function popularity(){
+  const key=S.orders.length+'|'+S.orders.map(o=>o.updatedAt||o.createdAt).join(',').length+'|'+(S.branch||'');
+  if(S._popKey===key)return S._pop;
+  const m={};
+  S.orders.forEach(o=>{
+    if(o.kind==='return'||o.status==='cancelled'||o.status==='rejected')return;
+    if(S.role==='branch'&&o.branch!==S.branch)return;
+    (o.lines||[]).forEach(l=>{const r=m[l.id]||(m[l.id]={n:0,q:0});r.n++;r.q+=+(l.approved??l.qty)||0});
+  });
+  const score=id=>m[id]||{n:0,q:0};
+  const byPop=(a,b)=>{const x=score(a.id),y=score(b.id);return(y.n-x.n)||(y.q-x.q)||(ITEM_POS[a.id]-ITEM_POS[b.id])};
+  const cats=CATS.map((c,i)=>({c,i,n:c.list.reduce((t,it)=>t+score(it.id).n,0),list:[...c.list].sort(byPop)}))
+    .sort((a,b)=>(b.n-a.n)||(a.i-b.i));
+  S._pop={cats,score};S._popKey=key;return S._pop;
+}
 function newOrder(){
   const d=S.draft,qq=S.q.trim(),q=qq.toLowerCase();
   const fc=d.kind==='supply'?forecastBranch(S.branch):null;
   const match=it=>!q||[it.ar,it.bn,it.ur].some(s=>s&&s.includes(qq))||it.en.toLowerCase().includes(q)||it.sku.toLowerCase().includes(q);
-  const cats=CATS.filter(c=>S.cat==='all'||c.k===S.cat);
+  const pop=popularity();
+  const cats=pop.cats.filter(x=>S.cat==='all'||x.c.k===S.cat).map(x=>Object.assign({},x.c,{list:x.list}));
   const chosen=Object.keys(d.lines).filter(k=>d.lines[k]>0);
   const chipCount=k=>chosen.filter(id=>ITEM[id]&&ITEM[id].cat===k).length;
-  const chips=`<button class="chip" aria-pressed="${S.cat==='all'}" data-act="cat" data-k="all">${t('f_all')}</button>`+CATS.map(c=>{const n=chipCount(c.k);return`<button class="chip" aria-pressed="${S.cat===c.k}" data-act="cat" data-k="${c.k}">${esc(catName(c))}${n?` <span class="c num">(${n})</span>`:''}</button>`}).join('');
+  const chips=`<button class="chip" aria-pressed="${S.cat==='all'}" data-act="cat" data-k="all">${t('f_all')}</button>`+pop.cats.map(x=>x.c).map(c=>{const n=chipCount(c.k);return`<button class="chip" aria-pressed="${S.cat===c.k}" data-act="cat" data-k="${c.k}">${esc(catName(c))}${n?` <span class="c num">(${n})</span>`:''}</button>`}).join('');
   let body='';
   cats.forEach(c=>{const items=c.list.filter(match);if(!items.length)return;
     body+=`<div class="cat-h">${esc(catName(c))} <small class="num">${esc(t('nItems',{n:items.length}))}</small></div><div class="grid">${items.map(it=>tile(it,fc&&fc.map)).join('')}</div>`});
