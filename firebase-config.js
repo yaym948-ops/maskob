@@ -1,0 +1,2 @@
+// Firebase web config for project fllow-maskob (public identifiers, not secrets)
+window.FIREBASE_CONFIG = {"projectId":"fllow-maskob","appId":"1:489074385747:web:e3a4c23245fe51729877a6","storageBucket":"fllow-maskob.firebasestorage.app","apiKey":"AIzaSyDO8Kbyp9JzPW0T1Nge73uVWvUE5cUHURs","authDomain":"fllow-maskob.firebaseapp.com","messagingSenderId":"489074385747","measurementId":"G-DSFJTJ0R20","projectNumber":"489074385747","version":"2"};

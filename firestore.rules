@@ -1,0 +1,68 @@
+rules_version = '2';
+
+// Maskob orders — access model
+// Every device signs in anonymously. Entering a sign-in code creates sessions/{uid}
+// holding {role, branch, h}; the write is accepted only when h equals the stored hash
+// for that role (or that branch) in config/pins, so only someone who knows the code
+// can open a session. Changing or deleting a code invalidates its sessions at once.
+// config/pins is readable by management only.
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function pinsPath() { return /databases/$(db)/documents/config/pins; }
+    function pins() { return get(pinsPath()).data; }
+    function sessPath() { return /databases/$(db)/documents/sessions/$(request.auth.uid); }
+    function sess() { return get(sessPath()).data; }
+
+    function hashFor(role, branch) {
+      return role == 'branch' ? pins().br[branch] : pins()[role];
+    }
+    function valid() {
+      return signedIn() && exists(sessPath()) && exists(pinsPath())
+        && hashFor(sess().role, sess().branch) == sess().h;
+    }
+    function isRole(r) { return valid() && sess().role == r; }
+    function isMgr() { return isRole('manager'); }
+
+    match /config/pins {
+      allow read: if isMgr();
+      // first-time setup only: whoever creates it first sets the management code
+      allow create: if signedIn() && !exists(pinsPath());
+      allow update: if isMgr();
+      allow delete: if false;
+    }
+
+    // codes/{hash} -> {role, branch}: lets a device find which role a code belongs to with
+    // one direct read. Only fetchable by exact hash (no listing), so knowing the code is required.
+    match /codes/{h} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create, update, delete: if isMgr();
+    }
+
+    match /config/main {
+      allow read: if signedIn();
+      allow write: if isMgr() || (signedIn() && !exists(/databases/$(db)/documents/config/main));
+    }
+
+    match /sessions/{uid} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && exists(pinsPath())
+        && request.resource.data.role in ['manager', 'warehouse', 'branch']
+        && hashFor(request.resource.data.role, request.resource.data.get('branch', '')) == request.resource.data.h;
+    }
+
+    match /orders/{id} {
+      allow read: if valid() && (sess().role != 'branch' || resource.data.branch == sess().branch);
+      allow create: if valid()
+        && (sess().role == 'manager'
+            || (sess().role == 'branch' && request.resource.data.branch == sess().branch && request.resource.data.status == 'pending'));
+      allow update: if valid()
+        && (sess().role != 'branch'
+            || (resource.data.branch == sess().branch && request.resource.data.branch == sess().branch));
+      allow delete: if false;
+    }
+  }
+}

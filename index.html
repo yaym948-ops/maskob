@@ -322,6 +322,7 @@ h2{font-size:22px;color:var(--navy-ink);letter-spacing:-.005em}
   <div id="toast"></div>
 </div>
 
+<script src="firebase-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 /* ---------- Languages ---------- */
@@ -844,7 +845,7 @@ async function hashPin(role,pin){
   return sha256js(data);
 }
 function checkAuth(){
-  if(!S.role||!S.pinsLoaded)return;
+  if(S.fb||!S.role||!S.pinsLoaded)return;
   const a=S.auth;
   const key=a&&(a.role==='branch'?'branch:'+a.branch:a.role);
   if(!a||a.role!==S.role||(a.role==='branch'&&a.branch!==S.branch)||!hashForKey(key)||a.h!==hashForKey(key)){S.role=null;setAuth(null);LS.set('mk.role',null);S.open=null;S.review=false}
@@ -856,6 +857,7 @@ function queue(id,fn){const p=(chains[id]||Promise.resolve()).catch(()=>{}).then
 const DEMO_KEY='mk.demo.orders';
 const Store={
   async init(){
+    if(window.FIREBASE_CONFIG){return this.fbInit()}
     const c=window.claude;
     if(c&&typeof c.use==='function'){
       c.use('downloads').then(d=>{dlCap=d},()=>{});
@@ -893,7 +895,66 @@ const Store={
     if(S.mode==='live')return queue(id,()=>db.doc('orders/'+id).update(f));
     const o=S.orders.find(x=>x.id===id);if(o)Object.assign(o,f);LS.set(DEMO_KEY,S.orders);render();
   },
+  /* ----- Firebase (Firestore + anonymous auth), used when firebase-config.js is present ----- */
+  async fbInit(){
+    S.fb=true;S.mode='live';S.pins={};
+    const v='10.12.2',base=`https://cdn.jsdelivr.net/npm/firebase@${v}/`;
+    const load=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('load '+src));document.head.appendChild(s)});
+    try{
+      await load(base+'firebase-app-compat.js');
+      await Promise.all([load(base+'firebase-auth-compat.js'),load(base+'firebase-firestore-compat.js')]);
+      firebase.initializeApp(window.FIREBASE_CONFIG);
+      const auth=firebase.auth();
+      await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+      if(!auth.currentUser)await new Promise(r=>{const u=auth.onAuthStateChanged(x=>{u();r(x)})});
+      if(!auth.currentUser)await auth.signInAnonymously();
+      S.uid=auth.currentUser.uid;
+      db=firebase.firestore();
+      try{db.settings({experimentalAutoDetectLongPolling:true,merge:true})}catch(e){}
+      setTimeout(()=>{if(!S.pinsLoaded){S.stale=true;render()}},12000);
+    }catch(e){S.error=(e&&e.code)||'firebase';S.loaded=true;S.pinsLoaded=true;render();return}
+    // public config: branch list + whether first-time setup is done
+    db.doc('config/main').onSnapshot(s=>{
+      const d=s.exists?s.data():{};
+      if(Array.isArray(d.branches)&&d.branches.length)S.branches=d.branches.map(String);
+      S.mainReady=!!d.ready;S.mainSeen=true;this.fbReadyCheck();render();
+    },e=>{S.error=e.code;S.pinsLoaded=true;render()});
+    // resume an existing session on this device
+    try{const s=await db.doc('sessions/'+S.uid).get();
+      if(s.exists){const a=s.data();S.role=a.role;S.branch=a.branch||null;S.auth=a}else{S.role=null;S.auth=null}
+    }catch(e){S.role=null}
+    S.sessChecked=true;this.fbReadyCheck();
+  },
+  fbReadyCheck(){
+    if(!S.mainSeen||!S.sessChecked)return;
+    S.pinsLoaded=true;S.stale=false;
+    if(S.role)this.fbStart();else this.fbStop();
+    render();
+  },
+  fbStart(){
+    this.fbStop();
+    const tm=setTimeout(()=>{if(!S.loaded){S.stale=true;render()}},10000);
+    let q=db.collection('orders');
+    q=S.role==='branch'?q.where('branch','==',S.branch):q.orderBy('createdAt','desc').limit(500);
+    this._unsubO=q.onSnapshot(snap=>{
+      S.orders=snap.docs.map(d=>Object.assign({},d.data(),{id:d.id})).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+      S.loaded=true;S.stale=false;clearTimeout(tm);render();
+    },e=>{clearTimeout(tm);
+      if(e.code==='permission-denied'){this.fbSignOut();return}   // code changed or session revoked
+      S.error=e.code;S.loaded=true;render()});
+    if(S.role==='manager')this._unsubP=db.doc('config/pins').onSnapshot(s=>{S.pins=s.exists?Object.assign({},s.data()):{};render()},()=>{});
+  },
+  fbStop(){if(this._unsubO){this._unsubO();this._unsubO=null}if(this._unsubP){this._unsubP();this._unsubP=null}S.orders=[];S.loaded=false;S.pins={}},
+  async fbSignOut(){
+    this.fbStop();try{await db.doc('sessions/'+S.uid).delete()}catch(e){}
+    S.role=null;S.auth=null;LS.set('mk.role',null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render();
+  },
+  async fbTrySession(role,branch,h){
+    const d={role,h,at:new Date().toISOString()};if(role==='branch')d.branch=branch;
+    try{await db.doc('sessions/'+S.uid).set(d);return true}catch(e){return false}
+  },
   async saveBranches(list){
+    if(S.fb)return queue('config',()=>db.doc('config/main').set({branches:list,ready:true},{merge:true}));
     if(S.mode==='live')return queue('config',()=>db.doc('config/main').set({branches:list}));
     S.branches=list;LS.set('mk.demo.branches',list);render();
   },
@@ -1016,7 +1077,7 @@ function renderWho(authed){
 }
 function pinPad(){
   const L=S.pad;
-  const setup=!S.pins.manager;
+  const setup=S.fb?!S.mainReady:!S.pins.manager;
   if(setup&&L.step==='enter')L.step='create';
   const title=L.step==='create'?t('setupTitle'):L.step==='confirm'?t('confirmCode'):t('homeTitle');
   const hint=L.step==='enter'?t('homeHint'):t('digits');
@@ -1375,22 +1436,35 @@ let toastT=null;
 function toast(msg){const el=document.getElementById('toast');el.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`;clearTimeout(toastT);toastT=setTimeout(()=>el.innerHTML='',2600)}
 async function guard(fn,ok){
   if(S.busy)return;S.busy=true;render();
-  try{await fn();if(ok)toast(typeof ok==='function'?ok():ok)}catch(e){toast(e&&e.code==='invalid_argument'?t('noPerm'):t('saveFail'))}
+  try{await fn();if(ok)toast(typeof ok==='function'?ok():ok)}catch(e){toast(e&&(e.code==='invalid_argument'||e.code==='permission-denied')?t('noPerm'):t('saveFail'))}
   S.busy=false;render();
 }
 function loginOk(r,h,br){
   if(r==='branch'){S.branch=br;LS.set('mk.branch',br)}
   S.role=r;LS.set('mk.role',r);setAuth(r==='branch'?{role:r,branch:br,h}:{role:r,h});S.pad={val:'',step:'enter',first:'',err:''};S.tab=null;
+  if(S.fb)Store.fbStart();
+}
+function findLocal(pin){
+  return(async()=>{for(const e of pinEntries()){if(await hashPin(e.key,pin)===e.h)return e}return null})();
 }
 async function findCode(pin){
-  for(const e of pinEntries()){if(await hashPin(e.key,pin)===e.h)return e}
+  if(!S.fb)return findLocal(pin);
+  // Firebase: the server checks the code; try each role/branch until a session is accepted
+  // look the code up: codes/{hash} exists only for the role/branch the code belongs to
+  const keys=[['manager',null],['warehouse',null],...S.branches.map(b=>['branch',b])];
+  const hits=await Promise.all(keys.map(async([role,branch])=>{
+    const key=role==='branch'?'branch:'+branch:role;const h=await hashPin(key,pin);
+    try{const s=await db.doc('codes/'+h).get();return s.exists?{role,branch,key,h}:null}catch(e){return null}
+  }));
+  const e=hits.find(Boolean);
+  if(e&&await Store.fbTrySession(e.role,e.branch,e.h))return e;
   return null;
 }
 const fieldKey=f=>({appr:'approved',sent:'sent',recv:'received'}[f]);
 function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
   tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.review=false;render();window.scrollTo(0,0)},
-  logout(){S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
+  logout(){if(S.fb){Store.fbSignOut();return}S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=6||Date.now()<S.lockUntil)return;L.val+=el.dataset.k;L.err='';render()},
   pinDel(){S.pad.val=S.pad.val.slice(0,-1);render()},
   pinClear(){S.pad.val='';S.pad.err='';render()},
@@ -1400,7 +1474,11 @@ const A={
     if(L.step==='confirm'){
       if(L.val!==L.first){L.step='create';L.val='';L.first='';L.err=t('mismatch');render();return}
       const h=await hashPin('manager',L.val);const p=Object.assign({},S.pins,{manager:h});
-      return guard(async()=>{await Store.savePins(p);S.pins=p;loginOk('manager',h)},()=>t('mgrCodeSet'));
+      return guard(async()=>{await Store.savePins(p);S.pins=p;
+        if(S.fb){if(!await Store.fbTrySession('manager',null,h))throw{code:'invalid_argument'};
+          await db.doc('codes/'+h).set({role:'manager'});
+          await db.doc('config/main').set({branches:S.branches,ready:true},{merge:true})}
+        loginOk('manager',h)},()=>t('mgrCodeSet'));
     }
     const pin=L.val;S.busy=true;render();
     const e=await findCode(pin);S.busy=false;
@@ -1412,13 +1490,16 @@ const A={
   async savePin(el){
     const key=el.dataset.k;const v=(S.pinIn[key]||'').trim();
     if(!/^\d{4,6}$/.test(v)){toast(t('codeLen'));return}
-    const clash=await findCode(v);
+    const clash=await findLocal(v);
     if(clash&&clash.key!==key){toast(t('codeInUse'));return}
     const h=await hashPin(key,v);const p=Object.assign({},S.pins);
     if(key.startsWith('branch:'))p.br=Object.assign({},S.pins.br||{},{[key.slice(7)]:h});else p[key]=h;
     const label=key.startsWith('branch:')?key.slice(7):roleL(key);
+    const oldH=hashForKey(key);
     guard(async()=>{await Store.savePins(p);S.pins=p;S.pinIn[key]='';
-      const a=S.auth;if(a&&(a.role==='branch'?'branch:'+a.branch:a.role)===key)setAuth(Object.assign({},a,{h}))},()=>t('codeSaved',{r:label}));
+      if(S.fb){const isBr=key.startsWith('branch:');await db.doc('codes/'+h).set(isBr?{role:'branch',branch:key.slice(7)}:{role:key});
+        if(oldH&&oldH!==h)await db.doc('codes/'+oldH).delete().catch(()=>{})}
+      const a=S.auth;if(a&&(a.role==='branch'?'branch:'+a.branch:a.role)===key){setAuth(Object.assign({},a,{h}));if(S.fb)await Store.fbTrySession(a.role,a.branch,h)}},()=>t('codeSaved',{r:label}));
   },
   cat(el){S.cat=el.dataset.k;render()},
   kind(el){S.draft.kind=el.dataset.k;saveDraft();render()},
@@ -1477,7 +1558,8 @@ const A={
     guard(async()=>{await Store.patch(o.id,f);S.open=null},()=>diffs?t('t_recvDiff',{n:diffs}):t('t_recv'));},
   addBranch(){const n=S.newBranch.trim();if(!n||S.branches.includes(n))return;const list=[...S.branches,n];S.newBranch='';guard(()=>Store.saveBranches(list),()=>t('branchAdded'))},
   delBranch(el){const i=+el.dataset.i;const name=S.branches[i];const list=S.branches.filter((_,j)=>j!==i);
-    guard(async()=>{await Store.saveBranches(list);const br=S.pins.br||{};if(name in br){const nb=Object.assign({},br);delete nb[name];const p=Object.assign({},S.pins,{br:nb});await Store.savePins(p);S.pins=p}},()=>t('branchDeleted'))}
+    guard(async()=>{await Store.saveBranches(list);const br=S.pins.br||{};if(name in br){const oldH=br[name];const nb=Object.assign({},br);delete nb[name];const p=Object.assign({},S.pins,{br:nb});await Store.savePins(p);S.pins=p;
+      if(S.fb&&oldH)await db.doc('codes/'+oldH).delete().catch(()=>{})}},()=>t('branchDeleted'))}
 };
 
 document.addEventListener('click',ev=>{
