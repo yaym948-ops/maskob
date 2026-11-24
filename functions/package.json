@@ -1,0 +1,11 @@
+{
+  "name": "maskob-functions",
+  "private": true,
+  "description": "Server functions for the Maskob orders app (WhatsApp notifications)",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0"
+  }
+}

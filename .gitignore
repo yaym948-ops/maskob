@@ -4,3 +4,4 @@ desktop.ini
 *.tmp
 .firebase/
 *.log
+node_modules/

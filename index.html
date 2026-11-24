@@ -447,6 +447,15 @@ r_manager:['الإدارة','Management','ব্যবস্থাপনা','ا
 homeTitle:['أدخل رمز الدخول','Enter your sign-in code','আপনার লগইন কোড দিন','اپنا لاگ اِن کوڈ درج کریں'],
 homeHint:['لكل فرع وللإدارة وللمستودع رمز خاص يفتح صفحتهم.','Each branch, the management and the warehouse have their own code that opens their page.','প্রতিটি শাখা, ব্যবস্থাপনা ও গুদামের নিজস্ব কোড আছে, যা তাদের পেজ খোলে।','ہر برانچ، انتظامیہ اور گودام کا اپنا کوڈ ہے جو ان کا صفحہ کھولتا ہے۔'],
 setupTitle:['إعداد أول مرة: أنشئ رمز الإدارة','First-time setup: create the management code','প্রথমবার সেটআপ: ব্যবস্থাপনার কোড তৈরি করুন','پہلی بار سیٹ اپ: انتظامیہ کا کوڈ بنائیں'],
+waTitle:['إشعارات واتساب للمستودع','WhatsApp alerts to the warehouse','গুদামে হোয়াটসঅ্যাপ বার্তা','گودام کو واٹس ایپ اطلاعات'],
+waHint:['ترسل رسالة واتساب تلقائياً لأرقام المستودع عند كل طلب جديد.','Sends a WhatsApp message to the warehouse numbers automatically for every new order.','প্রতিটি নতুন অর্ডারে গুদামের নম্বরে স্বয়ংক্রিয় হোয়াটসঅ্যাপ বার্তা যায়।','ہر نئے آرڈر پر گودام کے نمبروں پر خودکار واٹس ایپ پیغام جاتا ہے۔'],
+waOn:['تشغيل الإشعارات','Notifications on','বার্তা চালু','اطلاعات فعال'],
+waNums:['أرقام المستودع: رقم في كل سطر، مثل 05XXXXXXXX','Warehouse numbers: one per line, e.g. 05XXXXXXXX','গুদামের নম্বর: প্রতি লাইনে একটি, যেমন 05XXXXXXXX','گودام کے نمبر: ہر سطر میں ایک، مثلاً 05XXXXXXXX'],
+waSave:['حفظ','Save','সংরক্ষণ','محفوظ کریں'],
+waSaved:['حُفظت إعدادات واتساب','WhatsApp settings saved','হোয়াটসঅ্যাপ সেটিংস সংরক্ষিত','واٹس ایپ سیٹنگز محفوظ ہو گئیں'],
+waBad:['رقم غير صحيح: {n}','Invalid number: {n}','ভুল নম্বর: {n}','غلط نمبر: {n}'],
+waSent:['واتساب: أُرسل إلى المستودع ({n})','WhatsApp: sent to the warehouse ({n})','হোয়াটসঅ্যাপ: গুদামে পাঠানো হয়েছে ({n})','واٹس ایپ: گودام کو بھیجا گیا ({n})'],
+waFail:['واتساب: تعذّر الإرسال ({e})','WhatsApp: not sent ({e})','হোয়াটসঅ্যাপ: পাঠানো যায়নি ({e})','واٹس ایپ: نہیں بھیجا جا سکا ({e})'],
 codeOverlap:['هذا الرمز يتداخل مع رمز آخر (أحدهما يبدأ بالآخر)، اختر رمزاً مختلفاً.','This code overlaps another code (one starts with the other). Choose a different one.','এই কোডটি অন্য একটি কোডের সাথে মিলে যায় (একটি অন্যটির শুরু)। অন্য কোড দিন।','یہ کوڈ کسی اور کوڈ سے ٹکراتا ہے (ایک دوسرے کا آغاز ہے)۔ کوئی اور کوڈ چنیں۔'],
 codeInUse:['هذا الرمز مستخدم لجهة أخرى، اختر رمزاً مختلفاً.','This code is already used by someone else. Choose a different one.','এই কোডটি অন্য কেউ ব্যবহার করছে। অন্য কোড দিন।','یہ کوڈ کسی اور کے لیے استعمال ہو رہا ہے۔ کوئی اور کوڈ چنیں۔'],
 xlsExport:['تصدير إكسل','Export to Excel','এক্সেলে রপ্তানি','ایکسل میں ایکسپورٹ'],
@@ -990,7 +999,7 @@ const Store={
     let o=LS.get(DEMO_KEY,null);
     if(!Array.isArray(o)){o=demoSeed();LS.set(DEMO_KEY,o)}
     S.orders=o;S.branches=LS.get('mk.demo.branches',['القطيف']);S.loaded=true;
-    S.pins=LS.get('mk.demo.pins',{});S.pinsLoaded=true;checkAuth();render();
+    S.pins=LS.get('mk.demo.pins',{});S.notify=LS.get('mk.demo.notify',{});S.pinsLoaded=true;checkAuth();render();
   },
   async save(o){
     if(S.mode==='live')return queue(o.id,()=>db.doc('orders/'+o.id).set(o));
@@ -1048,9 +1057,12 @@ const Store={
     },e=>{clearTimeout(tm);
       if(e.code==='permission-denied'){this.fbSignOut();return}   // code changed or session revoked
       S.error=e.code;S.loaded=true;render()});
-    if(S.role==='manager')this._unsubP=db.doc('config/pins').onSnapshot(s=>{S.pins=s.exists?Object.assign({},s.data()):{};render()},()=>{});
+    if(S.role==='manager'){
+      this._unsubP=db.doc('config/pins').onSnapshot(s=>{S.pins=s.exists?Object.assign({},s.data()):{};render()},()=>{});
+      this._unsubN=db.doc('config/notify').onSnapshot(s=>{S.notify=s.exists?s.data():{};render()},()=>{});
+    }
   },
-  fbStop(){if(this._unsubO){this._unsubO();this._unsubO=null}if(this._unsubP){this._unsubP();this._unsubP=null}S.orders=[];S.loaded=false;S.pins={}},
+  fbStop(){if(this._unsubO){this._unsubO();this._unsubO=null}if(this._unsubP){this._unsubP();this._unsubP=null}if(this._unsubN){this._unsubN();this._unsubN=null}S.notify=null;S.waDraft=null;S.orders=[];S.loaded=false;S.pins={}},
   async fbSignOut(){
     this.fbStop();try{await db.doc('sessions/'+S.uid).delete()}catch(e){}
     S.role=null;S.auth=null;LS.set('mk.role',null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render();
@@ -1383,6 +1395,19 @@ function forecastView(){
   <div class="fc-sec"><h2>${t('brFcTitle')}</h2>${br}</div>
   <p class="hint" style="margin-top:14px">${esc(t('fcMethod'))}</p>`;
 }
+/* WhatsApp notification settings (management only; sent by the server function) */
+const waNorm=raw=>{let n=String(raw||'').replace(/\D/g,'');if(n.startsWith('00'))n=n.slice(2);if(/^05\d{8}$/.test(n))n='966'+n.slice(1);return n.length>=10&&n.length<=15?n:null};
+function waView(){
+  const nf=S.notify||{};const on=nf.enabled!==false;
+  const draft=S.waDraft!=null?S.waDraft:(nf.warehouse||[]).join('\n');
+  return`<h2 style="margin-top:28px">${t('waTitle')}</h2><p class="hint">${esc(t('waHint'))}</p>
+  <div class="codes"><div class="code">
+    <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="waOn" ${on?'checked':''} style="width:20px;height:20px;accent-color:var(--navy)"><b>${t('waOn')}</b></label>
+    <label for="waNums" class="hint">${esc(t('waNums'))}</label>
+    <textarea class="field num" id="waNums" rows="3" dir="ltr" data-in="waDraft" placeholder="05XXXXXXXX">${esc(draft)}</textarea>
+    <div class="wide"><button class="btn btn-navy" data-act="waSave">${t('waSave')}</button></div>
+  </div></div>`;
+}
 function branchesView(){
   const row=(key,icon,label,id,extra)=>{const set=!!hashForKey(key);return`<div class="code"><div><b>${esc(label)}</b><div class="${set?'set':'unset'}">${set?t('isSet'):t('notSet')}</div></div>
     <div class="wide"><input class="field" type="password" inputmode="numeric" maxlength="6" id="${id}" placeholder="${esc(t('newCodePh'))}" value="${esc(S.pinIn[key]||'')}" data-in="pinIn" data-k="${esc(key)}" autocomplete="new-password"><button class="btn btn-navy" data-act="savePin" data-k="${esc(key)}">${set?t('change'):t('assign')}</button>${extra||''}</div></div>`};
@@ -1390,6 +1415,7 @@ function branchesView(){
   const brs=S.branches.map((b,i)=>row('branch:'+b,'branch',b,'pin-br-'+i,S.branches.length>1?`<button class="btn btn-bad" data-act="delBranch" data-i="${i}">${t('del')}</button>`:'')).join('');
   return`<h2>${t('codesTitle')}</h2><p class="hint">${esc(t('codesHint'))}</p>
   <div class="codes">${codes}</div>
+  ${waView()}
   <h2 style="margin-top:28px">${t('branchesTitle')}</h2><p class="hint">${esc(t('branchCodesHint'))}</p>
   <div class="codes">${brs}
   <div class="row"><input class="field" style="flex:1" id="newBranch" placeholder="${esc(t('newBranchPh'))}" value="${esc(S.newBranch)}" data-in="newBranch"><button class="btn btn-navy" data-act="addBranch">${t('add')}</button></div></div>`;
@@ -1446,7 +1472,9 @@ function sheet(){
   const head=`<div class="sh-head"><div class="row"><div style="flex:1;min-width:0"><div class="row" style="gap:8px"><h2>${esc(o.branch)}</h2><span class="tag ${o.kind==='return'?'ret':''}">${esc(kindL(o.kind))}</span><span class="pill st-${esc(o.status)}">${esc(statusL(o.status))}</span></div>
    <div class="hint num" dir="ltr">${esc(o.num||o.id)}</div></div><button class="btn btn-ghost" style="padding:7px 12px;font-size:13px" data-act="xlsOrder" data-id="${esc(o.id)}">${t('xlsExport')}</button><button class="x" data-act="close" aria-label="${esc(t('close'))}">×</button></div>${timeline(o)}</div>`;
   let body='',foot='';
-  const notes=[o.note&&['n_branch',o.note],o.managerNote&&['n_mgr',o.managerNote],o.shipNote&&['n_ship',o.shipNote],o.receiveNote&&['n_recv',o.receiveNote]].filter(Boolean).map(([h,x])=>`<div class="box"><h4>${t(h)}</h4><div dir="auto">${esc(x)}</div></div>`).join('');
+  const wa=o.waNotify&&S.role==="manager"?`<p class="hint" style="margin:0 0 10px">${esc(o.waNotify.sent?t("waSent",{n:o.waNotify.sent}):t("waFail",{e:o.waNotify.error||"-"}))}</p>`:"";
+  const notes0=[o.note&&['n_branch',o.note],o.managerNote&&['n_mgr',o.managerNote],o.shipNote&&['n_ship',o.shipNote],o.receiveNote&&['n_recv',o.receiveNote]].filter(Boolean).map(([h,x])=>`<div class="box"><h4>${t(h)}</h4><div dir="auto">${esc(x)}</div></div>`).join('');
+  const notes=wa+notes0;
   if(m==='approve'){
     body=notes+`<div class="lines">${o.lines.map(l=>{const i=lineInfo(l),x=w.lines[l.id];return`<div class="ln ${x.approved!==l.qty?'diff':''}">${icoFor(i.cat)}<div style="min-width:0"><div class="nm">${esc(i.name)}</div><div class="sub">${t('branchReq')}: <b class="num">${fmt(l.qty)}</b> ${esc(i.u)}${l.stock!=null&&l.stock!==''?` · ${t('stock')}: <span class="num">${fmt(l.stock)}</span>`:''}${i.par?` · ${esc(t('par',{n:fmt(i.par)}))}`:''}</div></div>
       <div class="ctl">${stepper('a-'+l.id,x.approved,'appr',l.id)}</div></div>`}).join('')}</div>
@@ -1627,6 +1655,18 @@ const A={
     }
     autoCheck(true);
   },
+  waSave(){
+    const lines=String(S.waDraft!=null?S.waDraft:(S.notify&&S.notify.warehouse||[]).join('\n')).split(/[\n,،;]+/).map(s=>s.trim()).filter(Boolean);
+    const bad=lines.find(l=>!waNorm(l));if(bad){toast(t('waBad',{n:bad}));return}
+    const list=[...new Set(lines.map(waNorm))];
+    const on=!!(document.getElementById('waOn')||{}).checked;
+    const data={enabled:on,warehouse:list,template:'maskob_new_order',lang:'ar'};
+    guard(async()=>{
+      if(S.fb)await db.doc('config/notify').set(data,{merge:true});
+      else LS.set('mk.demo.notify',data);
+      S.notify=data;S.waDraft=null;
+    },()=>t('waSaved'));
+  },
   async savePin(el){
     const key=el.dataset.k;const v=(S.pinIn[key]||'').trim();
     if(!/^\d{4,6}$/.test(v)){toast(t('codeLen'));return}
@@ -1713,6 +1753,7 @@ document.addEventListener('input',ev=>{
   const el=ev.target;const k=el.dataset&&el.dataset.in;if(!k)return;
   if(k==='q'){S.q=el.value;render();return}
   if(k==='newBranch'){S.newBranch=el.value;return}
+  if(k==='waDraft'){S.waDraft=el.value;return}
   if(k==='pinIn'){el.value=el.value.replace(/\D/g,'').slice(0,6);S.pinIn[el.dataset.k]=el.value;return}
   if(k==='dnote'){S.draft.note=el.value;saveDraft();return}
   if(k==='stock'){S.draft.stock[el.dataset.id]=el.value;saveDraft();return}
