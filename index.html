@@ -1,5 +1,19 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>طلبات مسكوب</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="متابعة طلبات فروع مسكوب من المستودع: الطلب، الاعتماد، التجهيز، والاستلام.">
+<meta name="theme-color" content="#0758a7">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="طلبات مسكوب">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap">
 <style>
@@ -299,9 +313,99 @@ h2{font-size:22px;color:var(--navy-ink);letter-spacing:-.005em}
 .dots i{width:13px;height:13px}
 .dots i.f{background:var(--sun);border-color:var(--sun)}
 
+/* ---------- base (formerly supplied by the Claude page skeleton) ---------- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;color-scheme:light}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;overflow-x:clip;min-height:100vh;min-height:100dvh}
+img{max-width:100%}
+[hidden]{display:none!important}
+button,a,input,select,label{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn:active,.tab:active,.chip:active,.pad button:active,.step button:active,.oc:active{transform:scale(.97)}
+
+/* ---------- touch screens: comfortable finger targets ---------- */
+@media (pointer:coarse){
+  .btn{min-height:44px}
+  .tab{padding:14px 15px}
+  .chip{padding:8px 14px}
+  .step button{width:44px;height:44px;font-size:20px}
+  .step input{height:44px}
+  .step.sm button{width:40px;height:40px}
+  .step.sm input{height:40px}
+  .chk{width:42px;height:42px;font-size:20px}
+  .x{width:40px;height:40px}
+  .pad button{height:62px}
+  .kind button{padding:10px 14px}
+}
+/* swipeable strips: no visible scrollbar */
+.tabs .wrap,.chips{scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs .wrap::-webkit-scrollbar,.chips::-webkit-scrollbar{display:none}
+/* iPhone zooms the page when a field under 16px gets focus */
+@media (max-width:1024px){input,select,textarea,.mini-in,.field{font-size:16px}}
+
+/* ---------- tablet ---------- */
+@media (min-width:700px){
+  .veil{align-items:center;padding:24px}
+  .sheet{border-radius:20px;max-height:88vh}
+}
+@media (min-width:700px) and (max-width:1024px){
+  .grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+  .stats{grid-template-columns:repeat(3,1fr)}
+}
+
+/* ---------- phone ---------- */
+@media (max-width:560px){
+  main{padding-block:16px 150px}
+  h2{font-size:20px}
+  .scene .wrap{flex-direction:row;align-items:center;padding-block:10px;gap:8px}
+  .logo{width:104px;height:44px}
+  .tools{gap:6px;justify-content:flex-end}
+  .langsel{padding:6px 10px;font-size:12.5px}
+  .who{font-size:12px;padding-inline:10px 4px;max-width:58vw}
+  .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .tab{padding:13px 12px;font-size:14px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .tile{padding:10px;gap:8px}
+  .tile .nm{font-size:14px}
+  .kind{width:100%}
+  .kind button{flex:1}
+  .row > div:first-child{min-width:0}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat b{font-size:22px}
+  .ln{padding:10px 12px;gap:8px}
+  .ln{grid-template-columns:minmax(0,1fr) 128px}
+  .ln.has-chk{grid-template-columns:auto minmax(0,1fr) 120px}
+  .ln .ctl{width:100%;min-width:0}
+  .ln .ctl .step input{width:0;flex:1}
+  .sheet{max-height:96vh;max-height:96dvh;border-radius:16px 16px 0 0}
+  .sh-head,.sh-body,.sh-foot{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+  .sh-foot .btn{flex:1}
+  .sh-foot > span{flex-basis:100%}
+  .sh-head .btn{padding:0 10px;font-size:12.5px}
+  .cartbar .wrap{gap:8px;padding-block:10px}
+  .cartbar .btn{padding:0 14px}
+  .code .wide{flex-wrap:wrap}
+  .code .wide input{flex-basis:100%}
+  .code .wide .btn{flex:1}
+  .daybar input{flex:1;min-width:150px}
+  .pin{margin-top:16px;padding:22px 16px}
+  .pad{grid-template-columns:repeat(3,minmax(64px,80px))}
+  .toast{max-width:calc(100vw - 32px);text-align:center}
+}
+@media (max-width:360px){
+  .grid{grid-template-columns:1fr}
+  .logo{width:92px;height:38px}
+}
+/* phone in landscape: keep sheets usable */
+@media (max-height:500px) and (orientation:landscape){
+  .sheet{max-height:100vh;max-height:100dvh;border-radius:0}
+  .timeline{grid-template-columns:repeat(4,1fr)}
+}
+
 @media (prefers-reduced-motion: no-preference){.tile,.oc,.chk{transition:border-color .15s,background .15s}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
+</head>
+<body>
 
 <div dir="rtl" lang="ar" id="app">
   <header class="scene">
@@ -1601,3 +1705,6 @@ document.addEventListener('keydown',ev=>{
 render();
 Store.init();
 </script>
+
+</body>
+</html>
