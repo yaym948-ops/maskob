@@ -32,6 +32,7 @@
   --bg:#f4f7fb; --card:#ffffff; --fg:#0b2545; --muted:#56708f; --line:#dce5f0; --soft:#edf3fa;
   --sun-soft:#fdf1e3; --lav-soft:#e6eff9; --sand-soft:#fdf1e3;
   --ok:#0758a7; --ok-soft:#e6eff9; --bad:#b8640f; --bad-soft:#fdf1e3;
+  --late:#d32f2f; --late-soft:#fdecec;
   --hdr:#0758a7; --on-hdr:#ffffff;
   --f-display:"Tajawal","Noto Sans Arabic","Noto Sans Bengali",Tahoma,sans-serif;
   --f-body:"Tajawal","Noto Sans Arabic","Noto Sans Bengali",Tahoma,"Segoe UI",sans-serif;
@@ -43,6 +44,7 @@
   --sun-soft:#3a2915; --lav-soft:#12345f; --sand-soft:#3a2915;
   --ok:#6aa9ec; --ok-soft:#12345f; --bad:#f6ae67; --bad-soft:#3a2915;
   --hdr:#0758a7; --on-hdr:#ffffff;
+  --late:#ff7a70; --late-soft:#3d1a1e;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --navy:#6aa9ec; --navy-ink:#b9d6f5; --sun:#f39a45; --sun-ink:#f6ae67; --lav:#6aa9ec;
@@ -50,6 +52,7 @@
   --sun-soft:#3a2915; --lav-soft:#12345f; --sand-soft:#3a2915;
   --ok:#6aa9ec; --ok-soft:#12345f; --bad:#f6ae67; --bad-soft:#3a2915;
   --hdr:#0758a7; --on-hdr:#ffffff;
+  --late:#ff7a70; --late-soft:#3d1a1e;
   color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.65}
@@ -456,6 +459,12 @@ textarea,input,select,button{font-family:inherit}
 .logo.sm{width:96px;height:40px}
 @media (max-width:560px){.logo.sm{width:84px;height:34px}}
 
+/* overdue orders in red */
+.pill.late{background:var(--late);color:#fff}
+.oc.late{border-inline-start-color:var(--late);background:color-mix(in srgb,var(--late-soft) 70%,var(--card));border-color:color-mix(in srgb,var(--late) 35%,var(--line))}
+.badge.late{background:var(--late)}
+.oc .side{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -716,6 +725,8 @@ confirmRecv:['تأكيد الاستلام','Confirm receipt','গ্রহণ �
 delOrder:['حذف الطلبية','Delete order','অর্ডার মুছুন','آرڈر حذف کریں'],
 delOrderQ:['حذف هذه الطلبية نهائياً؟ لا يمكن التراجع.','Delete this order for good? This cannot be undone.','এই অর্ডারটি স্থায়ীভাবে মুছবেন? এটি ফেরানো যাবে না।','یہ آرڈر مستقل طور پر حذف کریں؟ اسے واپس نہیں لایا جا سکتا۔'],
 confirmDel:['تأكيد الحذف','Confirm delete','মুছে ফেলা নিশ্চিত করুন','حذف کی تصدیق'],
+lateH:['متأخر · {n} ساعة','Late · {n} h','বিলম্বিত · {n} ঘণ্টা','تاخیر · {n} گھنٹے'],
+lateD:['متأخر · {n} يوم','Late · {n} d','বিলম্বিত · {n} দিন','تاخیر · {n} دن'],
 t_deleted:['حُذفت الطلبية','Order deleted','অর্ডার মুছে ফেলা হয়েছে','آرڈر حذف ہو گیا'],
 cancelQ:['إلغاء هذا الطلب؟','Cancel this order?','এই অর্ডার বাতিল করবেন?','یہ آرڈر منسوخ کریں؟'],
 confirmCancel:['تأكيد الإلغاء','Confirm cancel','বাতিল নিশ্চিত করুন','منسوخی کی تصدیق'],
@@ -1217,21 +1228,33 @@ function visible(){
   if(S.role==='branch')return S.orders.filter(o=>o.branch===S.branch);
   return S.orders;
 }
+/* overdue: waiting longer than allowed at the current stage */
+const LATE_HOURS={pending:24,approved:24,shipped:48};
+function lateInfo(o){
+  if(!(o.status in LATE_HOURS))return null;
+  const since={pending:o.createdAt,approved:o.approvedAt,shipped:o.shippedAt}[o.status];
+  const h=(Date.now()-Date.parse(since))/36e5;
+  return h>=LATE_HOURS[o.status]?{h}:null;
+}
+const lateLabel=li=>li.h<48?t('lateH',{n:Math.floor(li.h)}):t('lateD',{n:Math.floor(li.h/24)});
+const latePill=o=>{const li=lateInfo(o);return li?`<span class="pill late">${esc(lateLabel(li))}</span>`:''};
 function counts(){
   const v=visible();
-  return{
-    tasks:v.filter(o=>(o.kind!=='return'&&o.status==='shipped')||(o.kind==='return'&&o.status==='approved')).length,
-    pending:v.filter(o=>o.status==='pending').length,
-    prep:v.filter(o=>o.kind!=='return'&&o.status==='approved').length,
-    incoming:v.filter(o=>o.kind==='return'&&o.status==='shipped').length
+  const sets={
+    tasks:v.filter(o=>(o.kind!=='return'&&o.status==='shipped')||(o.kind==='return'&&o.status==='approved')),
+    pending:v.filter(o=>o.status==='pending'),
+    prep:v.filter(o=>o.kind!=='return'&&o.status==='approved'),
+    incoming:v.filter(o=>o.kind==='return'&&o.status==='shipped')
   };
+  const r={};for(const k in sets){r[k]=sets[k].length;r[k+'Late']=sets[k].some(lateInfo)}
+  return r;
 }
 function tabsFor(){
   const c=counts();
-  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks},{k:'orders',l:t('tab_mine')}];
-  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'forecast',l:t('tab_fc')}];
+  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine')}];
+  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'forecast',l:t('tab_fc')}];
   if(S.role==='admin')return[{k:'branches',l:t('tab_settings')}];
-  if(S.role==='warehouse')return[{k:'prep',l:t('tab_prep'),b:c.prep},{k:'incoming',l:t('tab_incoming'),b:c.incoming},{k:'forecast',l:t('tab_fc')},{k:'done',l:t('tab_log')}];
+  if(S.role==='warehouse')return[{k:'prep',l:t('tab_prep'),b:c.prep,late:c.prepLate},{k:'incoming',l:t('tab_incoming'),b:c.incoming,late:c.incomingLate},{k:'forecast',l:t('tab_fc')},{k:'done',l:t('tab_log')}];
   return[];
 }
 
@@ -1253,7 +1276,7 @@ function render(){
   const tabs=authed?tabsFor():[];
   if(authed&&!tabs.some(x=>x.k===S.tab))S.tab=tabs[0].k;
   const nav=document.getElementById('tabs');nav.hidden=!authed;
-  document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}">${esc(x.l)}${x.b?`<span class="badge num">${x.b}</span>`:''}</button>`).join('');
+  document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}">${esc(x.l)}${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
   document.getElementById('sheet').innerHTML=authed?sheet():'';
@@ -1327,10 +1350,11 @@ function orderCard(o){
   let prog='';
   if(o.status==='approved'){const d=(o.lines||[]).filter(l=>l.checked).length;if(d)prog=`<div class="bar" title="${esc(t('preparedOf',{d,n}))}"><i style="width:${Math.round(d/n*100)}%"></i></div>`}
   const icon=o.kind==='return'?'warehouse':'branch';
-  return`<button class="oc ${o.kind==='return'?'ret':''}" data-act="open" data-id="${esc(o.id)}">
+  const late=lateInfo(o);
+  return`<button class="oc ${o.kind==='return'?'ret':''}${late?' late':''}" data-act="open" data-id="${esc(o.id)}">
     <span style="min-width:0"><span class="t">${esc(o.branch)} <span class="tag ${o.kind==='return'?'ret':''}">${esc(kindL(o.kind))}</span></span>
       <span class="s">${esc(t('nItems',{n}))} · ${esc(when(o.createdAt))}</span> <span class="n">${esc(o.num||o.id)}</span>${prog}</span>
-    <span class="side"><span class="pill st-${esc(o.status)}">${esc(statusL(o.status))}</span></span>
+    <span class="side">${latePill(o)}<span class="pill st-${esc(o.status)}">${esc(statusL(o.status))}</span></span>
   </button>`;
 }
 /* ---------- Excel export ---------- */
@@ -1597,7 +1621,7 @@ function sheet(){
   if(!S.open)return'';
   const o=S.orders.find(x=>x.id===S.open);if(!o)return'';
   const m=modeFor(o);const w=S.work[o.id]||initWork(o);
-  const head=`<div class="sh-head"><div class="row"><div style="flex:1;min-width:0"><div class="row" style="gap:8px"><h2>${esc(o.branch)}</h2><span class="tag ${o.kind==='return'?'ret':''}">${esc(kindL(o.kind))}</span><span class="pill st-${esc(o.status)}">${esc(statusL(o.status))}</span></div>
+  const head=`<div class="sh-head"><div class="row"><div style="flex:1;min-width:0"><div class="row" style="gap:8px"><h2>${esc(o.branch)}</h2><span class="tag ${o.kind==='return'?'ret':''}">${esc(kindL(o.kind))}</span><span class="pill st-${esc(o.status)}">${esc(statusL(o.status))}</span>${latePill(o)}</div>
    <div class="hint num" dir="ltr">${esc(o.num||o.id)}</div></div>${S.role==='branch'&&['pending','approved'].includes(o.status)?waLink(o,true):''}<button class="btn btn-ghost" style="padding:7px 12px;font-size:13px" data-act="xlsOrder" data-id="${esc(o.id)}">${t('xlsExport')}</button><button class="x" data-act="close" aria-label="${esc(t('close'))}">×</button></div>${timeline(o)}</div>`;
   let body='',foot='';
   const wa=o.waNotify&&S.role==="manager"?`<p class="hint" style="margin:0 0 10px">${esc(o.waNotify.sent?t("waSent",{n:o.waNotify.sent}):t("waFail",{e:o.waNotify.error||"-"}))}</p>`:"";
@@ -1934,6 +1958,7 @@ document.addEventListener('keydown',ev=>{
 
 render();
 Store.init();
+setInterval(()=>{const a=document.activeElement;if(!a||!/^(INPUT|TEXTAREA)$/.test(a.tagName))render()},5*60*1000);
 // cache fonts, libraries and images on the device for fast repeat visits
 if('serviceWorker' in navigator&&location.protocol==='https:'){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 </script>
