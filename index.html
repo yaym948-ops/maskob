@@ -1231,12 +1231,12 @@ function pinPad(){
   const setup=S.fb?!S.mainReady:!S.pins.manager;
   if(setup&&L.step==='enter')L.step='create';
   const title=L.step==='create'?t('setupTitle'):L.step==='confirm'?t('confirmCode'):t('homeTitle');
-  const hint=L.step==='enter'?t('homeHint'):t('digits');
+  const hint=L.step==='enter'?'':t('digits');
   const locked=Date.now()<S.lockUntil;
   const dots=Array.from({length:Math.max(4,L.val.length)},(_,i)=>`<i class="${i<L.val.length?'f':''}"></i>`).join('');
   const keys=['1','2','3','4','5','6','7','8','9'].map(k=>`<button data-act="pinKey" data-k="${k}" ${locked?'disabled':''}>${k}</button>`).join('');
   return`<div class="pin"><div class="brand-badge" role="img" aria-label="مسكوب MASKOB"></div>
-    <div><h2>${esc(title)}</h2><p class="hint">${esc(hint)}</p></div>
+    <div><h2>${esc(title)}</h2>${hint?`<p class="hint">${esc(hint)}</p>`:''}</div>
     <div class="dots" aria-label="${esc(t('digitsEntered',{n:L.val.length}))}">${dots}</div>
     <div class="err" role="alert">${locked?esc(t('tooMany')):L.err?esc(L.err):L.checking?`<span class="chk-note">${esc(t('checking'))}</span>`:''}</div>
     <div class="pad">${keys}<button class="fn" data-act="pinDel" aria-label="${esc(t('delDigit'))}">⌫</button><button data-act="pinKey" data-k="0" ${locked?'disabled':''}>0</button><button class="fn" data-act="pinClear">${t('clear')}</button></div>
