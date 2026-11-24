@@ -481,7 +481,9 @@ demo:['وضع تجريبي: هذه النسخة تعمل على هذا الجه�
 loadErr:['تعذّر الوصول إلى الطلبات ({c}). أعد فتح الصفحة لاحقاً.','Could not reach the orders ({c}). Reopen the page later.','অর্ডারগুলো পাওয়া যায়নি ({c})। পরে পেজটি আবার খুলুন।','آرڈرز تک رسائی نہیں ہو سکی ({c})۔ بعد میں صفحہ دوبارہ کھولیں۔'],
 stale:['لم يصل الاتصال بعد، قد تكون البيانات المعروضة غير محدّثة.','Not connected yet. The data shown may be out of date.','এখনো সংযোগ হয়নি। দেখানো তথ্য পুরোনো হতে পারে।','ابھی کنکشن نہیں ہوا۔ دکھایا گیا ڈیٹا پرانا ہو سکتا ہے۔'],
 r_branch:['الفرع','Branch','শাখা','برانچ'],
-r_manager:['الإدارة','Management','ব্যবস্থাপনা','انتظامیہ'],
+r_manager:['الإدارة التشغيلية','Operations management','অপারেশন ব্যবস্থাপনা','آپریشنز انتظامیہ'],
+r_admin:['إدارة النظام','System admin','সিস্টেম অ্যাডমিন','سسٹم ایڈمن'],
+adminBoot:['تعيين رمز إدارة النظام','Set the system admin code','সিস্টেম অ্যাডমিনের কোড সেট করুন','سسٹم ایڈمن کا کوڈ مقرر کریں'],
 homeTitle:['أدخل رمز الدخول','Enter your sign-in code','আপনার লগইন কোড দিন','اپنا لاگ اِن کوڈ درج کریں'],
 homeHint:['لكل فرع وللإدارة وللمستودع رمز خاص يفتح صفحتهم.','Each branch, the management and the warehouse have their own code that opens their page.','প্রতিটি শাখা, ব্যবস্থাপনা ও গুদামের নিজস্ব কোড আছে, যা তাদের পেজ খোলে।','ہر برانچ، انتظامیہ اور گودام کا اپنا کوڈ ہے جو ان کا صفحہ کھولتا ہے۔'],
 setupTitle:['إعداد أول مرة: أنشئ رمز الإدارة','First-time setup: create the management code','প্রথমবার সেটআপ: ব্যবস্থাপনার কোড তৈরি করুন','پہلی بار سیٹ اپ: انتظامیہ کا کوڈ بنائیں'],
@@ -969,6 +971,7 @@ const S={
 /* code keys: 'manager' | 'warehouse' | 'branch:<name>' — each salts its own hash */
 function pinEntries(){
   const e=[];
+  if(S.pins.admin)e.push({role:'admin',key:'admin',h:S.pins.admin});
   if(S.pins.manager)e.push({role:'manager',key:'manager',h:S.pins.manager});
   if(S.pins.warehouse)e.push({role:'warehouse',key:'warehouse',h:S.pins.warehouse});
   const br=S.pins.br||{};Object.keys(br).forEach(b=>{if(br[b])e.push({role:'branch',branch:b,key:'branch:'+b,h:br[b]})});
@@ -1089,6 +1092,14 @@ const Store={
   },
   fbStart(){
     this.fbStop();
+    this._unsubC=db.doc('config/contact').onSnapshot(s=>{S.contact=s.exists?s.data():{};render()},()=>{});
+    if(S.role==='admin'){            // system admin: settings only, no orders
+      S.loaded=true;
+      this._unsubP=db.doc('config/pins').onSnapshot(s=>{S.pins=s.exists?Object.assign({},s.data()):{};S.pinsReadable=true;render()},
+        e=>{if(e.code==='permission-denied')this.fbSignOut()});   // code changed: sign out
+      this._unsubN=db.doc('config/notify').onSnapshot(s=>{S.notify=s.exists?s.data():{};render()},()=>{});
+      render();return;
+    }
     const tm=setTimeout(()=>{if(!S.loaded){S.stale=true;render()}},10000);
     let q=db.collection('orders');
     q=S.role==='branch'?q.where('branch','==',S.branch):q.orderBy('createdAt','desc').limit(500);
@@ -1098,13 +1109,10 @@ const Store={
     },e=>{clearTimeout(tm);
       if(e.code==='permission-denied'){this.fbSignOut();return}   // code changed or session revoked
       S.error=e.code;S.loaded=true;render()});
-    this._unsubC=db.doc('config/contact').onSnapshot(s=>{S.contact=s.exists?s.data():{};render()},()=>{});
-    if(S.role==='manager'){
-      this._unsubP=db.doc('config/pins').onSnapshot(s=>{S.pins=s.exists?Object.assign({},s.data()):{};render()},()=>{});
-      this._unsubN=db.doc('config/notify').onSnapshot(s=>{S.notify=s.exists?s.data():{};render()},()=>{});
-    }
+    // operations management can read the codes only until a system admin code exists (one-time handover)
+    if(S.role==='manager')this._unsubP=db.doc('config/pins').onSnapshot(s=>{S.pins=s.exists?Object.assign({},s.data()):{};S.pinsReadable=true;render()},()=>{S.pinsReadable=false;S.pins={};render()});
   },
-  fbStop(){if(this._unsubO){this._unsubO();this._unsubO=null}if(this._unsubP){this._unsubP();this._unsubP=null}if(this._unsubN){this._unsubN();this._unsubN=null}if(this._unsubC){this._unsubC();this._unsubC=null}S.contact=null;S.notify=null;S.waDraft=null;S.orders=[];S.loaded=false;S.pins={}},
+  fbStop(){if(this._unsubO){this._unsubO();this._unsubO=null}if(this._unsubP){this._unsubP();this._unsubP=null}if(this._unsubN){this._unsubN();this._unsubN=null}if(this._unsubC){this._unsubC();this._unsubC=null}S.contact=null;S.notify=null;S.waDraft=null;S.orders=[];S.loaded=false;S.pins={};S.pinsReadable=undefined},
   async fbSignOut(){
     this.fbStop();try{await db.doc('sessions/'+S.uid).delete()}catch(e){}
     S.role=null;S.auth=null;LS.set('mk.role',null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render();
@@ -1193,7 +1201,8 @@ function counts(){
 function tabsFor(){
   const c=counts();
   if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks},{k:'orders',l:t('tab_mine')}];
-  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'forecast',l:t('tab_fc')},{k:'branches',l:t('tab_settings')}];
+  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'forecast',l:t('tab_fc')}];
+  if(S.role==='admin')return[{k:'branches',l:t('tab_settings')}];
   if(S.role==='warehouse')return[{k:'prep',l:t('tab_prep'),b:c.prep},{k:'incoming',l:t('tab_incoming'),b:c.incoming},{k:'forecast',l:t('tab_fc')},{k:'done',l:t('tab_log')}];
   return[];
 }
@@ -1255,6 +1264,7 @@ function pinPad(){
 function view(){
   if(!S.loaded)return`<p class="hint">${t('loadingOrders')}</p>`;
   const tb=S.tab,v=visible();
+  if(S.role==='admin')return branchesView();
   if(tb==='forecast'&&S.role!=='branch')return forecastView();
   if(tb==='report'&&S.role==='manager')return reportView();
   if(S.role==='branch'){
@@ -1264,8 +1274,7 @@ function view(){
     return(js?sentCard(js):'')+listView(t('tab_mine'),t('h_mine'),filtered(v),t('e_mine'),true);
   }
   if(S.role==='manager'){
-    if(tb==='pending')return listView(t('t_pending'),t('h_pending'),v.filter(o=>o.status==='pending'),t('e_pending'));
-    if(tb==='branches')return branchesView();
+    if(tb==='pending')return adminBootBox()+listView(t('t_pending'),t('h_pending'),v.filter(o=>o.status==='pending'),t('e_pending'));
     return listView(t('tab_all'),'',filtered(v),t('e_all'),true);
   }
   if(tb==='prep')return listView(t('tab_prep'),t('h_prep'),v.filter(o=>o.kind!=='return'&&o.status==='approved'),t('e_prep'));
@@ -1469,10 +1478,14 @@ function waView(){
     <div class="wide"><button class="btn btn-navy" data-act="waSave">${t('waSave')}</button></div>
   </div></div>`;
 }
+function adminBootBox(){
+  if(S.role!=='manager'||S.pins.admin||(S.fb&&!S.pinsReadable))return'';
+  return'<div class="sent-card" style="margin-bottom:18px"><div style="flex:1;min-width:200px"><b>'+t('adminBoot')+'</b></div><div class="row" style="flex:1;min-width:240px"><input class="field" type="password" inputmode="numeric" maxlength="6" id="adminBoot" placeholder="'+esc(t('newCodePh'))+'" value="'+esc(S.adminIn||'')+'" data-in="adminIn" autocomplete="new-password" style="flex:1;min-width:0;direction:ltr;text-align:center;letter-spacing:.3em"><button class="btn btn-navy" data-act="setAdmin">'+t('assign')+'</button></div></div>';
+}
 function branchesView(){
   const row=(key,icon,label,id,extra)=>{const set=!!hashForKey(key);return`<div class="code"><div><b>${esc(label)}</b><div class="${set?'set':'unset'}">${set?t('isSet'):t('notSet')}</div></div>
     <div class="wide"><input class="field" type="password" inputmode="numeric" maxlength="6" id="${id}" placeholder="${esc(t('newCodePh'))}" value="${esc(S.pinIn[key]||'')}" data-in="pinIn" data-k="${esc(key)}" autocomplete="new-password"><button class="btn btn-navy" data-act="savePin" data-k="${esc(key)}">${set?t('change'):t('assign')}</button>${extra||''}</div></div>`};
-  const codes=row('manager','manager',t('codeOf',{r:roleL('manager')}),'pin-manager')+row('warehouse','warehouse',t('codeOf',{r:roleL('warehouse')}),'pin-warehouse');
+  const codes=row('admin','manager',t('codeOf',{r:roleL('admin')}),'pin-admin')+row('manager','manager',t('codeOf',{r:roleL('manager')}),'pin-manager')+row('warehouse','warehouse',t('codeOf',{r:roleL('warehouse')}),'pin-warehouse');
   const brs=S.branches.map((b,i)=>row('branch:'+b,'branch',b,'pin-br-'+i,S.branches.length>1?`<button class="btn btn-bad" data-act="delBranch" data-i="${i}">${t('del')}</button>`:'')).join('');
   return`<h2>${t('codesTitle')}</h2>
   <div class="codes">${codes}</div>
@@ -1671,7 +1684,7 @@ async function findCode(pin){
   if(!S.fb)return findLocal(pin);
   // Firebase: the server checks the code; try each role/branch until a session is accepted
   // look the code up: codes/{hash} exists only for the role/branch the code belongs to
-  const keys=[['manager',null],['warehouse',null],...S.branches.map(b=>['branch',b])];
+  const keys=[['admin',null],['manager',null],['warehouse',null],...S.branches.map(b=>['branch',b])];
   const hits=await Promise.all(keys.map(async([role,branch])=>{
     const key=role==='branch'?'branch:'+branch:role;const h=await hashPin(key,pin);
     try{const s=await db.doc('codes/'+h).get();return s.exists?{role,branch,key,h}:null}catch(e){return null}
@@ -1740,6 +1753,18 @@ const A={
         loginOk('manager',h)},()=>t('mgrCodeSet'));
     }
     autoCheck(true);
+  },
+  async setAdmin(){
+    const v=(S.adminIn||'').trim();
+    if(!/^[0-9]{4,6}$/.test(v)){toast(t('codeLen'));return}
+    const clash=await findLocal(v);if(clash){toast(t('codeInUse'));return}
+    if(await overlapsOther(v,'admin')){toast(t('codeOverlap'));return}
+    const h=await hashPin('admin',v);
+    guard(async()=>{
+      if(S.fb){await db.doc('codes/'+h).set({role:'admin'});await db.doc('config/pins').update({admin:h})}
+      else{S.pins=Object.assign({},S.pins,{admin:h});LS.set('mk.demo.pins',S.pins)}
+      S.pins=Object.assign({},S.pins,{admin:h});S.adminIn='';
+    },()=>t('codeSaved',{r:roleL('admin')}));
   },
   dismissSent(){S.justSent=null;render()},
   waOpened(){},
@@ -1843,6 +1868,7 @@ document.addEventListener('input',ev=>{
   if(k==='q'){S.q=el.value;clearTimeout(S._qT);S._qT=setTimeout(render,140);return}
   if(k==='newBranch'){S.newBranch=el.value;return}
   if(k==='waDraft'){S.waDraft=el.value;return}
+  if(k==='adminIn'){el.value=el.value.replace(/[^0-9]/g,'').slice(0,6);S.adminIn=el.value;return}
   if(k==='pinIn'){el.value=el.value.replace(/\D/g,'').slice(0,6);S.pinIn[el.dataset.k]=el.value;return}
   if(k==='dnote'){S.draft.note=el.value;saveDraft();return}
   if(k==='stock'){S.draft.stock[el.dataset.id]=el.value;saveDraft();return}

@@ -5,7 +5,12 @@ rules_version = '2';
 // holding {role, branch, h}; the write is accepted only when h equals the stored hash
 // for that role (or that branch) in config/pins, so only someone who knows the code
 // can open a session. Changing or deleting a code invalidates its sessions at once.
-// config/pins is readable by management only.
+//
+// Roles:
+//   admin     — system admin: sign-in codes, branches, WhatsApp settings. No orders.
+//   manager   — operations management: approvals, reports, all orders, forecasts. No settings.
+//   warehouse — prepares approved orders, receives returns.
+//   branch    — its own orders only.
 service cloud.firestore {
   match /databases/{db}/documents {
 
@@ -23,13 +28,18 @@ service cloud.firestore {
         && hashFor(sess().role, sess().branch) == sess().h;
     }
     function isRole(r) { return valid() && sess().role == r; }
+    function isAdmin() { return isRole('admin'); }
     function isMgr() { return isRole('manager'); }
+    function adminSet() { return 'admin' in pins(); }
 
     match /config/pins {
-      allow read: if isMgr();
-      // first-time setup only: whoever creates it first sets the management code
+      // system admin manages all codes; operations management may read and add the
+      // system admin code only once, while none exists yet (first-time handover)
+      allow read: if isAdmin() || (isMgr() && !('admin' in resource.data));
       allow create: if signedIn() && !exists(pinsPath());
-      allow update: if isMgr();
+      allow update: if isAdmin()
+        || (isMgr() && !('admin' in resource.data)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['admin']));
       allow delete: if false;
     }
 
@@ -38,42 +48,46 @@ service cloud.firestore {
     match /codes/{h} {
       allow get: if signedIn();
       allow list: if false;
-      allow create, update, delete: if isMgr();
+      allow create: if isAdmin()
+        || (isMgr() && !adminSet() && request.resource.data.role == 'admin');
+      allow update, delete: if isAdmin();
     }
 
-    // WhatsApp notification settings (warehouse numbers): management only.
+    // WhatsApp notification settings (warehouse numbers): system admin only.
     // The server function reads it with admin rights.
     match /config/notify {
-      allow read, write: if isMgr();
+      allow read, write: if isAdmin();
     }
 
     // warehouse WhatsApp number for the "notify on WhatsApp" button: any signed-in role reads it
     match /config/contact {
       allow read: if valid();
-      allow write: if isMgr();
+      allow write: if isAdmin();
     }
 
     match /config/main {
       allow read: if signedIn();
-      allow write: if isMgr() || (signedIn() && !exists(/databases/$(db)/documents/config/main));
+      allow write: if isAdmin() || (signedIn() && !exists(/databases/$(db)/documents/config/main));
     }
 
     match /sessions/{uid} {
       allow read, delete: if signedIn() && request.auth.uid == uid;
       allow create, update: if signedIn() && request.auth.uid == uid
         && exists(pinsPath())
-        && request.resource.data.role in ['manager', 'warehouse', 'branch']
+        && request.resource.data.role in ['admin', 'manager', 'warehouse', 'branch']
         && hashFor(request.resource.data.role, request.resource.data.get('branch', '')) == request.resource.data.h;
     }
 
     match /orders/{id} {
-      allow read: if valid() && (sess().role != 'branch' || resource.data.branch == sess().branch);
+      allow read: if valid()
+        && (sess().role in ['manager', 'warehouse']
+            || (sess().role == 'branch' && resource.data.branch == sess().branch));
       allow create: if valid()
         && (sess().role == 'manager'
             || (sess().role == 'branch' && request.resource.data.branch == sess().branch && request.resource.data.status == 'pending'));
       allow update: if valid()
-        && (sess().role != 'branch'
-            || (resource.data.branch == sess().branch && request.resource.data.branch == sess().branch));
+        && (sess().role in ['manager', 'warehouse']
+            || (sess().role == 'branch' && resource.data.branch == sess().branch && request.resource.data.branch == sess().branch));
       allow delete: if false;
     }
   }
