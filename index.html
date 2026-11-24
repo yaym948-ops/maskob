@@ -486,6 +486,9 @@ textarea,input,select,button{font-family:inherit}
 .notify-on{margin-bottom:14px;font-size:13px}
 @media (max-width:560px){.notice .row{width:100%}.notice .row .btn{flex:1}}
 
+.len-box{margin-bottom:10px}
+.len-warn{grid-column:1 / -1;background:var(--late-soft);color:var(--late);border-radius:8px;padding:8px 12px;font-size:13.5px;font-weight:500}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -686,6 +689,13 @@ branchesHint:['الفروع التي تظهر عند اختيار الدور.','
 del:['حذف','Delete','মুছুন','حذف کریں'],
 newBranchPh:['اسم الفرع الجديد','New branch name','নতুন শাখার নাম','نئی برانچ کا نام'],
 add:['إضافة','Add','যোগ করুন','شامل کریں'],
+lenLabel:['عدد أرقام الرمز','Code length','কোডের অঙ্ক','کوڈ کے ہندسے'],
+lenAny:['مرن (4–6)','Flexible (4–6)','নমনীয় (4–6)','لچکدار (4–6)'],
+lenSaved:['حُفظ عدد أرقام الرمز','Code length saved','কোডের দৈর্ঘ্য সংরক্ষিত','کوڈ کی لمبائی محفوظ ہو گئی'],
+lenWarn:['أعد تعيين هذه الرموز بـ {n} أرقام وإلا لن تعمل: {list}','Re-set these codes with {n} digits or they will stop working: {list}','এই কোডগুলো {n} অঙ্কে আবার সেট করুন, নইলে কাজ করবে না: {list}','یہ کوڈ {n} ہندسوں میں دوبارہ مقرر کریں ورنہ کام نہیں کریں گے: {list}'],
+codeLenN:['الرمز يجب أن يكون {n} أرقام','The code must be {n} digits','কোড {n} অঙ্কের হতে হবে','کوڈ {n} ہندسوں کا ہونا چاہیے'],
+newCodePhN:['رمز جديد من {n} أرقام','New {n}-digit code','নতুন {n}-অঙ্কের কোড','نیا {n} ہندسوں کا کوڈ'],
+digitsN:['({n} أرقام)','({n} digits)','({n} অঙ্ক)','({n} ہندسے)'],
 codeLen:['الرمز يجب أن يكون من 4 إلى 6 أرقام','The code must be 4 to 6 digits','কোড 4 থেকে 6 অঙ্কের হতে হবে','کوڈ 4 سے 6 ہندسوں کا ہونا چاہیے'],
 codeSaved:['حُفظ رمز {r}','{r} code saved','{r}-এর কোড সংরক্ষিত','{r} کا کوڈ محفوظ ہو گیا'],
 branchAdded:['أُضيف الفرع','Branch added','শাখা যোগ হয়েছে','برانچ شامل ہو گئی'],
@@ -1113,7 +1123,7 @@ const Store={
   demo(){
     let o=LS.get(DEMO_KEY,null);
     if(!Array.isArray(o)){o=demoSeed();LS.set(DEMO_KEY,o)}
-    S.orders=o;S.branches=LS.get('mk.demo.branches',['القطيف']);S.days=LS.get('mk.demo.days',{});S.loaded=true;
+    S.orders=o;S.branches=LS.get('mk.demo.branches',['القطيف']);S.days=LS.get('mk.demo.days',{});S.codeLen=LS.get('mk.demo.codeLen',null);S.loaded=true;
     S.pins=LS.get('mk.demo.pins',{});S.notify=LS.get('mk.demo.notify',{});S.contact=LS.get('mk.demo.contact',{});S.pinsLoaded=true;checkAuth();render();
   },
   async save(o){
@@ -1153,6 +1163,7 @@ const Store={
       const d=s.exists?s.data():{};
       if(Array.isArray(d.branches)&&d.branches.length)S.branches=d.branches.map(String);
       S.days=d.days&&typeof d.days==='object'?d.days:{};
+      S.codeLen=[4,5,6].includes(d.codeLen)?d.codeLen:null;
       S.mainReady=!!d.ready;S.mainSeen=true;this.fbReadyCheck();render();
     },e=>{S.error=e.code;S.pinsLoaded=true;render()});
     // resume an existing session on this device
@@ -1197,6 +1208,10 @@ const Store={
   async fbTrySession(role,branch,h){
     const d={role,h,at:new Date().toISOString()};if(role==='branch')d.branch=branch;
     try{await db.doc('sessions/'+S.uid).set(d);return true}catch(e){return false}
+  },
+  async saveCodeLen(n){
+    if(S.fb)return queue('config',()=>db.doc('config/main').set({codeLen:n},{merge:true}));
+    LS.set('mk.demo.codeLen',n);
   },
   async saveDays(days){
     if(S.fb)return queue('config',()=>db.doc('config/main').set({days},{merge:true}));
@@ -1361,9 +1376,10 @@ function pinPad(){
   const setup=S.fb?!S.mainReady:!S.pins.manager;
   if(setup&&L.step==='enter')L.step='create';
   const title=L.step==='create'?t('setupTitle'):L.step==='confirm'?t('confirmCode'):t('homeTitle');
-  const hint=L.step==='enter'?'':t('digits');
+  const CL=codeLenSet();
+  const hint=L.step==='enter'?'':(CL?t('digitsN',{n:CL}):t('digits'));
   const locked=Date.now()<S.lockUntil;
-  const dots=Array.from({length:Math.max(4,L.val.length)},(_,i)=>`<i class="${i<L.val.length?'f':''}"></i>`).join('');
+  const dots=Array.from({length:CL||Math.max(4,L.val.length)},(_,i)=>`<i class="${i<L.val.length?'f':''}"></i>`).join('');
   const keys=['1','2','3','4','5','6','7','8','9'].map(k=>`<button data-act="pinKey" data-k="${k}" ${locked?'disabled':''}>${k}</button>`).join('');
   return`<div class="pin"><div class="brand-badge" role="img" aria-label="مسكوب MASKOB"></div>
     <div><h2>${esc(title)}</h2>${hint?`<p class="hint">${esc(hint)}</p>`:''}</div>
@@ -1636,20 +1652,30 @@ function waView(){
     <div class="wide"><button class="btn btn-navy" data-act="waSave">${t('waSave')}</button></div>
   </div></div>`;
 }
+function lenView(){
+  const CL=codeLenSet();
+  const btn=(v,l)=>`<button class="dday${(CL===v)?' on':''}" data-act="setLen" data-n="${v||0}" aria-pressed="${CL===v}">${esc(l)}</button>`;
+  let warn='';
+  if(CL){const keys=['admin','manager','warehouse',...S.branches.map(b=>'branch:'+b)].filter(k=>hashForKey(k));
+    const lens=(S.pins&&S.pins.lens)||{};
+    const bad=keys.filter(k=>lens[k]!==CL).map(k=>k.startsWith('branch:')?k.slice(7):roleL(k));
+    if(bad.length)warn=`<div class="len-warn">${esc(t('lenWarn',{n:CL,list:bad.join('، ')}))}</div>`}
+  return`<div class="code len-box"><div class="days"><span class="hint">${t('lenLabel')}</span>${btn(null,t('lenAny'))}${btn(4,'4')}${btn(5,'5')}${btn(6,'6')}</div>${warn}</div>`;
+}
 function daysRow(b,i){
   const on=(S.days&&S.days[b])||[];
   return`<div class="days"><span class="hint">${t('daysLabel')}</span>${[0,1,2,3,4,5,6].map(d=>`<button class="dday${on.includes(d)?' on':''}" data-act="toggleDay" data-i="${i}" data-d="${d}" aria-pressed="${on.includes(d)}">${esc(weekdayName(d))}</button>`).join('')}</div>`;
 }
 function adminBootBox(){
   if(S.role!=='manager'||S.pins.admin||(S.fb&&!S.pinsReadable))return'';
-  return'<div class="sent-card" style="margin-bottom:18px"><div style="flex:1;min-width:200px"><b>'+t('adminBoot')+'</b></div><div class="row" style="flex:1;min-width:240px"><input class="field" type="password" inputmode="numeric" maxlength="6" id="adminBoot" placeholder="'+esc(t('newCodePh'))+'" value="'+esc(S.adminIn||'')+'" data-in="adminIn" autocomplete="new-password" style="flex:1;min-width:0;direction:ltr;text-align:center;letter-spacing:.3em"><button class="btn btn-navy" data-act="setAdmin">'+t('assign')+'</button></div></div>';
+  return'<div class="sent-card" style="margin-bottom:18px"><div style="flex:1;min-width:200px"><b>'+t('adminBoot')+'</b></div><div class="row" style="flex:1;min-width:240px"><input class="field" type="password" inputmode="numeric" maxlength="6" id="adminBoot" placeholder="'+esc(codePh())+'" value="'+esc(S.adminIn||'')+'" data-in="adminIn" autocomplete="new-password" style="flex:1;min-width:0;direction:ltr;text-align:center;letter-spacing:.3em"><button class="btn btn-navy" data-act="setAdmin">'+t('assign')+'</button></div></div>';
 }
 function branchesView(){
   const row=(key,icon,label,id,extra)=>{const set=!!hashForKey(key);return`<div class="code"><div><b>${esc(label)}</b><div class="${set?'set':'unset'}">${set?t('isSet'):t('notSet')}</div></div>
-    <div class="wide"><input class="field" type="password" inputmode="numeric" maxlength="6" id="${id}" placeholder="${esc(t('newCodePh'))}" value="${esc(S.pinIn[key]||'')}" data-in="pinIn" data-k="${esc(key)}" autocomplete="new-password"><button class="btn btn-navy" data-act="savePin" data-k="${esc(key)}">${set?t('change'):t('assign')}</button>${extra||''}</div></div>`};
+    <div class="wide"><input class="field" type="password" inputmode="numeric" maxlength="${codeLenSet()||6}" id="${id}" placeholder="${esc(codePh())}" value="${esc(S.pinIn[key]||'')}" data-in="pinIn" data-k="${esc(key)}" autocomplete="new-password"><button class="btn btn-navy" data-act="savePin" data-k="${esc(key)}">${set?t('change'):t('assign')}</button>${extra||''}</div></div>`};
   const codes=row('admin','manager',t('codeOf',{r:roleL('admin')}),'pin-admin')+row('manager','manager',t('codeOf',{r:roleL('manager')}),'pin-manager')+row('warehouse','warehouse',t('codeOf',{r:roleL('warehouse')}),'pin-warehouse');
   const brs=S.branches.map((b,i)=>{const r=row('branch:'+b,'branch',b,'pin-br-'+i,S.branches.length>1?`<button class="btn btn-bad" data-act="delBranch" data-i="${i}">${t('del')}</button>`:'');return r.slice(0,-6)+daysRow(b,i)+'</div>'}).join('');
-  return`<h2>${t('codesTitle')}</h2>
+  return`<h2>${t('codesTitle')}</h2>${lenView()}
   <div class="codes">${codes}</div>
   ${waView()}
   <h2 style="margin-top:28px">${t('branchesTitle')}</h2>
@@ -1874,9 +1900,16 @@ async function findCode(pin){
    "wrong code" after a short pause or at the 6th digit */
 let chkTimer=null,chkSeq=0;
 function cancelCheck(){clearTimeout(chkTimer);chkSeq++;S.pad.checking=false}
+/* fixed code length from Settings (null = flexible 4-6) */
+const codeLenSet=()=>[4,5,6].includes(S.codeLen)?S.codeLen:null;
+const codeOk=v=>{const L=codeLenSet();return L?new RegExp('^[0-9]{'+L+'}$').test(v):/^[0-9]{4,6}$/.test(v)};
+const codeLenMsg=()=>codeLenSet()?t('codeLenN',{n:codeLenSet()}):t('codeLen');
+const codePh=()=>codeLenSet()?t('newCodePhN',{n:codeLenSet()}):t('newCodePh');
 function scheduleCheck(){
   clearTimeout(chkTimer);
   const L=S.pad;if(L.val.length<4)return;
+  const CL=codeLenSet();
+  if(CL){if(L.val.length===CL)autoCheck(true);return}   // fixed length: decide at the last digit
   autoCheck(L.val.length>=6);
   if(L.val.length<6)chkTimer=setTimeout(()=>autoCheck(true),1600);
 }
@@ -1912,12 +1945,13 @@ function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
   tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
-  pinKey(el){const L=S.pad;if(L.val.length>=6||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
+  pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
   pinDel(){cancelCheck();S.pad.val=S.pad.val.slice(0,-1);S.pad.err='';render()},
   pinClear(){cancelCheck();S.pad.val='';S.pad.err='';render()},
   async pinGo(){
     const L=S.pad;if(L.val.length<4||S.busy||Date.now()<S.lockUntil)return;
+    if(L.step==='create'&&!codeOk(L.val)){L.err=codeLenMsg();render();return}
     if(L.step==='create'){L.first=L.val;L.val='';L.step='confirm';render();return}
     if(L.step==='confirm'){
       if(L.val!==L.first){L.step='create';L.val='';L.first='';L.err=t('mismatch');render();return}
@@ -1932,7 +1966,7 @@ const A={
   },
   async setAdmin(){
     const v=(S.adminIn||'').trim();
-    if(!/^[0-9]{4,6}$/.test(v)){toast(t('codeLen'));return}
+    if(!codeOk(v)){toast(codeLenMsg());return}
     const clash=await findLocal(v);if(clash){toast(t('codeInUse'));return}
     if(await overlapsOther(v,'admin')){toast(t('codeOverlap'));return}
     const h=await hashPin('admin',v);
@@ -1959,11 +1993,12 @@ const A={
   },
   async savePin(el){
     const key=el.dataset.k;const v=(S.pinIn[key]||'').trim();
-    if(!/^\d{4,6}$/.test(v)){toast(t('codeLen'));return}
+    if(!codeOk(v)){toast(codeLenMsg());return}
     const clash=await findLocal(v);
     if(clash&&clash.key!==key){toast(t('codeInUse'));return}
     if(await overlapsOther(v,key)){toast(t('codeOverlap'));return}
     const h=await hashPin(key,v);const p=Object.assign({},S.pins);
+    if(S.role==='admin'||!S.fb)p.lens=Object.assign({},S.pins.lens||{},{[key]:v.length});
     if(key.startsWith('branch:'))p.br=Object.assign({},S.pins.br||{},{[key.slice(7)]:h});else p[key]=h;
     const label=key.startsWith('branch:')?key.slice(7):roleL(key);
     const oldH=hashForKey(key);
@@ -2016,6 +2051,7 @@ const A={
     guard(async()=>{await Store.patch(c.o.id,f);S.open=null;S.confirm=null},()=>t('t_rejected'));},
   ackNotice(el){const id=el.dataset.id;guard(()=>Store.patch(id,{schedNotice:null}))},
   enableAlerts(){try{Notification.requestPermission().then(()=>render())}catch(e){}},
+  setLen(el){const n=+el.dataset.n||null;S.codeLen=n;render();guard(()=>Store.saveCodeLen(n),()=>t('lenSaved'))},
   toggleDay(el){
     const b=S.branches[+el.dataset.i],d=+el.dataset.d;if(b==null)return;
     const days=Object.assign({},S.days||{});const cur=new Set(days[b]||[]);
