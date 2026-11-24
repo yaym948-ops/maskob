@@ -205,6 +205,7 @@ textarea,.field{width:100%;border:1px solid var(--line);background:var(--card);b
 .dots{display:flex;gap:12px;direction:ltr;min-height:18px}
 .dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--navy);display:block}
 .dots i.f{background:var(--navy)}
+.pin .err .chk-note{color:var(--muted);font-weight:500}
 .pin .err{color:var(--bad);font-size:13px;min-height:20px;font-weight:600}
 .pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;direction:ltr}
 .pad button{height:58px;border-radius:16px;border:1px solid var(--line);background:var(--bg);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -446,6 +447,7 @@ r_manager:['الإدارة','Management','ব্যবস্থাপনা','ا
 homeTitle:['أدخل رمز الدخول','Enter your sign-in code','আপনার লগইন কোড দিন','اپنا لاگ اِن کوڈ درج کریں'],
 homeHint:['لكل فرع وللإدارة وللمستودع رمز خاص يفتح صفحتهم.','Each branch, the management and the warehouse have their own code that opens their page.','প্রতিটি শাখা, ব্যবস্থাপনা ও গুদামের নিজস্ব কোড আছে, যা তাদের পেজ খোলে।','ہر برانچ، انتظامیہ اور گودام کا اپنا کوڈ ہے جو ان کا صفحہ کھولتا ہے۔'],
 setupTitle:['إعداد أول مرة: أنشئ رمز الإدارة','First-time setup: create the management code','প্রথমবার সেটআপ: ব্যবস্থাপনার কোড তৈরি করুন','پہلی بار سیٹ اپ: انتظامیہ کا کوڈ بنائیں'],
+codeOverlap:['هذا الرمز يتداخل مع رمز آخر (أحدهما يبدأ بالآخر)، اختر رمزاً مختلفاً.','This code overlaps another code (one starts with the other). Choose a different one.','এই কোডটি অন্য একটি কোডের সাথে মিলে যায় (একটি অন্যটির শুরু)। অন্য কোড দিন।','یہ کوڈ کسی اور کوڈ سے ٹکراتا ہے (ایک دوسرے کا آغاز ہے)۔ کوئی اور کوڈ چنیں۔'],
 codeInUse:['هذا الرمز مستخدم لجهة أخرى، اختر رمزاً مختلفاً.','This code is already used by someone else. Choose a different one.','এই কোডটি অন্য কেউ ব্যবহার করছে। অন্য কোড দিন।','یہ کوڈ کسی اور کے لیے استعمال ہو رہا ہے۔ کوئی اور کوڈ چنیں۔'],
 xlsExport:['تصدير إكسل','Export to Excel','এক্সেলে রপ্তানি','ایکسل میں ایکسپورٹ'],
 xlsSaved:['حُفظ ملف الإكسل','Excel file saved','এক্সেল ফাইল সংরক্ষিত','ایکسل فائل محفوظ ہو گئی'],
@@ -1191,9 +1193,9 @@ function pinPad(){
   return`<div class="pin"><div class="brand-badge" role="img" aria-label="مسكوب MASKOB"></div>
     <div><h2>${esc(title)}</h2><p class="hint">${esc(hint)}</p></div>
     <div class="dots" aria-label="${esc(t('digitsEntered',{n:L.val.length}))}">${dots}</div>
-    <div class="err" role="alert">${locked?esc(t('tooMany')):esc(L.err||'')}</div>
+    <div class="err" role="alert">${locked?esc(t('tooMany')):L.err?esc(L.err):L.checking?`<span class="chk-note">${esc(t('checking'))}</span>`:''}</div>
     <div class="pad">${keys}<button class="fn" data-act="pinDel" aria-label="${esc(t('delDigit'))}">⌫</button><button data-act="pinKey" data-k="0" ${locked?'disabled':''}>0</button><button class="fn" data-act="pinClear">${t('clear')}</button></div>
-    <button class="btn btn-navy" style="width:100%" data-act="pinGo" ${L.val.length>=4&&!locked&&!S.busy?'':'disabled'}>${L.step==='enter'?t('signIn'):t('continue')}</button>
+    ${L.step==='enter'?'':`<button class="btn btn-navy" style="width:100%" data-act="pinGo" ${L.val.length>=4&&!locked&&!S.busy?'':'disabled'}>${t('continue')}</button>`}
   </div>`;
 }
 function view(){
@@ -1564,14 +1566,53 @@ async function findCode(pin){
   if(e&&await Store.fbTrySession(e.role,e.branch,e.h))return e;
   return null;
 }
+/* sign in as soon as the typed code matches: codes are 4–6 digits, so try after the 4th, 5th
+   and 6th digit; a miss stays quiet while the person may still be typing, and becomes
+   "wrong code" after a short pause or at the 6th digit */
+let chkTimer=null,chkSeq=0;
+function cancelCheck(){clearTimeout(chkTimer);chkSeq++;S.pad.checking=false}
+function scheduleCheck(){
+  clearTimeout(chkTimer);
+  const L=S.pad;if(L.val.length<4)return;
+  autoCheck(L.val.length>=6);
+  if(L.val.length<6)chkTimer=setTimeout(()=>autoCheck(true),1600);
+}
+function wrongCode(){
+  const L=S.pad;S.fails++;L.val='';L.err=t('wrongCode');L.checking=false;
+  if(S.fails>=5){S.fails=0;S.lockUntil=Date.now()+30000;setTimeout(render,30100)}
+  render();
+}
+async function autoCheck(final){
+  const L=S.pad;
+  if(L.step!=='enter'||L.val.length<4||Date.now()<S.lockUntil||S.signingIn)return;
+  const pin=L.val,seq=++chkSeq;
+  if(L.miss===pin){if(final)wrongCode();return}      // already known not to match
+  L.checking=true;render();
+  const e=await findCode(pin);
+  if(seq!==chkSeq||S.pad.val!==pin)return;           // the person kept typing; a newer check decides
+  L.checking=false;
+  if(e){S.signingIn=true;clearTimeout(chkTimer);S.fails=0;loginOk(e.role,e.h,e.branch);S.signingIn=false;render();return}
+  L.miss=pin;
+  if(final)wrongCode();else render();
+}
+/* refuse a code that starts with, or is the start of, another code (auto sign-in would stop early) */
+async function overlapsOther(v,key){
+  const others=pinEntries().filter(e=>e.key!==key);if(!others.length)return false;
+  const cands=[];
+  for(let n=4;n<v.length;n++)cands.push(v.slice(0,n));
+  if(v.length<6)for(let a=0;a<10;a++){cands.push(v+a);if(v.length<5)for(let b=0;b<10;b++)cands.push(v+a+b)}
+  for(const p of cands)for(const e of others)if(await hashPin(e.key,p)===e.h)return true;
+  return false;
+}
 const fieldKey=f=>({appr:'approved',sent:'sent',recv:'received'}[f]);
 function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
   tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
-  pinKey(el){const L=S.pad;if(L.val.length>=6||Date.now()<S.lockUntil)return;L.val+=el.dataset.k;L.err='';render()},
-  pinDel(){S.pad.val=S.pad.val.slice(0,-1);render()},
-  pinClear(){S.pad.val='';S.pad.err='';render()},
+  pinKey(el){const L=S.pad;if(L.val.length>=6||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
+    render();if(L.step==='enter')scheduleCheck()},
+  pinDel(){cancelCheck();S.pad.val=S.pad.val.slice(0,-1);S.pad.err='';render()},
+  pinClear(){cancelCheck();S.pad.val='';S.pad.err='';render()},
   async pinGo(){
     const L=S.pad;if(L.val.length<4||S.busy||Date.now()<S.lockUntil)return;
     if(L.step==='create'){L.first=L.val;L.val='';L.step='confirm';render();return}
@@ -1584,18 +1625,14 @@ const A={
           await db.doc('config/main').set({branches:S.branches,ready:true},{merge:true})}
         loginOk('manager',h)},()=>t('mgrCodeSet'));
     }
-    const pin=L.val;S.busy=true;render();
-    const e=await findCode(pin);S.busy=false;
-    if(e){S.fails=0;loginOk(e.role,e.h,e.branch);render();return}
-    S.fails++;L.val='';L.err=t('wrongCode');
-    if(S.fails>=5){S.fails=0;S.lockUntil=Date.now()+30000;setTimeout(render,30100)}
-    render();
+    autoCheck(true);
   },
   async savePin(el){
     const key=el.dataset.k;const v=(S.pinIn[key]||'').trim();
     if(!/^\d{4,6}$/.test(v)){toast(t('codeLen'));return}
     const clash=await findLocal(v);
     if(clash&&clash.key!==key){toast(t('codeInUse'));return}
+    if(await overlapsOther(v,key)){toast(t('codeOverlap'));return}
     const h=await hashPin(key,v);const p=Object.assign({},S.pins);
     if(key.startsWith('branch:'))p.br=Object.assign({},S.pins.br||{},{[key.slice(7)]:h});else p[key]=h;
     const label=key.startsWith('branch:')?key.slice(7):roleL(key);
