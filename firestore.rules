@@ -88,7 +88,10 @@ service cloud.firestore {
       allow update: if valid()
         && (sess().role in ['manager', 'warehouse']
             || (sess().role == 'branch' && resource.data.branch == sess().branch && request.resource.data.branch == sess().branch));
-      allow delete: if false;
+      // operations may delete any order; a branch only its own order while still pending
+      allow delete: if valid()
+        && (sess().role == 'manager'
+            || (sess().role == 'branch' && resource.data.branch == sess().branch && resource.data.status == 'pending'));
     }
   }
 }

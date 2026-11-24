@@ -436,6 +436,21 @@ textarea,input,select,button{font-family:inherit}
 .step button:active{background:var(--sun-ink)}
 .step input{color:var(--fg)}
 
+/* delete order */
+.del-zone{margin-top:20px;padding-top:14px;border-top:1px dashed var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.del-zone span{font-weight:500;color:var(--sun-ink)}
+.btn-del{background:var(--sun-ink);color:#fff}
+.btn-del:hover{background:var(--sun)}
+
+/* daily report in the brand orange */
+.stat{border-top:3px solid var(--sun)}
+.stat b,.stat.hot b{color:var(--sun-ink)}
+.stat.hot{background:var(--sun-soft)}
+.rp-btn{color:var(--sun-ink);border-color:color-mix(in srgb,var(--sun) 55%,var(--line))}
+.rp-btn:hover{border-color:var(--sun);background:var(--sun-soft)}
+.rp-sec h3::before{content:"";display:inline-block;width:4px;height:16px;border-radius:2px;background:var(--sun);margin-inline-end:8px;vertical-align:-2px}
+.attn div{border-inline-start-color:var(--sun)}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -481,7 +496,7 @@ demo:['وضع تجريبي: هذه النسخة تعمل على هذا الجه�
 loadErr:['تعذّر الوصول إلى الطلبات ({c}). أعد فتح الصفحة لاحقاً.','Could not reach the orders ({c}). Reopen the page later.','অর্ডারগুলো পাওয়া যায়নি ({c})। পরে পেজটি আবার খুলুন।','آرڈرز تک رسائی نہیں ہو سکی ({c})۔ بعد میں صفحہ دوبارہ کھولیں۔'],
 stale:['لم يصل الاتصال بعد، قد تكون البيانات المعروضة غير محدّثة.','Not connected yet. The data shown may be out of date.','এখনো সংযোগ হয়নি। দেখানো তথ্য পুরোনো হতে পারে।','ابھی کنکشن نہیں ہوا۔ دکھایا گیا ڈیٹا پرانا ہو سکتا ہے۔'],
 r_branch:['الفرع','Branch','শাখা','برانچ'],
-r_manager:['الإدارة التشغيلية','Operations management','অপারেশন ব্যবস্থাপনা','آپریشنز انتظامیہ'],
+r_manager:['العمليات','Operations','অপারেশন','آپریشنز'],
 r_admin:['إدارة النظام','System admin','সিস্টেম অ্যাডমিন','سسٹم ایڈمن'],
 adminBoot:['تعيين رمز إدارة النظام','Set the system admin code','সিস্টেম অ্যাডমিনের কোড সেট করুন','سسٹم ایڈمن کا کوڈ مقرر کریں'],
 homeTitle:['أدخل رمز الدخول','Enter your sign-in code','আপনার লগইন কোড দিন','اپنا لاگ اِن کوڈ درج کریں'],
@@ -693,6 +708,10 @@ recvNotePh:['ملاحظة عامة على الطلبية','General note on the d
 nDiffs:['{n} صنف فيه فرق','{n} items differ','{n}টি পণ্যে পার্থক্য','{n} اشیاء میں فرق'],
 matches:['الكميات مطابقة للمرسل','Quantities match what was sent','পরিমাণ পাঠানোর সাথে মিলেছে','مقدار بھیجی گئی کے مطابق ہے'],
 confirmRecv:['تأكيد الاستلام','Confirm receipt','গ্রহণ নিশ্চিত করুন','وصولی کی تصدیق'],
+delOrder:['حذف الطلبية','Delete order','অর্ডার মুছুন','آرڈر حذف کریں'],
+delOrderQ:['حذف هذه الطلبية نهائياً؟ لا يمكن التراجع.','Delete this order for good? This cannot be undone.','এই অর্ডারটি স্থায়ীভাবে মুছবেন? এটি ফেরানো যাবে না।','یہ آرڈر مستقل طور پر حذف کریں؟ اسے واپس نہیں لایا جا سکتا۔'],
+confirmDel:['تأكيد الحذف','Confirm delete','মুছে ফেলা নিশ্চিত করুন','حذف کی تصدیق'],
+t_deleted:['حُذفت الطلبية','Order deleted','অর্ডার মুছে ফেলা হয়েছে','آرڈر حذف ہو گیا'],
 cancelQ:['إلغاء هذا الطلب؟','Cancel this order?','এই অর্ডার বাতিল করবেন?','یہ آرڈر منسوخ کریں؟'],
 confirmCancel:['تأكيد الإلغاء','Confirm cancel','বাতিল নিশ্চিত করুন','منسوخی کی تصدیق'],
 waitingApproval:['بانتظار اعتماد الإدارة','Waiting for management approval','ব্যবস্থাপনার অনুমোদনের অপেক্ষায়','انتظامیہ کی منظوری کا انتظار'],
@@ -1048,6 +1067,10 @@ const Store={
     if(S.mode==='live')return queue(o.id,()=>db.doc('orders/'+o.id).set(o));
     const i=S.orders.findIndex(x=>x.id===o.id);if(i>=0)S.orders[i]=o;else S.orders.unshift(o);
     LS.set(DEMO_KEY,S.orders);render();
+  },
+  async remove(id){
+    if(S.mode==='live')return queue(id,()=>db.doc('orders/'+id).delete());
+    S.orders=S.orders.filter(x=>x.id!==id);LS.set(DEMO_KEY,S.orders);render();
   },
   async patch(id,f){
     if(S.mode==='live')return queue(id,()=>db.doc('orders/'+id).update(f));
@@ -1424,11 +1447,11 @@ function reportView(){
   const brTable=bk.length?`<div class="scroll" style="margin-top:10px"><table class="tbl"><thead><tr><th>${t('r_branch')}</th>${['st_new','st_appr','st_ship','st_recv','st_rej'].map(k=>`<th style="text-align:center">${t(k)}</th>`).join('')}</tr></thead><tbody>${bk.map(b=>{const r=R.brs[b];return`<tr><td><b>${esc(b)}</b></td>${['new','appr','ship','recv','rej'].map(k=>`<td class="n">${r[k]||'—'}</td>`).join('')}</tr>`}).join('')}</tbody></table></div>`:'';
   const topTable=R.topList.length?`<div class="scroll" style="margin-top:10px"><table class="tbl"><thead><tr><th>${t('c_item')}</th><th style="text-align:center">${t('c_total')}</th><th style="text-align:center">${t('c_branches')}</th></tr></thead><tbody>${R.topList.map(x=>{const i=lineInfo(x.l);return`<tr><td><b>${esc(i.name)}</b><div class="hint">${esc(i.u)}</div></td><td class="n"><b>${fmt(x.q)}</b></td><td class="n">${x.b.size}</td></tr>`}).join('')}</tbody></table></div>`:'';
   return`<div class="row" style="justify-content:space-between"><div><h2>${t('tab_report')}</h2><p class="hint">${esc(dayLong(day))}</p></div>
-    <div class="row"><button class="btn btn-ghost" data-act="xlsReport">${t('xlsExport')}</button><button class="btn btn-navy" data-act="rpCopy">${t('rpCopy')}</button></div></div>
-  <div class="daybar"><button class="btn btn-ghost" data-act="rpShift" data-n="-1">${t('rpPrev')}</button>
+    <div class="row"><button class="btn btn-ghost rp-btn" data-act="xlsReport">${t('xlsExport')}</button><button class="btn btn-sun" data-act="rpCopy">${t('rpCopy')}</button></div></div>
+  <div class="daybar"><button class="btn btn-ghost rp-btn" data-act="rpShift" data-n="-1">${t('rpPrev')}</button>
     <input class="field" type="date" id="rpDay" value="${esc(day)}" max="${today}">
-    <button class="btn btn-ghost" data-act="rpShift" data-n="1" ${day>=today?'disabled':''}>${t('rpNext')}</button>
-    ${day!==today?`<button class="btn btn-ghost" data-act="rpToday">${t('rpToday')}</button>`:''}</div>
+    <button class="btn btn-ghost rp-btn" data-act="rpShift" data-n="1" ${day>=today?'disabled':''}>${t('rpNext')}</button>
+    ${day!==today?`<button class="btn btn-ghost rp-btn" data-act="rpToday">${t('rpToday')}</button>`:''}</div>
   ${S.rpText?`<p class="hint" style="margin-top:10px">${esc(t('rpCopyFail'))}</p><textarea class="rp-text" id="rpText" readonly dir="auto">${esc(S.rpText)}</textarea>`:''}
   <div class="stats">${stat('st_new',c.new)}${stat('st_appr',c.appr)}${stat('st_ship',c.ship)}${stat('st_recv',c.recv)}${stat('st_rej',c.rej)}${stat('st_wait',c.wait,c.wait>0)}</div>
   <div class="rp-sec"><h3>${t('rpAttn')}</h3><div class="attn">${R.attn.length?R.attn.map(a=>`<div class="${a.bad?'bad':''}" dir="auto">${esc(a.text)}</div>`).join(''):`<div style="border-inline-start-color:var(--ok)">${t('rpAllGood')}</div>`}</div></div>
@@ -1609,7 +1632,14 @@ function sheet(){
         :`<span class="hint" style="flex:1">${t('waitingApproval')}</span><button class="btn btn-bad" data-act="confirm" data-k="cancel">${t('cancelOrder')}</button>`;
     }
   }
+  if(canDelete(o))body+=S.confirm==='delete'
+    ?`<div class="del-zone"><span>${esc(t('delOrderQ'))}</span><div class="row"><button class="btn btn-ghost" data-act="unconfirm">${t('undo')}</button><button class="btn btn-del" data-act="deleteOrder">${t('confirmDel')}</button></div></div>`
+    :`<div class="del-zone"><button class="btn btn-bad" data-act="confirm" data-k="delete">${t('delOrder')}</button></div>`;
   return`<div class="veil" data-act="veil"><div class="sheet" role="dialog" aria-modal="true">${head}<div class="sh-body">${body}</div>${foot?`<div class="sh-foot">${foot}</div>`:''}</div></div>`;
+}
+function canDelete(o){
+  if(S.role==='manager')return true;
+  return S.role==='branch'&&o.branch===S.branch&&o.status==='pending';
 }
 function stepper(id,val,field,lid){
   return`<div class="step sm"><button data-act="wInc" data-f="${field}" data-id="${lid}" aria-label="${esc(t('inc'))}">+</button><input id="${id}" inputmode="decimal" value="${fmt(val)}" data-in="wQty" data-f="${field}" data-id="${lid}"><button data-act="wDec" data-f="${field}" data-id="${lid}" aria-label="${esc(t('dec'))}">−</button></div>`;
@@ -1838,6 +1868,8 @@ const A={
     guard(async()=>{await Store.patch(o.id,f);S.open=null},()=>t('t_approved'));},
   reject(){const c=curWork();if(!c)return;const tm=nowIso();const f={status:'rejected',rejectedAt:tm,updatedAt:tm,managerNote:c.w.note.trim()};if(S.me)f.approvedBy=S.me;
     guard(async()=>{await Store.patch(c.o.id,f);S.open=null;S.confirm=null},()=>t('t_rejected'));},
+  deleteOrder(){const id=S.open;if(!id)return;
+    guard(async()=>{await Store.remove(id);S.open=null;S.confirm=null;if(S.justSent===id)S.justSent=null},()=>t('t_deleted'))},
   cancel(){const c=curWork();if(!c)return;const tm=nowIso();guard(async()=>{await Store.patch(c.o.id,{status:'cancelled',cancelledAt:tm,updatedAt:tm});S.open=null;S.confirm=null},()=>t('t_cancelled'));},
   ship(){const c=curWork();if(!c)return;const{o,w}=c;
     const left=o.lines.filter(l=>!w.lines[l.id].checked).length;
