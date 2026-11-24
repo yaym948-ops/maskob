@@ -47,6 +47,12 @@ service cloud.firestore {
       allow read, write: if isMgr();
     }
 
+    // warehouse WhatsApp number for the "notify on WhatsApp" button: any signed-in role reads it
+    match /config/contact {
+      allow read: if valid();
+      allow write: if isMgr();
+    }
+
     match /config/main {
       allow read: if signedIn();
       allow write: if isMgr() || (signedIn() && !exists(/databases/$(db)/documents/config/main));
