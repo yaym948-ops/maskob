@@ -11,11 +11,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="مسكوب">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest?v=2">
+<link rel="icon" href="favicon.ico?v=2" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png?v=2">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -1418,7 +1418,7 @@ function announceNotices(){
   const now=notices(S.orders).map(o=>({o,k:o.id+'|'+o.schedNotice.at}));
   if(seen===null){S._seenN=new Set(now.map(x=>x.k));return}      // first load: no pop-ups for old alerts
   for(const {o,k} of now){if(seen.has(k))continue;seen.add(k);
-    try{if(typeof Notification!=='undefined'&&Notification.permission==='granted'){const x=noticeText(o);new Notification(x.title,{body:x.body,icon:'favicon-192.png',tag:k,lang:LANG,dir:RTL[LANG]?'rtl':'ltr'})}}catch(e){}}
+    try{if(typeof Notification!=='undefined'&&Notification.permission==='granted'){const x=noticeText(o);new Notification(x.title,{body:x.body,icon:'favicon-192.png?v=2',tag:k,lang:LANG,dir:RTL[LANG]?'rtl':'ltr'})}}catch(e){}}
 }
 function branchView(tb,v){
   {

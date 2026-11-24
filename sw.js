@@ -3,7 +3,7 @@
 //   so every deploy is picked up on the next open.
 // - Versioned libraries, fonts and images: cache first (they never change at the same URL).
 // - Firebase traffic (Firestore, Auth, token refresh) is never intercepted.
-const VERSION = 'maskob-v1';
+const VERSION = 'maskob-v2';
 const CDN_HOSTS = new Set(['cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'fonts.gstatic.com', 'fonts.googleapis.com']);
 
 self.addEventListener('install', () => self.skipWaiting());
