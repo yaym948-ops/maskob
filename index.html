@@ -281,7 +281,7 @@ textarea,.field{width:100%;border:1px solid var(--line);background:var(--card);b
 
 /* type */
 main{padding-block:24px 140px}
-h2{font-size:22px;color:var(--navy-ink);line-height:1.35}
+h2{font-size:22px;color:var(--navy-ink);line-height:1.35;margin-bottom:12px}
 .hint{font-size:13.5px}
 
 /* buttons: one height, one radius */
@@ -426,6 +426,8 @@ textarea,input,select,button{font-family:inherit}
 .sent-card{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--card);border:1px solid color-mix(in srgb,var(--sun) 45%,var(--line));border-inline-start:4px solid var(--sun);border-radius:var(--r);padding:12px 14px;margin-bottom:16px;box-shadow:var(--shadow)}
 .sent-card .row{gap:8px}
 @media (max-width:560px){.sent-card .btn-wa{flex:1}.sh-head .btn-wa.sm{order:3;flex-basis:100%;margin-top:6px}}
+
+.sh-head h2,.pin h2,.row h2{margin-bottom:0}
 
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
@@ -1273,7 +1275,7 @@ function listView(title,hint,list,emptyMsg,withFilter){
   const fl=withFilter?`<div class="filters">${['active','done','all'].map(k=>`<button class="chip" aria-pressed="${S.filter===k}" data-act="filter" data-k="${k}">${t('f_'+k)}</button>`).join('')}</div>`:'';
   if(withFilter)S.lastList=list;
   const xb=withFilter&&list.length?`<button class="btn btn-ghost" data-act="xlsOrders">${t('xlsExport')}</button>`:'';
-  return`<div class="row" style="justify-content:space-between"><div><h2>${esc(title)}</h2>${hint?`<p class="hint">${esc(hint)}</p>`:''}</div>${xb}</div>${fl}
+  return`<div class="row" style="justify-content:space-between"><div><h2>${esc(title)}</h2></div>${xb}</div>${fl}
   <div class="list" style="margin-top:${withFilter?0:14}px">${list.length?list.map(orderCard).join(''):`<div class="empty">${esc(emptyMsg)}</div>`}</div>`;
 }
 function orderCard(o){
@@ -1422,7 +1424,7 @@ function forecastView(){
   const all=S.branches.map(b=>[b,forecastBranch(b)]);
   const ready=all.filter(x=>x[1].ready),waiting=all.filter(x=>!x[1].ready);
   const wchips=waiting.length?`<div class="wchips">${waiting.map(([b,f])=>`<span class="wchip">${esc(b)} · ${esc(t('fcWaiting',{n:f.n,m:FC_MIN}))}</span>`).join('')}</div>`:'';
-  if(!ready.length)return`<h2>${t('tab_fc')}</h2><div class="empty" style="margin-top:14px">${esc(t('fcNone'))}</div>${wchips}<p class="hint" style="margin-top:14px">${esc(t('fcMethod'))}</p>`;
+  if(!ready.length)return`<h2>${t('tab_fc')}</h2><div class="empty" style="margin-top:14px">${esc(t('fcNone'))}</div>${wchips}`;
   const agg={};
   ready.forEach(([b,f])=>f.items.forEach(x=>{const a=agg[x.id]||(agg[x.id]={sum:0,br:0});a.sum+=x.daily*7;a.br++}));
   const aggIds=Object.keys(agg).sort((x,y)=>(ITEM_POS[x]??1e9)-(ITEM_POS[y]??1e9)).filter(id=>roundQty(id,agg[id].sum)>0);
@@ -1432,9 +1434,8 @@ function forecastView(){
   const sel=`<select class="field" id="fcBranch" style="max-width:280px">${ready.map(([b])=>`<option ${b===S.fcBranch?'selected':''}>${esc(b)}</option>`).join('')}</select>`;
   const br=`<div class="row" style="margin-top:12px">${sel}</div><p class="hint" style="margin-top:8px">${esc(t('fcCycle',{n:fmt(f.cycle),d:whenDay(f.last),x:whenDay(f.next)}))}</p>
    <div class="scroll" style="margin-top:10px"><table class="tbl"><thead><tr><th>${t('c_item')}</th><th style="text-align:center">${t('c_fc')}</th><th style="text-align:center">${t('c_last')}</th><th>${t('c_trend')}</th><th>${t('c_conf')}</th></tr></thead><tbody>${f.items.map(x=>{const i=lineInfo({id:x.id});return`<tr><td><b>${esc(i.name)}</b><div class="hint">${esc(i.u)}</div></td><td class="n"><b>${fmt(x.f)}</b></td><td class="n">${fmt(x.last)}</td><td class="tr-${x.trend}">${t('tr_'+x.trend)}</td><td class="cf-${x.conf}">${t('cf_'+x.conf)}</td></tr>`}).join('')}</tbody></table></div>`;
-  return`<div class="row" style="justify-content:space-between"><div><h2>${t('whTitle')}</h2><p class="hint">${esc(t('whHint'))}</p></div><button class="btn btn-ghost" data-act="xlsForecast">${t('xlsExport')}</button></div>${wh}${wchips}
-  <div class="fc-sec"><h2>${t('brFcTitle')}</h2>${br}</div>
-  <p class="hint" style="margin-top:14px">${esc(t('fcMethod'))}</p>`;
+  return`<div class="row" style="justify-content:space-between"><div><h2>${t('whTitle')}</h2></div><button class="btn btn-ghost" data-act="xlsForecast">${t('xlsExport')}</button></div>${wh}${wchips}
+  <div class="fc-sec"><h2>${t('brFcTitle')}</h2>${br}</div>`;
 }
 /* WhatsApp notification settings (management only; sent by the server function) */
 const waNorm=raw=>{let n=String(raw||'').replace(/\D/g,'');if(n.startsWith('00'))n=n.slice(2);if(/^05\d{8}$/.test(n))n='966'+n.slice(1);return n.length>=10&&n.length<=15?n:null};
@@ -1453,8 +1454,7 @@ function sentCard(o){
 function waView(){
   const nf=S.notify||{};const on=nf.enabled!==false;
   const draft=S.waDraft!=null?S.waDraft:(nf.warehouse||[]).join('\n');
-  return`<h2 style="margin-top:28px">${t('waTitle')}</h2><p class="hint">${esc(t('waHint'))}</p>
-  <p class="hint" style="margin-top:6px">${esc(t('waAutoNote'))}</p>
+  return`<h2 style="margin-top:28px">${t('waTitle')}</h2>
   <div class="codes"><div class="code">
     <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="waOn" ${on?'checked':''} style="width:20px;height:20px;accent-color:var(--navy)"><b>${t('waOn')}</b></label>
     <label for="waNums" class="hint">${esc(t('waNums'))}</label>
@@ -1467,10 +1467,10 @@ function branchesView(){
     <div class="wide"><input class="field" type="password" inputmode="numeric" maxlength="6" id="${id}" placeholder="${esc(t('newCodePh'))}" value="${esc(S.pinIn[key]||'')}" data-in="pinIn" data-k="${esc(key)}" autocomplete="new-password"><button class="btn btn-navy" data-act="savePin" data-k="${esc(key)}">${set?t('change'):t('assign')}</button>${extra||''}</div></div>`};
   const codes=row('manager','manager',t('codeOf',{r:roleL('manager')}),'pin-manager')+row('warehouse','warehouse',t('codeOf',{r:roleL('warehouse')}),'pin-warehouse');
   const brs=S.branches.map((b,i)=>row('branch:'+b,'branch',b,'pin-br-'+i,S.branches.length>1?`<button class="btn btn-bad" data-act="delBranch" data-i="${i}">${t('del')}</button>`:'')).join('');
-  return`<h2>${t('codesTitle')}</h2><p class="hint">${esc(t('codesHint'))}</p>
+  return`<h2>${t('codesTitle')}</h2>
   <div class="codes">${codes}</div>
   ${waView()}
-  <h2 style="margin-top:28px">${t('branchesTitle')}</h2><p class="hint">${esc(t('branchCodesHint'))}</p>
+  <h2 style="margin-top:28px">${t('branchesTitle')}</h2>
   <div class="codes">${brs}
   <div class="row"><input class="field" style="flex:1" id="newBranch" placeholder="${esc(t('newBranchPh'))}" value="${esc(S.newBranch)}" data-in="newBranch"><button class="btn btn-navy" data-act="addBranch">${t('add')}</button></div></div>`;
 }
@@ -1488,7 +1488,7 @@ function newOrder(){
   cats.forEach(c=>{const items=c.list.filter(match);if(!items.length)return;
     body+=`<div class="cat-h">${esc(catName(c))} <small class="num">${esc(t('nItems',{n:items.length}))}</small></div><div class="grid">${items.map(it=>tile(it,fc&&fc.map)).join('')}</div>`});
   if(!body)body=`<div class="empty">${esc(t('noMatch',{q:S.q}))}</div>`;
-  return`<div class="row" style="justify-content:space-between"><div><h2>${t('tab_new')}</h2><p class="hint">${esc(t('newHint'))}</p></div>
+  return`<div class="row" style="justify-content:space-between"><div><h2>${t('tab_new')}</h2></div>
     <div class="kind" role="group" aria-label="${esc(t('kindGroup'))}"><button aria-pressed="${d.kind==='supply'}" data-act="kind" data-k="supply">${t('btnSupply')}</button><button aria-pressed="${d.kind==='return'}" data-act="kind" data-k="return">${t('btnReturn')}</button></div></div>
   ${fc?fcCard(fc):''}
   <div class="row" style="margin-top:14px"><label class="search"><input id="q" type="search" placeholder="${esc(t('searchPh'))}" value="${esc(S.q)}" data-in="q" autocomplete="off"></label></div>
@@ -1559,8 +1559,7 @@ function sheet(){
       :`<span class="hint" style="flex:1">${left?esc(t('leftN',{n:left})):t('allReady')}</span><button class="btn btn-sun" data-act="ship">${o.kind==='return'?t('shipToWh'):t('shipToBr')}</button>`;
   }else if(m==='receive'){
     const diffs=o.lines.filter(l=>w.lines[l.id].received!==(l.sent??0)).length;
-    body=notes+`<p class="hint" style="margin:0 0 10px">${esc(t('recvHint'))}</p>
-    <div class="lines">${o.lines.map(l=>{const i=lineInfo(l),x=w.lines[l.id];const sent=l.sent??0;const df=x.received!==sent;return`<div class="ln ${df?'diff':''}">
+    body=notes+`    <div class="lines">${o.lines.map(l=>{const i=lineInfo(l),x=w.lines[l.id];const sent=l.sent??0;const df=x.received!==sent;return`<div class="ln ${df?'diff':''}">
       ${icoFor(i.cat)}<div style="min-width:0"><div class="nm">${esc(i.name)}</div><div class="sub">${t('sentQ')}: <b class="num">${fmt(sent)}</b> ${esc(i.u)}${df?` · <span style="color:var(--bad);font-weight:600">${esc(t('diffN',{n:fmt(x.received-sent)}))}</span>`:''}</div></div>
       <div class="ctl">${stepper('r-'+l.id,x.received,'recv',l.id)}</div>
       <div class="wide"><input class="mini-in" id="n-${l.id}" dir="auto" placeholder="${esc(t('itemNotePh'))}" value="${esc(x.note)}" data-in="lnote" data-id="${l.id}"></div></div>`}).join('')}</div>
@@ -1597,7 +1596,7 @@ function timeline(o){
 }
 function reviewSheet(){
   const d=S.draft;const ids=Object.keys(d.lines).filter(k=>d.lines[k]>0&&ITEM[k]);
-  const body=`<p class="hint" style="margin:0 0 10px">${esc(t('stockHint'))}</p><div class="lines">${ids.map(id=>{const it=ITEM[id];return`<div class="ln">${icoFor(it.cat)}<div style="min-width:0"><div class="nm">${esc(nameOf_(it))}</div><div class="sub">${esc(unitL(it.uk))}${it.par?` · ${esc(t('par',{n:fmt(it.par)}))}`:''}</div>
+  const body=`<div class="lines">${ids.map(id=>{const it=ITEM[id];return`<div class="ln">${icoFor(it.cat)}<div style="min-width:0"><div class="nm">${esc(nameOf_(it))}</div><div class="sub">${esc(unitL(it.uk))}${it.par?` · ${esc(t('par',{n:fmt(it.par)}))}`:''}</div>
     <div class="row" style="gap:6px;margin-top:6px"><span class="sub">${t('stock')}</span><input class="mini-in num" style="width:80px" id="st-${id}" inputmode="decimal" value="${d.stock[id]!=null?esc(d.stock[id]):''}" placeholder="—" data-in="stock" data-id="${id}"></div></div>
     <div class="ctl"><div class="step sm"><button data-act="inc" data-id="${id}" aria-label="${esc(t('inc'))}">+</button><input id="rv-${id}" inputmode="decimal" value="${fmt(d.lines[id])}" data-in="draftQty" data-id="${id}"><button data-act="dec" data-id="${id}" aria-label="${esc(t('dec'))}">−</button></div></div></div>`}).join('')}</div>
     <label class="box" style="display:block;margin-top:12px"><h4>${t('noteForAll')}</h4><textarea id="dnote" rows="2" dir="auto" data-in="dnote" placeholder="${esc(t('optional'))}">${esc(d.note)}</textarea></label>`;
