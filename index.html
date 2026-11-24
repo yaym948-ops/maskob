@@ -489,6 +489,10 @@ textarea,input,select,button{font-family:inherit}
 .len-box{margin-bottom:10px}
 .len-warn{grid-column:1 / -1;background:var(--late-soft);color:var(--late);border-radius:8px;padding:8px 12px;font-size:13.5px;font-weight:500}
 
+.btn.del-top{padding:7px 12px;font-size:13px;min-height:36px}
+.del-q{flex:1 1 100%;font-weight:700;color:var(--sun-ink)}
+@media (min-width:561px){.del-q{flex:1 1 auto}}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -1758,7 +1762,7 @@ function sheet(){
   const o=S.orders.find(x=>x.id===S.open);if(!o)return'';
   const m=modeFor(o);const w=S.work[o.id]||initWork(o);
   const head=`<div class="sh-head"><div class="row"><div style="flex:1;min-width:0"><div class="row" style="gap:8px"><h2>${esc(o.branch)}</h2><span class="tag ${o.kind==='return'?'ret':''}">${esc(kindL(o.kind))}</span><span class="pill st-${esc(o.status)}">${esc(statusL(o.status))}</span>${latePill(o)}</div>
-   <div class="hint num" dir="ltr">${esc(o.num||o.id)}</div></div>${S.role==='branch'&&['pending','approved'].includes(o.status)?waLink(o,true):''}<button class="btn btn-ghost" style="padding:7px 12px;font-size:13px" data-act="xlsOrder" data-id="${esc(o.id)}">${t('xlsExport')}</button><button class="x" data-act="close" aria-label="${esc(t('close'))}">×</button></div>${timeline(o)}</div>`;
+   <div class="hint num" dir="ltr">${esc(o.num||o.id)}</div></div>${S.role==='branch'&&['pending','approved'].includes(o.status)?waLink(o,true):''}<button class="btn btn-ghost" style="padding:7px 12px;font-size:13px" data-act="xlsOrder" data-id="${esc(o.id)}">${t('xlsExport')}</button>${canDelete(o)?`<button class="btn btn-bad del-top" data-act="confirm" data-k="delete">${t('delOrder')}</button>`:''}<button class="x" data-act="close" aria-label="${esc(t('close'))}">×</button></div>${timeline(o)}</div>`;
   let body='',foot='';
   const wa=o.waNotify&&S.role==="manager"?`<p class="hint" style="margin:0 0 10px">${esc(o.waNotify.sent?t("waSent",{n:o.waNotify.sent}):t("waFail",{e:o.waNotify.error||"-"}))}</p>`:"";
   const notes0=[o.note&&['n_branch',o.note],o.managerNote&&['n_mgr',o.managerNote],o.shipNote&&['n_ship',o.shipNote],o.receiveNote&&['n_recv',o.receiveNote]].filter(Boolean).map(([h,x])=>`<div class="box"><h4>${t(h)}</h4><div dir="auto">${esc(x)}</div></div>`).join('');
@@ -1798,9 +1802,7 @@ function sheet(){
     }
   }
   if(m==='prepare'&&o.kind!=='return')body=schedBox(o)+body;
-  if(canDelete(o))body+=S.confirm==='delete'
-    ?`<div class="del-zone"><span>${esc(t('delOrderQ'))}</span><div class="row"><button class="btn btn-ghost" data-act="unconfirm">${t('undo')}</button><button class="btn btn-del" data-act="deleteOrder">${t('confirmDel')}</button></div></div>`
-    :`<div class="del-zone"><button class="btn btn-bad" data-act="confirm" data-k="delete">${t('delOrder')}</button></div>`;
+  if(canDelete(o)&&S.confirm==='delete')foot=`<span class="del-q">${esc(t('delOrderQ'))}</span><button class="btn btn-ghost" data-act="unconfirm">${t('undo')}</button><button class="btn btn-del" data-act="deleteOrder">${t('confirmDel')}</button>`;
   return`<div class="veil" data-act="veil"><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-brand"><span class="logo sm" role="img" aria-label="مسكوب MASKOB"></span></div>${head}<div class="sh-body">${body}</div>${foot?`<div class="sh-foot">${foot}</div>`:''}</div></div>`;
 }
 function schedBox(o){
