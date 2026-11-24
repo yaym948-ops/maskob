@@ -465,6 +465,20 @@ textarea,input,select,button{font-family:inherit}
 .badge.late{background:var(--late)}
 .oc .side{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 
+/* delivery scheduling */
+.dchip{display:inline-block;margin-inline-start:6px;font-size:12.5px;font-weight:500;color:var(--sun-ink);background:var(--sun-soft);border-radius:6px;padding:1px 8px}
+.sched-day{margin-bottom:20px}
+.sched-day h3{font-size:16px;font-weight:700;margin:0 0 10px;color:var(--navy-ink);display:flex;align-items:center;gap:8px}
+.sched-day h3 small{background:var(--navy);color:var(--card);border-radius:999px;min-width:22px;height:22px;display:inline-grid;place-items:center;font-size:12.5px;padding:0 7px}
+.sched-day.today h3{color:var(--sun-ink)}.sched-day.today h3 small{background:var(--sun)}
+.sched-day.late h3{color:var(--late)}.sched-day.late h3 small{background:var(--late)}
+.sched-box{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sched-box h4{margin:0}.sched-box input{width:auto;min-width:170px}
+.days{grid-column:1 / -1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}
+.days .hint{margin:0;margin-inline-end:4px}
+.dday{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--muted);min-width:44px}
+.dday.on{background:var(--sun);border-color:var(--sun);color:#fff;font-weight:700}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -727,6 +741,16 @@ delOrderQ:['حذف هذه الطلبية نهائياً؟ لا يمكن التر
 confirmDel:['تأكيد الحذف','Confirm delete','মুছে ফেলা নিশ্চিত করুন','حذف کی تصدیق'],
 lateH:['متأخر · {n} ساعة','Late · {n} h','বিলম্বিত · {n} ঘণ্টা','تاخیر · {n} گھنٹے'],
 lateD:['متأخر · {n} يوم','Late · {n} d','বিলম্বিত · {n} দিন','تاخیر · {n} دن'],
+tab_sched:['الجدول','Schedule','সময়সূচি','شیڈول'],
+deliveryOn:['التسليم: {d}','Delivery: {d}','ডেলিভারি: {d}','ترسیل: {d}'],
+schedLate:['متأخر عن موعده','Past its delivery date','নির্ধারিত তারিখ পেরিয়েছে','مقررہ تاریخ گزر گئی'],
+schedTomorrow:['غداً','Tomorrow','আগামীকাল','کل'],
+schedNone:['بدون موعد','No date set','তারিখ নেই','کوئی تاریخ نہیں'],
+schedEmpty:['لا توجد طلبات بانتظار الإرسال.','No orders waiting for dispatch.','পাঠানোর অপেক্ষায় কোনো অর্ডার নেই।','روانگی کے منتظر کوئی آرڈر نہیں۔'],
+setDate:['موعد التسليم','Delivery date','ডেলিভারির তারিখ','ترسیل کی تاریخ'],
+dateSaved:['حُفظ موعد التسليم','Delivery date saved','ডেলিভারির তারিখ সংরক্ষিত','ترسیل کی تاریخ محفوظ ہو گئی'],
+daysLabel:['أيام التوريد','Delivery days','ডেলিভারির দিন','ترسیل کے دن'],
+daysSaved:['حُفظت أيام التوريد','Delivery days saved','ডেলিভারির দিন সংরক্ষিত','ترسیل کے دن محفوظ ہو گئے'],
 t_deleted:['حُذفت الطلبية','Order deleted','অর্ডার মুছে ফেলা হয়েছে','آرڈر حذف ہو گیا'],
 cancelQ:['إلغاء هذا الطلب؟','Cancel this order?','এই অর্ডার বাতিল করবেন?','یہ آرڈر منسوخ کریں؟'],
 confirmCancel:['تأكيد الإلغاء','Confirm cancel','বাতিল নিশ্চিত করুন','منسوخی کی تصدیق'],
@@ -1076,7 +1100,7 @@ const Store={
   demo(){
     let o=LS.get(DEMO_KEY,null);
     if(!Array.isArray(o)){o=demoSeed();LS.set(DEMO_KEY,o)}
-    S.orders=o;S.branches=LS.get('mk.demo.branches',['القطيف']);S.loaded=true;
+    S.orders=o;S.branches=LS.get('mk.demo.branches',['القطيف']);S.days=LS.get('mk.demo.days',{});S.loaded=true;
     S.pins=LS.get('mk.demo.pins',{});S.notify=LS.get('mk.demo.notify',{});S.contact=LS.get('mk.demo.contact',{});S.pinsLoaded=true;checkAuth();render();
   },
   async save(o){
@@ -1115,6 +1139,7 @@ const Store={
     db.doc('config/main').onSnapshot(s=>{
       const d=s.exists?s.data():{};
       if(Array.isArray(d.branches)&&d.branches.length)S.branches=d.branches.map(String);
+      S.days=d.days&&typeof d.days==='object'?d.days:{};
       S.mainReady=!!d.ready;S.mainSeen=true;this.fbReadyCheck();render();
     },e=>{S.error=e.code;S.pinsLoaded=true;render()});
     // resume an existing session on this device
@@ -1159,6 +1184,10 @@ const Store={
   async fbTrySession(role,branch,h){
     const d={role,h,at:new Date().toISOString()};if(role==='branch')d.branch=branch;
     try{await db.doc('sessions/'+S.uid).set(d);return true}catch(e){return false}
+  },
+  async saveDays(days){
+    if(S.fb)return queue('config',()=>db.doc('config/main').set({days},{merge:true}));
+    LS.set('mk.demo.days',days);
   },
   async saveBranches(list){
     if(S.fb)return queue('config',()=>db.doc('config/main').set({branches:list,ready:true},{merge:true}));
@@ -1230,7 +1259,25 @@ function visible(){
 }
 /* overdue: waiting longer than allowed at the current stage */
 const LATE_HOURS={pending:24,approved:24,shipped:48};
+/* ---------- delivery scheduling ---------- */
+const fromKey=k=>{const [y,m,d]=String(k).split('-').map(Number);return new Date(y,m-1,d)};
+const weekdayName=i=>{try{return new Date(2024,0,7+i).toLocaleDateString(LOCALE[LANG],{weekday:'short'})}catch(e){return String(i)}};
+const dateLabel=k=>{try{return fromKey(k).toLocaleDateString(LOCALE[LANG],{weekday:'long',day:'numeric',month:'short'})}catch(e){return k}};
+/* next delivery day for a branch, from tomorrow (leaves time to prepare); tomorrow if no days are set */
+function nextDeliveryDay(branch){
+  const days=(S.days&&S.days[branch])||[];
+  const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+1);
+  if(!days.length)return dayKey(d);
+  for(let i=0;i<14;i++){if(days.includes(d.getDay()))return dayKey(d);d.setDate(d.getDate()+1)}
+  return dayKey(d);
+}
+const isWaitingDispatch=o=>o.kind!=='return'&&o.status==='approved';
 function lateInfo(o){
+  if(o.status==='approved'&&o.scheduledFor){            // scheduled: late once the delivery day has ended
+    const due=fromKey(o.scheduledFor);due.setDate(due.getDate()+1);
+    const h=(Date.now()-due.getTime())/36e5;
+    return h>0?{h:Math.max(h,1)}:null;
+  }
   if(!(o.status in LATE_HOURS))return null;
   const since={pending:o.createdAt,approved:o.approvedAt,shipped:o.shippedAt}[o.status];
   const h=(Date.now()-Date.parse(since))/36e5;
@@ -1244,7 +1291,8 @@ function counts(){
     tasks:v.filter(o=>(o.kind!=='return'&&o.status==='shipped')||(o.kind==='return'&&o.status==='approved')),
     pending:v.filter(o=>o.status==='pending'),
     prep:v.filter(o=>o.kind!=='return'&&o.status==='approved'),
-    incoming:v.filter(o=>o.kind==='return'&&o.status==='shipped')
+    incoming:v.filter(o=>o.kind==='return'&&o.status==='shipped'),
+    sched:v.filter(o=>isWaitingDispatch(o)&&o.scheduledFor&&o.scheduledFor<=dayKey(Date.now()))
   };
   const r={};for(const k in sets){r[k]=sets[k].length;r[k+'Late']=sets[k].some(lateInfo)}
   return r;
@@ -1252,9 +1300,9 @@ function counts(){
 function tabsFor(){
   const c=counts();
   if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine')}];
-  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'forecast',l:t('tab_fc')}];
+  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'sched',l:t('tab_sched'),b:c.sched,late:c.schedLate},{k:'all',l:t('tab_all')},{k:'forecast',l:t('tab_fc')}];
   if(S.role==='admin')return[{k:'branches',l:t('tab_settings')}];
-  if(S.role==='warehouse')return[{k:'prep',l:t('tab_prep'),b:c.prep,late:c.prepLate},{k:'incoming',l:t('tab_incoming'),b:c.incoming,late:c.incomingLate},{k:'forecast',l:t('tab_fc')},{k:'done',l:t('tab_log')}];
+  if(S.role==='warehouse')return[{k:'prep',l:t('tab_prep'),b:c.prep,late:c.prepLate},{k:'sched',l:t('tab_sched'),b:c.sched,late:c.schedLate},{k:'incoming',l:t('tab_incoming'),b:c.incoming,late:c.incomingLate},{k:'forecast',l:t('tab_fc')},{k:'done',l:t('tab_log')}];
   return[];
 }
 
@@ -1324,10 +1372,12 @@ function view(){
     const js=S.justSent&&v.find(o=>o.id===S.justSent);
     return(js?sentCard(js):'')+listView(t('tab_mine'),t('h_mine'),filtered(v),t('e_mine'),true);
   }
+  if(tb==='sched'&&S.role==='manager')return scheduleView(v);
   if(S.role==='manager'){
     if(tb==='pending')return adminBootBox()+listView(t('t_pending'),t('h_pending'),v.filter(o=>o.status==='pending'),t('e_pending'));
     return listView(t('tab_all'),'',filtered(v),t('e_all'),true);
   }
+  if(tb==='sched'&&S.role!=='branch')return scheduleView(v);
   if(tb==='prep')return listView(t('tab_prep'),t('h_prep'),v.filter(o=>o.kind!=='return'&&o.status==='approved'),t('e_prep'));
   if(tb==='incoming')return listView(t('tab_incoming'),t('h_incoming'),v.filter(o=>o.kind==='return'&&o.status==='shipped'),t('e_incoming'));
   return listView(t('tab_log'),'',filtered(v.filter(o=>o.status!=='pending')),t('e_log'),true);
@@ -1345,6 +1395,21 @@ function listView(title,hint,list,emptyMsg,withFilter){
   return`<div class="row" style="justify-content:space-between"><div><h2>${esc(title)}</h2></div>${xb}</div>${fl}
   <div class="list" style="margin-top:${withFilter?0:14}px">${list.length?list.map(orderCard).join(''):`<div class="empty">${esc(emptyMsg)}</div>`}</div>`;
 }
+function scheduleView(v){
+  const today=dayKey(Date.now()),tom=dayKey(Date.now()+864e5);
+  const list=v.filter(isWaitingDispatch).sort((a,b)=>String(a.scheduledFor||'9999').localeCompare(String(b.scheduledFor||'9999')));
+  if(!list.length)return`<h2>${t('tab_sched')}</h2><div class="empty">${esc(t('schedEmpty'))}</div>`;
+  const groups=[];const add=(key,label,cls,o)=>{let g=groups.find(x=>x.key===key);if(!g){g={key,label,cls,items:[]};groups.push(g)}g.items.push(o)};
+  list.forEach(o=>{const k=o.scheduledFor;
+    if(!k)add('none',t('schedNone'),'',o);
+    else if(k<today)add('late',t('schedLate'),'late',o);
+    else if(k===today)add(k,t('rpToday')+' · '+dateLabel(k),'today',o);
+    else if(k===tom)add(k,t('schedTomorrow')+' · '+dateLabel(k),'',o);
+    else add(k,dateLabel(k),'',o)});
+  const order=g=>g.key==='late'?0:g.key==='none'?2:1;
+  groups.sort((a,b)=>order(a)-order(b));
+  return`<h2>${t('tab_sched')}</h2>`+groups.map(g=>`<div class="sched-day ${g.cls}"><h3>${esc(g.label)} <small class="num">${g.items.length}</small></h3><div class="list">${g.items.map(orderCard).join('')}</div></div>`).join('');
+}
 function orderCard(o){
   const n=(o.lines||[]).length;
   let prog='';
@@ -1353,7 +1418,7 @@ function orderCard(o){
   const late=lateInfo(o);
   return`<button class="oc ${o.kind==='return'?'ret':''}${late?' late':''}" data-act="open" data-id="${esc(o.id)}">
     <span style="min-width:0"><span class="t">${esc(o.branch)} <span class="tag ${o.kind==='return'?'ret':''}">${esc(kindL(o.kind))}</span></span>
-      <span class="s">${esc(t('nItems',{n}))} · ${esc(when(o.createdAt))}</span> <span class="n">${esc(o.num||o.id)}</span>${prog}</span>
+      <span class="s">${esc(t('nItems',{n}))} · ${esc(when(o.createdAt))}</span>${o.scheduledFor&&isWaitingDispatch(o)?`<span class="dchip">${esc(t('deliveryOn',{d:dateLabel(o.scheduledFor)}))}</span>`:''} <span class="n">${esc(o.num||o.id)}</span>${prog}</span>
     <span class="side">${latePill(o)}<span class="pill st-${esc(o.status)}">${esc(statusL(o.status))}</span></span>
   </button>`;
 }
@@ -1530,6 +1595,10 @@ function waView(){
     <div class="wide"><button class="btn btn-navy" data-act="waSave">${t('waSave')}</button></div>
   </div></div>`;
 }
+function daysRow(b,i){
+  const on=(S.days&&S.days[b])||[];
+  return`<div class="days"><span class="hint">${t('daysLabel')}</span>${[0,1,2,3,4,5,6].map(d=>`<button class="dday${on.includes(d)?' on':''}" data-act="toggleDay" data-i="${i}" data-d="${d}" aria-pressed="${on.includes(d)}">${esc(weekdayName(d))}</button>`).join('')}</div>`;
+}
 function adminBootBox(){
   if(S.role!=='manager'||S.pins.admin||(S.fb&&!S.pinsReadable))return'';
   return'<div class="sent-card" style="margin-bottom:18px"><div style="flex:1;min-width:200px"><b>'+t('adminBoot')+'</b></div><div class="row" style="flex:1;min-width:240px"><input class="field" type="password" inputmode="numeric" maxlength="6" id="adminBoot" placeholder="'+esc(t('newCodePh'))+'" value="'+esc(S.adminIn||'')+'" data-in="adminIn" autocomplete="new-password" style="flex:1;min-width:0;direction:ltr;text-align:center;letter-spacing:.3em"><button class="btn btn-navy" data-act="setAdmin">'+t('assign')+'</button></div></div>';
@@ -1538,7 +1607,7 @@ function branchesView(){
   const row=(key,icon,label,id,extra)=>{const set=!!hashForKey(key);return`<div class="code"><div><b>${esc(label)}</b><div class="${set?'set':'unset'}">${set?t('isSet'):t('notSet')}</div></div>
     <div class="wide"><input class="field" type="password" inputmode="numeric" maxlength="6" id="${id}" placeholder="${esc(t('newCodePh'))}" value="${esc(S.pinIn[key]||'')}" data-in="pinIn" data-k="${esc(key)}" autocomplete="new-password"><button class="btn btn-navy" data-act="savePin" data-k="${esc(key)}">${set?t('change'):t('assign')}</button>${extra||''}</div></div>`};
   const codes=row('admin','manager',t('codeOf',{r:roleL('admin')}),'pin-admin')+row('manager','manager',t('codeOf',{r:roleL('manager')}),'pin-manager')+row('warehouse','warehouse',t('codeOf',{r:roleL('warehouse')}),'pin-warehouse');
-  const brs=S.branches.map((b,i)=>row('branch:'+b,'branch',b,'pin-br-'+i,S.branches.length>1?`<button class="btn btn-bad" data-act="delBranch" data-i="${i}">${t('del')}</button>`:'')).join('');
+  const brs=S.branches.map((b,i)=>{const r=row('branch:'+b,'branch',b,'pin-br-'+i,S.branches.length>1?`<button class="btn btn-bad" data-act="delBranch" data-i="${i}">${t('del')}</button>`:'');return r.slice(0,-6)+daysRow(b,i)+'</div>'}).join('');
   return`<h2>${t('codesTitle')}</h2>
   <div class="codes">${codes}</div>
   ${waView()}
@@ -1655,16 +1724,23 @@ function sheet(){
     <label class="box" style="display:block;margin-top:12px"><h4>${t('n_recv')}</h4><textarea id="rnote" rows="2" dir="auto" data-in="wnote" placeholder="${esc(t('recvNotePh'))}">${esc(w.note)}</textarea></label>`;
     foot=`<span class="hint" style="flex:1">${diffs?esc(t('nDiffs',{n:diffs})):t('matches')}</span><button class="btn btn-ok" data-act="receive">${t('confirmRecv')}</button>`;
   }else{
-    body=notes+summaryTable(o);
+    body=schedBox(o)+notes+summaryTable(o);
     if(o.status==='pending'&&S.role==='branch'){
       foot=S.confirm==='cancel'?`<span style="flex:1">${t('cancelQ')}</span><button class="btn btn-ghost" data-act="unconfirm">${t('undo')}</button><button class="btn btn-bad" data-act="cancel">${t('confirmCancel')}</button>`
         :`<span class="hint" style="flex:1">${t('waitingApproval')}</span><button class="btn btn-bad" data-act="confirm" data-k="cancel">${t('cancelOrder')}</button>`;
     }
   }
+  if(m==='prepare'&&o.kind!=='return')body=schedBox(o)+body;
   if(canDelete(o))body+=S.confirm==='delete'
     ?`<div class="del-zone"><span>${esc(t('delOrderQ'))}</span><div class="row"><button class="btn btn-ghost" data-act="unconfirm">${t('undo')}</button><button class="btn btn-del" data-act="deleteOrder">${t('confirmDel')}</button></div></div>`
     :`<div class="del-zone"><button class="btn btn-bad" data-act="confirm" data-k="delete">${t('delOrder')}</button></div>`;
   return`<div class="veil" data-act="veil"><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-brand"><span class="logo sm" role="img" aria-label="مسكوب MASKOB"></span></div>${head}<div class="sh-body">${body}</div>${foot?`<div class="sh-foot">${foot}</div>`:''}</div></div>`;
+}
+function schedBox(o){
+  if(!isWaitingDispatch(o))return'';
+  if(S.role==='warehouse'||S.role==='manager')
+    return`<div class="box sched-box"><label for="schedDate"><h4>${t('setDate')}</h4></label><input class="field" type="date" id="schedDate" value="${esc(o.scheduledFor||'')}" data-oid="${esc(o.id)}" min="${dayKey(Date.now())}"></div>`;
+  return o.scheduledFor?`<div class="box sched-box"><h4>${t('setDate')}</h4><b>${esc(dateLabel(o.scheduledFor))}</b></div>`:'';
 }
 function canDelete(o){
   if(S.role==='manager')return true;
@@ -1893,10 +1969,17 @@ const A={
   check(el){const c=curWork();if(!c)return;const x=c.w.lines[el.dataset.id];x.checked=!x.checked;S.confirm=null;saveProgressSoon();render()},
   approve(){const c=curWork();if(!c)return;const{o,w}=c;const tm=nowIso();
     const lines=o.lines.map(l=>Object.assign({},l,{approved:w.lines[l.id].approved}));
-    const f={status:'approved',lines,approvedAt:tm,updatedAt:tm,managerNote:w.note.trim()};if(S.me)f.approvedBy=S.me;
+    const f={status:'approved',lines,approvedAt:tm,updatedAt:tm,managerNote:w.note.trim()};if(o.kind!=='return')f.scheduledFor=nextDeliveryDay(o.branch);if(S.me)f.approvedBy=S.me;
     guard(async()=>{await Store.patch(o.id,f);S.open=null},()=>t('t_approved'));},
   reject(){const c=curWork();if(!c)return;const tm=nowIso();const f={status:'rejected',rejectedAt:tm,updatedAt:tm,managerNote:c.w.note.trim()};if(S.me)f.approvedBy=S.me;
     guard(async()=>{await Store.patch(c.o.id,f);S.open=null;S.confirm=null},()=>t('t_rejected'));},
+  toggleDay(el){
+    const b=S.branches[+el.dataset.i],d=+el.dataset.d;if(b==null)return;
+    const days=Object.assign({},S.days||{});const cur=new Set(days[b]||[]);
+    cur.has(d)?cur.delete(d):cur.add(d);days[b]=[...cur].sort((x,y)=>x-y);
+    S.days=days;render();
+    clearTimeout(S._daysT);S._daysT=setTimeout(()=>guard(()=>Store.saveDays(S.days),()=>t('daysSaved')),700);
+  },
   deleteOrder(){const id=S.open;if(!id)return;
     guard(async()=>{await Store.remove(id);S.open=null;S.confirm=null;if(S.justSent===id)S.justSent=null},()=>t('t_deleted'))},
   cancel(){const c=curWork();if(!c)return;const tm=nowIso();guard(async()=>{await Store.patch(c.o.id,{status:'cancelled',cancelledAt:tm,updatedAt:tm});S.open=null;S.confirm=null},()=>t('t_cancelled'));},
@@ -1938,6 +2021,7 @@ document.addEventListener('input',ev=>{
 });
 document.addEventListener('change',ev=>{
   const el=ev.target;
+  if(el.id==='schedDate'){const id=el.dataset.oid,v=el.value;if(id&&/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(v))guard(()=>Store.patch(id,{scheduledFor:v,updatedAt:nowIso()}),()=>t('dateSaved'));return}
   if(el.id==='fcBranch'){S.fcBranch=el.value;render();return}
   if(el.id==='rpDay'){if(/^\d{4}-\d{2}-\d{2}$/.test(el.value)){S.rpDay=el.value;S.rpText=null;render()}return}
   if(el.id==='langSel'){if(LANGS.includes(el.value)){LANG=el.value;LS.set('mk.lang',LANG);render()}return}
