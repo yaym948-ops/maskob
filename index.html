@@ -529,6 +529,17 @@ textarea,input,select,button{font-family:inherit}
 .ck-day b{color:var(--fg)}
 @media (max-width:560px){.cmp-row{grid-template-columns:80px 1fr 70px;font-size:13px}.m-photos.big .m-thumb{width:46%;height:auto;aspect-ratio:1}}
 
+.tg-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:10px}
+.tg-card{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--sun);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow)}
+.tg-card.none{border-top-color:var(--line);opacity:.85}
+.tg-card.done{border-top-color:var(--navy)}
+.tg-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.tg-head b{font-size:16px;color:var(--navy-ink)}
+.tg-head span{color:var(--sun-ink);font-weight:700}
+.tg-line{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;color:var(--muted)}
+.tg-line b{color:var(--fg)}
+.tg-card .tg-bar{margin-top:2px;height:22px}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -804,6 +815,10 @@ nBody:['الطلب {n}: من {a} إلى {b}','Order {n}: from {a} to {b}','অ�
 nBodySet:['الطلب {n}: موعد الاستلام {b}','Order {n}: delivery on {b}','অর্ডার {n}: ডেলিভারি {b}','آرڈر {n}: ترسیل {b}'],
 nOk:['تم','OK','ঠিক আছে','ٹھیک ہے'],
 nEnable:['تفعيل التنبيهات على هذا الجهاز','Turn on alerts on this device','এই ডিভাইসে বার্তা চালু করুন','اس ڈیوائس پر اطلاعات فعال کریں'],
+tg_cards:['تارقت الفروع','Branch targets','শাখার লক্ষ্য','برانچوں کے اہداف'],
+tg_achieved:['المحقق','Achieved','অর্জিত','حاصل'],
+tg_none:['لم يُحدَّد تارقت','No target set','লক্ষ্য নির্ধারিত নেই','ہدف مقرر نہیں'],
+tg_reached:['تم تحقيق التارقت','Target reached','লক্ষ্য অর্জিত','ہدف حاصل ہو گیا'],
 tab_sales:['المبيعات','Sales','বিক্রয়','فروخت'],
 tab_maint:['الصيانة','Maintenance','রক্ষণাবেক্ষণ','مرمت'],
 tab_checks:['التشييك','Checklist','চেকলিস্ট','چیک لسٹ'],
@@ -2355,6 +2370,17 @@ function salesView(){
 }
 
 /* ---------- operations: all branches this month ---------- */
+function targetCard(b,st){
+  const head=`<div class="tg-head"><b>${esc(b)}</b>${st.target?`<span class="num">${esc(sar(st.target))} ${t('sar')}</span>`:''}</div>`;
+  if(!st.target)return`<div class="tg-card none">${head}<div class="hint">${t('tg_none')}</div><div class="tg-line"><span>${t('tg_achieved')}</span><b class="num">${esc(sar(st.sales))} ${t('sar')}</b></div></div>`;
+  const done=st.remain===0;
+  return`<div class="tg-card${done?' done':''}">${head}${progress(st.pct)}
+    <div class="tg-line"><span>${t('tg_achieved')}</span><b class="num">${esc(sar(st.sales))} ${t('sar')}</b></div>
+    <div class="tg-line"><span>${t('sl_remain')}</span><b class="num">${done?esc(t('tg_reached')):esc(sar(st.remain))+' '+t('sar')}</b></div>
+    ${st.perDay!=null&&!done?`<div class="tg-line"><span>${t('sl_perDay')}</span><b class="num">${esc(sar(st.perDay))} ${t('sar')}</b></div>`:''}
+    ${st.targetInv?`<div class="tg-line"><span>${t('sl_invCount')}</span><b class="num">${esc(sar(st.inv))} / ${esc(sar(st.targetInv))}</b></div>${progress(st.pctInv)}`:''}
+  </div>`;
+}
 function salesAllView(){
   const mk=S.slMonth||monthKey(Date.now());
   const today=dayKey(Date.now()),items=checklistItems().length;
@@ -2365,9 +2391,10 @@ function salesAllView(){
   const maxS=Math.max(1,...rows.map(r=>Math.max(r.st.sales,r.st.target)));
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_sales')}</h2><input class="field" type="month" id="slMonth" value="${esc(mk)}" style="width:auto"></div>
   <div class="stats">${kpi(t('sl_totalAll'),sar(tot.s)+' '+t('sar'))}${kpi(t('sl_invCount'),sar(tot.i))}${kpi(t('sl_avgBranch'),sar(avgBranch)+' '+t('sar'))}${kpi(t('sl_avg'),sar2(avgTicket)+' '+t('sar'))}</div>
+  <div class="rp-sec"><h3>${t('tg_cards')}</h3><div class="tg-cards">${rows.map(r=>targetCard(r.b,r.st)).join('')}</div></div>
   <div class="rp-sec"><h3>${t('sl_byBranch')}</h3><div class="cmp">${rows.map(r=>`<div class="cmp-row"><b>${esc(r.b)}</b><div class="cmp-bar"><i style="width:${Math.round(r.st.sales/maxS*100)}%"></i>${r.st.target?`<u style="inset-inline-start:${Math.round(r.st.target/maxS*100)}%"></u>`:''}</div><span class="num">${sar(r.st.sales)}</span></div>`).join('')}</div></div>
-  <div class="rp-sec"><div class="scroll"><table class="tbl"><thead><tr><th>${t('r_branch')}</th><th style="text-align:center">${t('sl_sales')}</th><th style="text-align:center">${t('sl_inv')}</th><th style="text-align:center">${t('sl_avg')}</th><th style="text-align:center">${t('sl_target')}</th><th style="text-align:center">%</th><th style="text-align:center">${t('ck_today')}</th></tr></thead><tbody>
-  ${rows.map(r=>`<tr><td><b>${esc(r.b)}</b>${r.st.days?'':`<div class="hint">${t('sl_noData')}</div>`}</td><td class="n">${sar(r.st.sales)}</td><td class="n">${sar(r.st.inv)}</td><td class="n">${r.st.inv?sar2(r.st.avg):'—'}</td><td class="n">${r.st.target?sar(r.st.target):'—'}</td><td class="n ${r.st.pct!=null&&r.st.pct<0.5&&mk===today.slice(0,7)&&+today.slice(8)>15?'mis':''}">${r.st.pct==null?'—':Math.round(r.st.pct*100)+'%'}</td><td class="n">${r.ck==null?'—':Math.round(r.ck*100)+'%'}</td></tr>`).join('')}</tbody></table></div></div>`;
+  <div class="rp-sec"><div class="scroll"><table class="tbl"><thead><tr><th>${t('r_branch')}</th><th style="text-align:center">${t('sl_sales')}</th><th style="text-align:center">${t('sl_inv')}</th><th style="text-align:center">${t('sl_avg')}</th><th style="text-align:center">${t('sl_target')}</th><th style="text-align:center">${t('sl_remain')}</th><th style="text-align:center">%</th><th style="text-align:center">${t('ck_today')}</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr><td><b>${esc(r.b)}</b>${r.st.days?'':`<div class="hint">${t('sl_noData')}</div>`}</td><td class="n">${sar(r.st.sales)}</td><td class="n">${sar(r.st.inv)}</td><td class="n">${r.st.inv?sar2(r.st.avg):'—'}</td><td class="n">${r.st.target?sar(r.st.target):'—'}</td><td class="n">${r.st.remain==null?'—':sar(r.st.remain)}</td><td class="n ${r.st.pct!=null&&r.st.pct<0.5&&mk===today.slice(0,7)&&+today.slice(8)>15?'mis':''}">${r.st.pct==null?'—':Math.round(r.st.pct*100)+'%'}</td><td class="n">${r.ck==null?'—':Math.round(r.ck*100)+'%'}</td></tr>`).join('')}</tbody></table></div></div>`;
 }
 
 /* ---------- maintenance ---------- */
