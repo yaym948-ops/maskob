@@ -1962,10 +1962,20 @@ function lineRows(list){
     rows.push([o.num||o.id,o.branch,kindL(o.kind),statusL(o.status),fmtDT(o.createdAt),i.name,it?it.en:(l.en||''),it?it.sku:'',i.u,nOr(l.qty),nOr(l.stock),nOr(l.approved),nOr(l.sent),nOr(l.received),l.received!=null?Math.round((l.received-(l.sent??0))*1000)/1000:'',l.rnote||''])}));
   return{headers:[t('c_num'),t('r_branch'),t('c_kind'),t('c_status'),t('c_created'),t('c_item'),t('c_en'),'SKU',t('c_unit'),t('c_req'),t('stock'),t('approvedQ'),t('sentQ'),t('c_recv'),t('c_diff'),t('c_note')],rows};
 }
-function makeSheet({headers,rows}){
-  const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+/* letterhead lines from the company details (system admin page) */
+function xlsLetterhead(title){
+  const co=coInfo();
+  const ids=[co.cr?'س.ت / C.R.: '+co.cr:'',co.vat?'الرقم الضريبي / VAT: '+co.vat:''].filter(Boolean).join('   ·   ');
+  const contact=[co.addr,co.addrEn,co.phone,co.email,co.web].filter(Boolean).join('   ·   ');
+  return[co.name+(co.nameEn?'  —  '+co.nameEn:''),ids,contact,(title||'')+'   —   '+dayKey(Date.now()).split('-').reverse().join('/')].filter(Boolean);
+}
+function makeSheet({headers,rows,name}){
+  const lh=xlsLetterhead(name),top=lh.length+1;          // letterhead lines, then one empty row, then the table
+  const ws=XLSX.utils.aoa_to_sheet([...lh.map(x=>[x]),[],headers,...rows]);
+  const last=headers.length-1;               // merge only across the table's own columns
+  if(last>0)ws['!merges']=lh.map((_,r)=>({s:{r,c:0},e:{r,c:last}}));
   ws['!cols']=headers.map((h,c)=>({wch:Math.min(45,Math.max(8,String(h).length+2,...rows.map(r=>String(r[c]??'').length+2)))}));
-  ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(rows.length,1),c:headers.length-1}})};
+  ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:top,c:0},e:{r:top+Math.max(rows.length,1),c:headers.length-1}})};
   return ws;
 }
 let xlsxLoading=null;
@@ -2682,8 +2692,8 @@ function xLoadDemo(){
 function xStart(){
   xStop();const u=S._xUnsub=[];
   const onErr=()=>{};
+  u.push(db.doc('config/company').onSnapshot(s=>{S.company=s.exists?s.data():{};render()},onErr));
   if(S.role==='admin'||S.role==='hr'){
-    u.push(db.doc('config/company').onSnapshot(s=>{S.company=s.exists?s.data():{};render()},onErr));
     u.push(db.doc('config/companyLogo').onSnapshot(s=>{S.coLogo=s.exists?s.data().data:null;render()},onErr));
   }
   u.push(db.doc('config/catalog').onSnapshot(s=>{S.catalog=s.exists&&Array.isArray(s.data().items)?s.data().items:null;applyCatalog();render()},onErr));
@@ -3720,7 +3730,10 @@ async function ioRead(k,file){
   let aoa;
   try{const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''})}
   catch(e){toast(t('io_readFail'));return}
-  const hi=aoa.findIndex(r=>r.some(v=>String(v).trim()!==''));
+  const known=new Set(def.cols.flatMap(c=>[c[0].toLowerCase(),...labelsOf(c[1])]));
+  let hi=-1,best=0;
+  aoa.slice(0,25).forEach((r,i)=>{const n=r.filter(v=>known.has(normH(v))).length;if(n>best){best=n;hi=i}});
+  if(hi<0)hi=aoa.findIndex(r=>r.some(v=>String(v).trim()!==''));
   const imp={k,file:file.name,ok:[],errors:[],missing:[]};
   if(hi<0){imp.fatal=t('io_empty');S.imp=imp;render();return}
   const head=aoa[hi].map(normH);

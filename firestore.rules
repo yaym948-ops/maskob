@@ -124,9 +124,9 @@ service cloud.firestore {
       allow delete: if isMgr();
     }
 
-    // company details (letterhead): system admin edits, HR prints documents with them
+    // company details (letterhead): system admin edits; every role reads them for printed documents and Excel exports
     match /config/company {
-      allow read: if isAdmin() || isRole('hr');
+      allow read: if valid();
       allow write: if isAdmin();
     }
     match /config/companyLogo {
