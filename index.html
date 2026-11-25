@@ -1799,7 +1799,7 @@ function branchesView(){
   ${waView()}
   <h2 style="margin-top:28px">${t('branchesTitle')}</h2>
   <div class="codes">${brs}
-  <div class="row"><input class="field" style="flex:1" id="newBranch" placeholder="${esc(t('newBranchPh'))}" value="${esc(S.newBranch)}" data-in="newBranch"><button class="btn btn-navy" data-act="addBranch">${t('add')}</button></div></div>${targetsView()}${checklistEditView()}`;
+  <div class="row"><input class="field" style="flex:1" id="newBranch" placeholder="${esc(t('newBranchPh'))}" value="${esc(S.newBranch)}" data-in="newBranch"><button class="btn btn-navy" data-act="addBranch">${t('add')}</button></div></div>${checklistEditView()}`;
 }
 
 /* new order */
@@ -2299,7 +2299,7 @@ function xStart(){
     list('sales',a=>S.sales=a);list('maintenance',a=>S.maint=a);
     u.push(db.collection('checks').where('date','==',dayKey(Date.now())).onSnapshot(s=>{S.checks=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},onErr));
   }
-  if(S.role==='manager'||S.role==='admin')
+  if(S.role==='manager')
     u.push(db.collection('targets').onSnapshot(s=>{const t={};s.docs.forEach(d=>t[d.id]=d.data());S.targets=t;render()},onErr));
 }
 function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
@@ -2394,7 +2394,7 @@ function salesAllView(){
   <div class="rp-sec"><h3>${t('tg_cards')}</h3><div class="tg-cards">${rows.map(r=>targetCard(r.b,r.st)).join('')}</div></div>
   <div class="rp-sec"><h3>${t('sl_byBranch')}</h3><div class="cmp">${rows.map(r=>`<div class="cmp-row"><b>${esc(r.b)}</b><div class="cmp-bar"><i style="width:${Math.round(r.st.sales/maxS*100)}%"></i>${r.st.target?`<u style="inset-inline-start:${Math.round(r.st.target/maxS*100)}%"></u>`:''}</div><span class="num">${sar(r.st.sales)}</span></div>`).join('')}</div></div>
   <div class="rp-sec"><div class="scroll"><table class="tbl"><thead><tr><th>${t('r_branch')}</th><th style="text-align:center">${t('sl_sales')}</th><th style="text-align:center">${t('sl_inv')}</th><th style="text-align:center">${t('sl_avg')}</th><th style="text-align:center">${t('sl_target')}</th><th style="text-align:center">${t('sl_remain')}</th><th style="text-align:center">%</th><th style="text-align:center">${t('ck_today')}</th></tr></thead><tbody>
-  ${rows.map(r=>`<tr><td><b>${esc(r.b)}</b>${r.st.days?'':`<div class="hint">${t('sl_noData')}</div>`}</td><td class="n">${sar(r.st.sales)}</td><td class="n">${sar(r.st.inv)}</td><td class="n">${r.st.inv?sar2(r.st.avg):'—'}</td><td class="n">${r.st.target?sar(r.st.target):'—'}</td><td class="n">${r.st.remain==null?'—':sar(r.st.remain)}</td><td class="n ${r.st.pct!=null&&r.st.pct<0.5&&mk===today.slice(0,7)&&+today.slice(8)>15?'mis':''}">${r.st.pct==null?'—':Math.round(r.st.pct*100)+'%'}</td><td class="n">${r.ck==null?'—':Math.round(r.ck*100)+'%'}</td></tr>`).join('')}</tbody></table></div></div>`;
+  ${rows.map(r=>`<tr><td><b>${esc(r.b)}</b>${r.st.days?'':`<div class="hint">${t('sl_noData')}</div>`}</td><td class="n">${sar(r.st.sales)}</td><td class="n">${sar(r.st.inv)}</td><td class="n">${r.st.inv?sar2(r.st.avg):'—'}</td><td class="n">${r.st.target?sar(r.st.target):'—'}</td><td class="n">${r.st.remain==null?'—':sar(r.st.remain)}</td><td class="n ${r.st.pct!=null&&r.st.pct<0.5&&mk===today.slice(0,7)&&+today.slice(8)>15?'mis':''}">${r.st.pct==null?'—':Math.round(r.st.pct*100)+'%'}</td><td class="n">${r.ck==null?'—':Math.round(r.ck*100)+'%'}</td></tr>`).join('')}</tbody></table></div></div>${targetsView()}`;
 }
 
 /* ---------- maintenance ---------- */

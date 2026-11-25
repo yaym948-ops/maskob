@@ -89,10 +89,10 @@ service cloud.firestore {
       allow delete: if isMgr();
     }
 
-    // monthly targets per branch: set by system admin
+    // monthly targets per branch: set by operations
     match /targets/{b} {
-      allow read: if isMgr() || isAdmin() || (isBranch() && myBranch() == b);
-      allow write: if isAdmin();
+      allow read: if isMgr() || (isBranch() && myBranch() == b);
+      allow write: if isMgr();
     }
 
     // maintenance reports: a branch files its own; operations follows up and closes them
