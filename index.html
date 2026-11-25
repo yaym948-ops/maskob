@@ -575,6 +575,15 @@ textarea,input,select,button{font-family:inherit}
 
 .oc.cat-off{opacity:.6}
 
+.io-menu{position:relative;display:inline-block}
+.io-menu>summary{list-style:none;cursor:pointer;user-select:none}
+.io-menu>summary::-webkit-details-marker{display:none}
+.io-menu[open]>summary{background:var(--soft)}
+.io-pop{position:absolute;top:calc(100% + 6px);inset-inline-end:0;z-index:40;min-width:190px;display:flex;flex-direction:column;padding:6px;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 28px rgba(7,40,80,.16)}
+.io-item{display:block;width:100%;padding:10px 12px;border:0;border-radius:8px;background:none;color:var(--fg);font:inherit;font-weight:500;text-align:start;cursor:pointer;white-space:nowrap}
+.io-item:hover,.io-item:focus-visible{background:var(--soft);color:var(--navy)}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -1063,6 +1072,7 @@ ct_t_cleaning:['عقد نظافة','Cleaning','পরিচ্ছন্নতা
 ct_t_insurance:['عقد تأمين','Insurance','বীমা চুক্তি','انشورنس معاہدہ'],
 ct_t_service:['عقد خدمات','Services','সেবা চুক্তি','خدمات کا معاہدہ'],
 ct_t_other:['أخرى','Other','অন্যান্য','دیگر'],
+io_menu:['استيراد وتصدير','Import / export','আমদানি / রপ্তানি','درآمد / برآمد'],
 io_export:['تصدير','Export','রপ্তানি','برآمد'],
 io_import:['استيراد','Import','আমদানি','درآمد'],
 io_exportAll:['تصدير الكل','Export all','সব রপ্তানি','سب برآمد کریں'],
@@ -2961,7 +2971,7 @@ function hrEmpsView(){
   const al=hrDocAlerts(),lateIds=new Set(al.filter(a=>a.left<0).map(a=>a.e.id));
   const show=S.hrShow||'active';
   const list=all.filter(e=>(show==='all'||(show==='left')===(e.status==='left'))&&(!place||e.branch===place)&&(!q||[e.name,e.no,e.idNo,e.phone,e.job].some(x=>String(x||'').toLowerCase().includes(q))));
-  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_emps')}</h2><div class="row">${ioBtns('employees')}<button class="btn btn-ghost rp-btn" data-act="hrXls">${t('io_exportAll')}</button><button class="btn btn-sun" data-act="hrNew">+ ${t('hr_add')}</button></div></div>
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_emps')}</h2><div class="row">${ioBtns('employees',`<button class="io-item" role="menuitem" data-act="hrXls">⬇ ${t('io_exportAll')}</button>`)}<button class="btn btn-sun" data-act="hrNew">+ ${t('hr_add')}</button></div></div>
   <div class="stats">${kpi(t('hr_working'),sar(act.length))}${kpi(t('hr_onLeave'),sar(act.filter(onLeaveToday).length))}${kpi(t('hr_expiring'),sar(al.length),al.length?'hot':'')}${kpi(t('hr_payroll'),sar(act.reduce((a,e)=>a+payTotal(e),0))+' '+t('sar'))}</div>
   <div class="row hr-filter"><input class="field" id="hrQ" data-in="hrQ" placeholder="${esc(t('hr_search'))}" value="${esc(S.hrQ||'')}" style="flex:2;min-width:180px">
     <select class="field" id="hrPlace" style="flex:1;min-width:140px"><option value="">${esc(t('hr_allPlaces'))}</option>${hrPlaces().map(p=>`<option value="${esc(p)}" ${place===p?'selected':''}>${esc(placeL(p))} (${act.filter(e=>e.branch===p).length})</option>`).join('')}</select></div>
@@ -3612,10 +3622,19 @@ const IO={
     get:(m,k)=>k==='urgent'?(m.urgent?'yes':'no'):k==='createdAt'?fmtDT(m.createdAt):m[k]}
 };
 const ioCan=k=>({employees:'hr',leaves:'hr',custody:'hr',advances:'hr',licenses:'hr',targets:'manager',maint:'manager',catalog:'admin'}[k]||(k==='sales'?(S.role==='manager'||S.role==='branch')&&S.role:null))===S.role;
-function ioBtns(k){
+/* one drop-down per list: export, import (and any extra item) */
+function ioBtns(k,extra){
   if(!ioCan(k))return'';
-  return`<button class="btn btn-ghost rp-btn" data-act="ioExport" data-k="${k}">${t('io_export')}</button>${IO[k].readOnly?'':`<label class="btn btn-ghost rp-btn io-imp">${t('io_import')}<input type="file" class="imp-in" data-k="${k}" accept=".xlsx,.xls,.csv" aria-label="${esc(t('io_import'))}"></label>`}`;
+  return`<details class="io-menu"><summary class="btn btn-ghost rp-btn">${t(IO[k].readOnly?'io_export':'io_menu')} <span aria-hidden="true">▾</span></summary><div class="io-pop" role="menu">
+    <button class="io-item" role="menuitem" data-act="ioExport" data-k="${k}">⬇ ${t('io_export')}</button>
+    ${IO[k].readOnly?'':`<label class="io-item io-imp" role="menuitem">⬆ ${t('io_import')}<input type="file" class="imp-in" data-k="${k}" accept=".xlsx,.xls,.csv" aria-label="${esc(t('io_import'))}"></label>`}
+    ${extra||''}</div></details>`;
 }
+/* close an open drop-down when tapping elsewhere, after choosing an item, or opening another */
+document.addEventListener('click',ev=>{
+  const inMenu=ev.target.closest&&ev.target.closest('.io-menu');
+  document.querySelectorAll('.io-menu[open]').forEach(d=>{if(d!==inMenu||ev.target.closest('button.io-item'))d.open=false});
+});
 /* ---- values: export in the current language, import from any of the four ---- */
 const labelsOf=k=>(T[k]||[k]).map(x=>String(x).trim().toLowerCase());
 const normH=v=>String(v??'').replace(/\s+/g,' ').trim().toLowerCase();
