@@ -584,6 +584,9 @@ textarea,input,select,button{font-family:inherit}
 .io-item{display:block;width:100%;padding:10px 12px;border:0;border-radius:8px;background:none;color:var(--fg);font:inherit;font-weight:500;text-align:start;cursor:pointer;white-space:nowrap}
 .io-item:hover,.io-item:focus-visible{background:var(--soft);color:var(--navy)}
 
+.co-logo{gap:10px;flex-wrap:wrap}.co-logo img{height:44px;max-width:160px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px;padding:4px}
+.co-prev{width:100%;height:150px;border:1px solid var(--line);border-radius:10px;background:#fff;margin-top:6px}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -1072,6 +1075,25 @@ ct_t_cleaning:['عقد نظافة','Cleaning','পরিচ্ছন্নতা
 ct_t_insurance:['عقد تأمين','Insurance','বীমা চুক্তি','انشورنس معاہدہ'],
 ct_t_service:['عقد خدمات','Services','সেবা চুক্তি','خدمات کا معاہدہ'],
 ct_t_other:['أخرى','Other','অন্যান্য','دیگر'],
+co_title:['بيانات المنشأة (الترويسة)','Company details (letterhead)','প্রতিষ্ঠানের তথ্য (লেটারহেড)','ادارے کی تفصیلات (لیٹر ہیڈ)'],
+co_hint:['تظهر في ترويسة العقود والمخالصات وكل مستند يُطبع من التطبيق.','Shown on the letterhead of contracts, settlements and every document printed from the app.','চুক্তি, নিষ্পত্তি ও অ্যাপ থেকে ছাপা প্রতিটি নথির লেটারহেডে দেখাবে।','معاہدوں، تصفیوں اور ایپ سے پرنٹ ہونے والی ہر دستاویز کے لیٹر ہیڈ پر دکھے گی۔'],
+co_nameAr:['اسم المنشأة بالعربية','Company name (Arabic)','প্রতিষ্ঠানের নাম (আরবি)','ادارے کا نام (عربی)'],
+co_nameEn:['اسم المنشأة بالإنجليزية','Company name (English)','প্রতিষ্ঠানের নাম (ইংরেজি)','ادارے کا نام (انگریزی)'],
+co_vat:['الرقم الضريبي','VAT number','ভ্যাট নম্বর','VAT نمبر'],
+co_addrAr:['العنوان بالعربية','Address (Arabic)','ঠিকানা (আরবি)','پتہ (عربی)'],
+co_addrEn:['العنوان بالإنجليزية','Address (English)','ঠিকানা (ইংরেজি)','پتہ (انگریزی)'],
+co_phone:['الهاتف','Phone','ফোন','فون'],
+co_email:['البريد الإلكتروني','Email','ইমেইল','ای میل'],
+co_web:['الموقع الإلكتروني','Website','ওয়েবসাইট','ویب سائٹ'],
+co_rep:['المفوض بالتوقيع','Authorized signatory','অনুমোদিত স্বাক্ষরকারী','مجاز دستخط کنندہ'],
+co_repTitle:['منصب المفوض','Signatory title','স্বাক্ষরকারীর পদ','دستخط کنندہ کا عہدہ'],
+co_logo:['شعار الترويسة','Letterhead logo','লেটারহেড লোগো','لیٹر ہیڈ لوگو'],
+co_logoAdd:['رفع شعار','Upload logo','লোগো আপলোড','لوگو اپلوڈ کریں'],
+co_logoDel:['استخدام شعار مسكوب','Use the Maskob logo','মাসকুব লোগো ব্যবহার','مسکوب لوگو استعمال کریں'],
+co_logoDefault:['يُستخدم شعار مسكوب إذا لم يُرفع شعار.','The Maskob logo is used if none is uploaded.','লোগো না দিলে মাসকুব লোগো ব্যবহার হবে।','لوگو نہ ہو تو مسکوب لوگو استعمال ہوگا۔'],
+co_preview:['معاينة الترويسة','Letterhead preview','লেটারহেড প্রিভিউ','لیٹر ہیڈ کا جائزہ'],
+co_saved:['حُفظت بيانات المنشأة','Company details saved','প্রতিষ্ঠানের তথ্য সংরক্ষিত','ادارے کی تفصیلات محفوظ ہو گئیں'],
+co_editHint:['تُعدّل بيانات المنشأة من صفحة إدارة النظام.','Company details are edited on the system admin page.','প্রতিষ্ঠানের তথ্য সিস্টেম অ্যাডমিন পাতায় সম্পাদনা হয়।','ادارے کی تفصیلات سسٹم ایڈمن صفحے سے بدلی جاتی ہیں۔'],
 io_menu:['استيراد وتصدير','Import / export','আমদানি / রপ্তানি','درآمد / برآمد'],
 io_export:['تصدير','Export','রপ্তানি','برآمد'],
 io_import:['استيراد','Import','আমদানি','درآمد'],
@@ -2124,6 +2146,7 @@ function branchesView(){
   const brs=S.branches.map((b,i)=>{const r=row('branch:'+b,'branch',b,'pin-br-'+i,S.branches.length>1?`<button class="btn btn-bad" data-act="delBranch" data-i="${i}">${t('del')}</button>`:'');return r.slice(0,-6)+daysRow(b,i)+'</div>'}).join('');
   return`<h2>${t('codesTitle')}</h2>${lenView()}
   <div class="codes">${codes}</div>
+  ${companyView()}
   ${waView()}
   <h2 style="margin-top:28px">${t('branchesTitle')}</h2>
   <div class="codes">${brs}
@@ -2625,6 +2648,14 @@ const X={
     if(S.fb)return db.doc('licenses/'+id+'/files/f0').delete().catch(()=>{});
     if(S._demoLic)delete S._demoLic[id];
   },
+  async company(data){
+    if(S.fb)return queue('config/company',()=>db.doc('config/company').set(data));
+    MEMSET('company',data);xLoadDemo();render();
+  },
+  async companyLogo(data){
+    if(S.fb)return data?db.doc('config/companyLogo').set({data}):db.doc('config/companyLogo').delete();
+    MEMSET('companyLogo',data||'');xLoadDemo();render();
+  },
   async catalog(items){
     if(S.fb)return queue('config/catalog',()=>db.doc('config/catalog').set({items,at:nowIso()}));
     MEMSET('catalog',items);xLoadDemo();render();
@@ -2639,6 +2670,7 @@ const X={
   }
 };
 function xLoadDemo(){
+  {const c=MEM('company');S.company=c&&!Array.isArray(c)?c:{};const l=MEM('companyLogo');S.coLogo=typeof l==='string'&&l?l:null}
   S.catalog=MEM('catalog');applyCatalog();
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
@@ -2650,6 +2682,10 @@ function xLoadDemo(){
 function xStart(){
   xStop();const u=S._xUnsub=[];
   const onErr=()=>{};
+  if(S.role==='admin'||S.role==='hr'){
+    u.push(db.doc('config/company').onSnapshot(s=>{S.company=s.exists?s.data():{};render()},onErr));
+    u.push(db.doc('config/companyLogo').onSnapshot(s=>{S.coLogo=s.exists?s.data().data:null;render()},onErr));
+  }
   u.push(db.doc('config/catalog').onSnapshot(s=>{S.catalog=s.exists&&Array.isArray(s.data().items)?s.data().items:null;applyCatalog();render()},onErr));
   const list=(col,set)=>{let q=db.collection(col);if(S.role==='branch')q=q.where('branch','==',S.branch);
     u.push(q.onSnapshot(s=>{set(s.docs.map(d=>Object.assign({},d.data(),{id:d.id})));render()},onErr))};
@@ -3074,8 +3110,8 @@ function contractSheet(){
     <div class="ct-pay">${pay.map(([l,v])=>`<span>${esc(t(l))}: <b class="num">${esc(sar2(v))}</b></span>`).join('')}<span class="ct-tot">${esc(t('hr_totalPay'))}: <b class="num">${esc(sar2(payTotal(e)))} ${t('sar')}</b></span></div>
     ${e.contract&&e.contract.at?`<div class="hint">${esc(t('ct_last',{d:when(e.contract.at)}))}</div>`:''}</div>
   <div class="sl-grid hr-grid">${ci('ctF','start',t('ct_start'),'date')}${ci('ctF','end',t('hr_contract'),'date')}${ci('ctF','probation',t('ct_probation'),'number')}${ci('ctF','leave',t('ct_leave'),'number')}${ci('ctF','hours',t('ct_hours'),'number')}${ci('ctF','days',t('ct_days'),'number')}</div>
-  <h4 class="hr-sub">${t('ct_company')}</h4>
-  <div class="sl-grid hr-grid">${ci('coF','name',t('ct_coName'))}${ci('coF','cr',t('ct_cr'),'text','dir="ltr"')}${ci('coF','addr',t('ct_addr'))}${ci('coF','rep',t('ct_rep'))}</div>
+  ${(()=>{const co=coInfo();return`<div class="box" style="margin-top:12px"><h4>${t('co_title')}</h4><div>${esc(co.name)}${co.nameEn?' · <span dir="ltr">'+esc(co.nameEn)+'</span>':''}</div>
+    <div class="hint">${[co.cr?t('ct_cr')+': '+esc(co.cr):'',co.rep?t('co_rep')+': '+esc(co.rep):''].filter(Boolean).join(' · ')||''}</div><div class="hint">${esc(t('co_editHint'))}</div></div>`})()}
   <p class="hint" style="margin-top:10px">${esc(t('ct_hint'))}</p>`;
   const foot=`<button class="btn btn-ghost" data-act="ctBack">${t('ct_backEmp')}</button><span class="spacer"></span><button class="btn btn-sun" data-act="ctPrint" ${S.busy?'disabled':''}>${t('ct_print')}</button>`;
   return hrSheetWrap(t('ct_title')+': '+e.name,body,foot);
@@ -3089,8 +3125,8 @@ function contractHtml(e,c,co){
   const pay=[['الراتب الأساسي','Basic salary',e.salary],['بدل سكن','Housing allowance',e.alHousing],['بدل نقل','Transport allowance',e.alTransport],['بدل طعام','Food allowance',e.alFood],['بدلات أخرى','Other allowances',e.alOther]].filter(r=>+r[2]>0);
   const total=payTotal(e);
   const C=[
-    ['الطرف الأول: '+h(coName)+'، سجل تجاري رقم '+dash(co.cr)+'، العنوان: '+dash(co.addr)+'، ويمثلها: '+dash(co.rep)+'.',
-     'First party: '+h(coName)+', C.R. No. '+dash(co.cr)+', address: '+dash(co.addr)+', represented by: '+dash(co.rep)+'.'],
+    ['الطرف الأول: '+h(coName)+'، سجل تجاري رقم '+dash(co.cr)+'، العنوان: '+dash(co.addr)+'، ويمثلها: '+dash(co.rep)+(co.repTitle?' ('+h(co.repTitle)+')':'')+'.',
+     'First party: '+h(co.nameEn||coName)+', C.R. No. '+dash(co.cr)+', address: '+dash(co.addrEn||co.addr)+', represented by: '+dash(co.rep)+(co.repTitle?' ('+h(co.repTitle)+')':'')+'.'],
     ['الطرف الثاني: '+h(e.name)+'، الجنسية: '+dash(e.nat)+'، رقم الهوية / الإقامة: '+dash(e.idNo)+'، الجوال: '+dash(e.phone)+'.',
      'Second party: '+h(e.name)+', nationality: '+dash(e.nat)+', ID / Iqama No.: '+dash(e.idNo)+', mobile: '+dash(e.phone)+'.'],
     ['يعمل الطرف الثاني لدى الطرف الأول بمهنة ('+dash(e.job)+') في ('+h(pl[0])+')، ويؤدي المهام التي يكلفه بها الطرف الأول بما يتناسب مع مهنته.',
@@ -3125,7 +3161,7 @@ table{width:100%;border-collapse:collapse}
 .sig b{color:#0758A7}.line{border-bottom:1px dashed #8a9ab0;height:34px;margin-bottom:4px}
 .foot{margin-top:14px;font-size:10.5px;color:#6b7a90;text-align:center}
 </style></head><body>
-<div class="top"><div><h1>عقد عمل<small>Employment Contract</small></h1></div><img src="${h(logo)}" alt="مسكوب"><div class="meta">${dt(dayKey(Date.now()))}<br>${e.no?'#'+h(e.no):''}</div></div>
+${letterhead(co,'عقد عمل','Employment Contract',dt(dayKey(Date.now()))+(e.no?' &nbsp;·&nbsp; #'+h(e.no):''))}
 <div class="bar"></div>
 <table class="cl">${C.map((r,i)=>`<tr><td class="no">${i+1}</td><td>${r[0]}</td><td class="en">${r[1]}</td></tr>`).join('')}</table>
 <table class="pay"><thead><tr><th>البند / Item</th><th>المبلغ الشهري (ريال) / Monthly (SAR)</th></tr></thead><tbody>
@@ -3133,7 +3169,7 @@ ${pay.map(r=>`<tr><td>${r[0]} / ${r[1]}</td><td class="v">${n(r[2])}</td></tr>`)
 <tr class="tot"><td>الإجمالي / Total</td><td class="v">${n(total)}</td></tr></tbody></table>
 <div class="sig"><div><b>الطرف الأول / First party</b><div>${h(coName)}${co.rep?' — '+h(co.rep):''}</div><div class="line"></div>التوقيع والختم / Signature &amp; stamp</div>
 <div><b>الطرف الثاني / Second party</b><div>${h(e.name)}</div><div class="line"></div>التوقيع / Signature</div></div>
-<div class="foot">${h(coName)}</div>
+${letterfoot(co)}
 <script>window.onload=function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print()},250)})}<\/script>
 </body></html>`;
 }
@@ -3356,7 +3392,7 @@ table{width:100%;border-collapse:collapse;margin-bottom:14px}td,th{border:1px so
 .sig{display:flex;gap:30px;margin-top:22px}.sig div{flex:1;border:1px solid #c9d5e3;border-radius:8px;padding:10px 12px;min-height:110px}.sig b{color:#0758A7}
 .line{border-bottom:1px dashed #8a9ab0;height:34px;margin-bottom:4px}.foot{margin-top:14px;font-size:10.5px;color:#6b7a90;text-align:center}
 </style></head><body>
-<div class="top"><div><h1>مخالصة نهائية<small>Final Settlement</small></h1></div><img src="${h(logo)}" alt="مسكوب"><div class="meta">${dt(dayKey(Date.now()))}<br>${e.no?'#'+h(e.no):''}</div></div>
+${letterhead(co,'مخالصة نهائية','Final Settlement',dt(dayKey(Date.now()))+(e.no?' &nbsp;·&nbsp; #'+h(e.no):''))}
 <div class="bar"></div>
 <table class="info">${info.map(r=>`<tr><td>${r[0]} / ${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>
 <table><thead><tr><th>البند / Item</th><th style="text-align:center">المبلغ (ريال) / Amount (SAR)</th></tr></thead><tbody>
@@ -3364,10 +3400,10 @@ ${rows.map(r=>`<tr><td>${r[0]} / ${r[1]}</td><td class="v ${r[2]<0?'neg':''}">${
 <tr class="net"><td>${c.net<0?'المبلغ المستحق على الموظف / Amount owed by employee':'صافي المستحق للموظف / Net amount due to employee'}</td><td class="v">${n(Math.abs(c.net))}</td></tr></tbody></table>
 ${d.note?`<div class="decl">${h(d.note)}</div>`:''}
 <div class="decl">أقر أنا الموظف الموقع أدناه بأنني استلمت من ${h(coName)} كامل مستحقاتي المذكورة أعلاه عن مدة خدمتي، وأنه لا يحق لي المطالبة بأي حقوق أخرى بعد ذلك، وهذه مخالصة نهائية مني بذلك.
-<div class="en">I, the undersigned employee, confirm that I have received from ${h(coName)} all my dues stated above for my period of service, that I have no further claims, and that this is my final settlement.</div></div>
+<div class="en">I, the undersigned employee, confirm that I have received from ${h(co.nameEn||coName)} all my dues stated above for my period of service, that I have no further claims, and that this is my final settlement.</div></div>
 <div class="sig"><div><b>الموظف / Employee</b><div>${h(e.name)}</div><div class="line"></div>التوقيع والتاريخ / Signature &amp; date</div>
 <div><b>عن المنشأة / For the company</b><div>${h(coName)}${co.rep?' — '+h(co.rep):''}</div><div class="line"></div>التوقيع والختم / Signature &amp; stamp</div></div>
-<div class="foot">${h(coName)}</div>
+${letterfoot(co)}
 <script>window.onload=function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print()},250)})}<\/script>
 </body></html>`;
 }
@@ -3381,7 +3417,7 @@ Object.assign(A,{
     const again=e.status==='left'&&e.settlement;
     if(!again&&S.confirm!=='eos'){S.confirm='eos';render();return}
     const win=window.open('','_blank');
-    printHtml(settlementHtml(e,d,c,S.hrCfg||{}),win);
+    printHtml(settlementHtml(e,d,c,coInfo()),win);
     if(again){S.confirm=null;return}
     const tm=nowIso();
     const settlement={input:Object.assign({},d),award:c.award,leaveComp:c.leaveComp,otherDue:c.otherDue,dedAdv:c.dedAdv,dedCust:c.dedCust,otherDed:c.otherDed,net:c.net,factor:c.factor,at:tm};
@@ -3516,11 +3552,10 @@ Object.assign(A,{
     const e=empById(S.openContract);if(!e)return;const c=S.ctDraft||{},co=S.coDraft||{};
     if(!isDay(c.start)||!isDay(c.end)||c.end<c.start){toast(t('ct_need'));return}
     const ct={start:c.start,end:c.end,probation:Math.max(0,Math.round(num(c.probation))),hours:num(c.hours)||8,days:Math.round(num(c.days))||6,leave:Math.round(num(c.leave))||21,at:nowIso()};
-    const cof={name:String(co.name||'').trim(),cr:String(co.cr||'').trim(),addr:String(co.addr||'').trim(),rep:String(co.rep||'').trim()};
+    const cof=coInfo();
     const win=window.open('','_blank');               // open now, while the tap still counts, so pop-up blockers allow it
     printHtml(contractHtml(e,ct,cof),win);
     guard(async()=>{
-      const old=S.hrCfg||{};if(['name','cr','addr','rep'].some(k=>(old[k]||'')!==cof[k]))await X.hrCfg(cof);
       await X.upd('employees',e.id,{contract:ct,hire:e.hire||ct.start,contractEnd:ct.end,updatedAt:nowIso()});S.openContract=null;
     },()=>t('ct_done'));
   },
@@ -3749,6 +3784,79 @@ document.addEventListener('change',ev=>{
   const el=ev.target;if(!el.classList||!el.classList.contains('imp-in')||!el.files||!el.files[0])return;
   const f=el.files[0],k=el.dataset.k;el.value='';
   if(ioCan(k))ioRead(k,f);
+});
+
+/* ================= Company details: letterhead for contracts, settlements and other printed documents ================= */
+const CO_FIELDS=[['nameAr','co_nameAr'],['nameEn','co_nameEn','ltr'],['cr','ct_cr','ltr'],['vat','co_vat','ltr'],['addrAr','co_addrAr'],['addrEn','co_addrEn','ltr'],
+  ['phone','co_phone','ltr'],['email','co_email','ltr'],['web','co_web','ltr'],['rep','co_rep'],['repTitle','co_repTitle']];
+const DEFAULT_LOGO=()=>{let l='https://fllow-maskob.web.app/maskob-wordmark.png';try{if(/^https?:$/.test(location.protocol))l=new URL('maskob-wordmark.png',location.href).href}catch(e){}return l};
+/* one shape for every document; older contract details saved by HR (config/hr) fill any gaps */
+function coInfo(){
+  const o=S.hrCfg||{},c=S.company||{};
+  return{name:c.nameAr||o.name||'مسكوب',nameEn:c.nameEn||'',cr:c.cr||o.cr||'',vat:c.vat||'',addr:c.addrAr||o.addr||'',addrEn:c.addrEn||'',
+    phone:c.phone||'',email:c.email||'',web:c.web||'',rep:c.rep||o.rep||'',repTitle:c.repTitle||'',logo:S.coLogo||DEFAULT_LOGO()};
+}
+const LH_CSS=`.lh{display:flex;align-items:center;gap:14px;border-bottom:3px solid #0758A7;padding-bottom:10px;margin-bottom:6px}
+.lh-co{flex:1;min-width:0;line-height:1.5}.lh-co b{display:block;font-size:15px;color:#0758A7;font-weight:800}
+.lh-co .en{display:block;direction:ltr;text-align:right;font-size:12px;color:#33445c;font-weight:700}
+.lh-co small{display:block;font-size:10.5px;color:#4a5b73}
+.lh img{max-height:54px;max-width:160px;object-fit:contain}
+.lh-doc{flex:1;text-align:left}.lh-doc h1{font-size:21px;margin:0;color:#0758A7;font-weight:800;line-height:1.3}.lh-doc h1 small{display:block;font-size:12.5px;color:#4a5b73;font-weight:500}
+.lh-doc .meta{font-size:11px;color:#4a5b73;direction:ltr}
+.lf{margin-top:18px;border-top:1px solid #dfe6ef;padding-top:6px;font-size:10px;color:#6b7a90;text-align:center;line-height:1.6}`;
+function letterhead(co,ar,en,meta){
+  const h=esc;
+  const ids=[co.cr?'س.ت / C.R.: '+h(co.cr):'',co.vat?'الرقم الضريبي / VAT: '+h(co.vat):''].filter(Boolean).join(' &nbsp;·&nbsp; ');
+  return`<style>${LH_CSS}</style><div class="lh"><div class="lh-co"><b>${h(co.name)}</b>${co.nameEn?`<span class="en">${h(co.nameEn)}</span>`:''}${ids?`<small>${ids}</small>`:''}</div>
+  <img src="${h(co.logo)}" alt=""><div class="lh-doc">${ar?`<h1>${h(ar)}<small>${h(en||'')}</small></h1>`:''}${meta?`<div class="meta">${meta}</div>`:''}</div></div>`;
+}
+function letterfoot(co){
+  const h=esc;
+  const a=[co.addr,co.addrEn].filter(Boolean).map(h).join(' — '),c=[co.phone,co.email,co.web].filter(Boolean).map(h).join(' &nbsp;·&nbsp; ');
+  return`<div class="lf">${a?a+'<br>':''}${c||h(co.name)}</div>`;
+}
+/* admin settings section */
+function companyView(){
+  const d=S.coSet||(S.coSet=Object.assign({},S.company||{}));
+  const logo=d._logo!==undefined?d._logo:S.coLogo;
+  const co=Object.assign(coInfo(),{name:d.nameAr||'مسكوب',nameEn:d.nameEn||'',cr:d.cr||'',vat:d.vat||'',logo:logo||DEFAULT_LOGO()});
+  const prev=`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><style>body{margin:10px 14px;font-family:Tajawal,Arial,sans-serif;color:#13233a}</style></head><body>${letterhead(co,'عقد عمل','Employment Contract',dayKey(Date.now()).split('-').reverse().join('/'))}${letterfoot(Object.assign({},co,{addr:d.addrAr||'',addrEn:d.addrEn||'',phone:d.phone||'',email:d.email||'',web:d.web||''}))}</body></html>`;
+  return`<h2 style="margin-top:28px">${t('co_title')}</h2><p class="hint">${esc(t('co_hint'))}</p>
+  <div class="codes"><div class="code" style="display:block">
+    <div class="sl-grid hr-grid">${CO_FIELDS.map(([f,l,dir])=>`<label><span class="hint">${esc(t(l))}</span><input class="field" id="co-${f}" data-in="coSet" data-f="${f}" value="${esc(d[f]||'')}" ${dir?'dir="ltr"':'dir="auto"'} ${f==='email'?'type="email"':''}></label>`).join('')}</div>
+    <div class="row co-logo" style="margin-top:12px"><span class="hint">${t('co_logo')}</span><img src="${esc(logo||DEFAULT_LOGO())}" alt="">
+      <label class="btn btn-ghost rp-btn io-imp">${esc(t('co_logoAdd'))}<input type="file" id="coLogoFile" accept="image/*"></label>
+      ${logo?`<button class="btn btn-ghost rp-btn" data-act="coLogoDel">${t('co_logoDel')}</button>`:`<span class="hint">${esc(t('co_logoDefault'))}</span>`}</div>
+    <div class="hint" style="margin-top:12px">${t('co_preview')}</div>
+    <iframe class="co-prev" title="${esc(t('co_preview'))}" srcdoc="${esc(prev)}"></iframe>
+    <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn btn-navy" data-act="coSave" ${S.busy?'disabled':''}>${t('waSave')}</button></div>
+  </div></div>`;
+}
+/* shrink a logo: max 500px, PNG keeps transparency; fall back to JPEG on white if large */
+async function compressLogo(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+    const sc=Math.min(1,500/Math.max(img.width,img.height));const w=Math.max(1,Math.round(img.width*sc)),h=Math.max(1,Math.round(img.height*sc));
+    const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');g.drawImage(img,0,0,w,h);
+    let d=c.toDataURL('image/png');
+    if(d.length>350000){g.globalCompositeOperation='destination-over';g.fillStyle='#fff';g.fillRect(0,0,w,h);d=c.toDataURL('image/jpeg',0.85)}
+    return d;
+  }finally{URL.revokeObjectURL(url)}
+}
+Object.assign(A,{
+  coSave(){
+    const d=S.coSet||{};const data={};CO_FIELDS.forEach(([f])=>data[f]=String(d[f]||'').trim());data.at=nowIso();
+    const logoChanged=d._logo!==undefined;
+    guard(async()=>{await X.company(data);if(logoChanged)await X.companyLogo(d._logo||null);S.coSet=null},()=>t('co_saved'));
+  },
+  coLogoDel(){S.coSet=S.coSet||{};S.coSet._logo=null;render()}
+});
+document.addEventListener('input',ev=>{const el=ev.target;if(el.dataset&&el.dataset.in==='coSet'){S.coSet=S.coSet||{};S.coSet[el.dataset.f]=el.value;
+  clearTimeout(S._coT);S._coT=setTimeout(()=>{const f=document.querySelector('.co-prev');if(f){const keep=document.activeElement&&document.activeElement.id;render();const k=keep&&document.getElementById(keep);if(k)k.focus()}},600)}});
+document.addEventListener('change',async ev=>{
+  const el=ev.target;if(el.id!=='coLogoFile'||!el.files||!el.files[0])return;
+  try{const d=await compressLogo(el.files[0]);S.coSet=S.coSet||{};S.coSet._logo=d;render()}catch(e){toast(t('m_photoFail'))}
 });
 
 /* ================= Item catalog: editable by the system admin, stored in config/catalog ================= */

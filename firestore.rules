@@ -124,6 +124,17 @@ service cloud.firestore {
       allow delete: if isMgr();
     }
 
+    // company details (letterhead): system admin edits, HR prints documents with them
+    match /config/company {
+      allow read: if isAdmin() || isRole('hr');
+      allow write: if isAdmin();
+    }
+    match /config/companyLogo {
+      allow read: if isAdmin() || isRole('hr');
+      allow write: if isAdmin() && request.resource.data.data is string && request.resource.data.data.size() < 600000;
+      allow delete: if isAdmin();
+    }
+
     // item catalog for orders: every signed-in role reads, system admin edits
     match /config/catalog {
       allow read: if valid();
