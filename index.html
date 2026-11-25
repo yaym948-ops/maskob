@@ -4060,7 +4060,7 @@ function vouchersView(){
   <div class="stats">${kpi(t('vc_count'),sar(list.length))}${kpi(t('vc_total'),sar2(total)+' '+t('sar'))}</div>
   <div class="list">${list.length?list.map(v=>`<button class="oc" data-act="vcOpen" data-id="${esc(v.id)}">
     <span style="min-width:0"><span class="t"><span class="num" dir="ltr">#${esc(v.no)}</span> ${esc(v.payee)} <span class="tag">${esc(t('vc_'+(v.cat||'other')))}</span></span>
-      <span class="s">${esc(dateLabel(v.date))} · ${esc(t('pm_'+(v.method||'cash')))}${v.purpose?' · '+esc(String(v.purpose).slice(0,60)):''}</span></span>
+      <span class="s">${esc(dateLabel(v.date))} · ${esc(t('pm_'+(v.method||'cash')))}${v.iban?' · <span dir="ltr">'+esc(ibanFmt(v.iban))+'</span>':''}${v.purpose?' · '+esc(String(v.purpose).slice(0,60)):''}</span></span>
     <span class="side"><b class="num">${esc(sar2(v.amount))} ${t('sar')}</b></span></button>`).join(''):`<div class="empty">${esc(t('vc_none'))}</div>`}</div>`;
 }
 function voucherSheet(){
@@ -4071,6 +4071,7 @@ function voucherSheet(){
     ${hrSel('emp',t('vc_emp'),[['',t('vc_other_payee')],...emps.map(e=>[e.id,e.name+(e.no?' #'+e.no:'')])])}${hrIn('payee',t('vc_payee'))}
     ${hrIn('amount',t('vc_amount')+' ('+t('sar')+')','number')}${hrSel('cat',t('vc_cat'),VC_CATS.map(k=>[k,t('vc_'+k)]))}
     ${hrSel('method',t('vc_method'),PAY_METHODS.map(k=>[k,t('pm_'+k)]))}${hrIn('ref',t('vc_ref'),'text','dir="ltr"')}
+    ${hrIn('bank',t('bk_bank'))}${hrIn('iban',t('bk_iban'),'text','dir="ltr" autocomplete="off" style="text-transform:uppercase"')}
   </div>
   <div class="hint" id="vcWords" style="margin-top:8px">${+d.amount>0?esc(tafqeet(num(d.amount))):''}</div>
   <label style="display:block;margin-top:10px"><span class="hint">${t('vc_purpose')}</span><textarea class="field" id="hr-purpose" rows="2" dir="auto" data-in="hrF" data-f="purpose">${esc(d.purpose||'')}</textarea></label>`;
@@ -4100,7 +4101,8 @@ const nfmt=x=>(+x||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFra
 function printVoucher(v,win){
   const rows=[['صُرف إلى / Paid to',esc(v.payee)],['المبلغ / Amount',`<span class="big">${nfmt(v.amount)} SAR</span>`],['المبلغ كتابة / In words',esc(tafqeet(v.amount))],
     ['وذلك عن / For',esc(v.purpose||'—')],['نوع الصرف / Category',esc(t('vc_'+(v.cat||'other')))],['طريقة الدفع / Method',esc(t('pm_'+(v.method||'cash')))+(v.ref?' — <span dir="ltr">'+esc(v.ref)+'</span>':'')],
-    ...(v.method==='bank'&&v.emp&&empById(v.emp)&&empById(v.emp).iban?[['الحساب / Account',esc(empById(v.emp).bank||'')+' — <span dir="ltr">'+esc(ibanFmt(empById(v.emp).iban))+'</span>']]:[]),['التاريخ / Date',dmy(v.date)]];
+    ...(()=>{const e=v.emp&&empById(v.emp);const ib=v.iban||(v.method==='bank'&&e&&e.iban)||'';const bk=v.bank||(e&&e.bank)||'';
+      return ib?[['البنك / Bank',esc(bk||'—')],['رقم الآيبان / IBAN','<span dir="ltr" style="font-weight:700;letter-spacing:.04em">'+esc(ibanFmt(ib))+'</span>']]:[]})(),['التاريخ / Date',dmy(v.date)]];
   printDoc('سند صرف','Payment Voucher','No. '+esc(v.no)+' &nbsp;·&nbsp; '+dmy(v.date),`<table class="info">${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>`,
     [['المستلم / Received by',v.payee],['المحاسب / Accountant',''],['المدير المعتمد / Approved by',coInfo().rep]],win);
 }
@@ -4210,9 +4212,10 @@ Object.assign(A,{
   vcOpen(el){const v=(S.vouchers||[]).find(x=>x.id===el.dataset.id);if(!v)return;S.openVc=v.id;S.confirm=null;S.hrDraft=Object.assign({},v);render()},
   vcSave(el){const d=S.hrDraft||{};const amount=num(d.amount);const payee=String(d.payee||'').trim()||(d.emp?empName(d.emp):'');
     if(!payee||!(amount>0)){toast(t('vc_need'));return}
+    if(d.iban&&!ibanOk(d.iban)){toast(t('bk_bad'));return}
     const id=S.openVc==='new'?hrId('V'):S.openVc;const old=(S.vouchers||[]).find(x=>x.id===id)||{};const tm=nowIso();
     const data={no:Math.round(num(d.no))||nextVoucherNo(),date:isDay(d.date)?d.date:dayKey(Date.now()),emp:d.emp||'',payee,amount,cat:VC_CATS.includes(d.cat)?d.cat:'other',method:PAY_METHODS.includes(d.method)?d.method:'cash',
-      ref:String(d.ref||'').trim(),purpose:String(d.purpose||'').trim(),form:old.form||d.form||'',createdAt:old.createdAt||tm,updatedAt:tm};
+      ref:String(d.ref||'').trim(),bank:String(d.bank||'').trim(),iban:normIban(d.iban),purpose:String(d.purpose||'').trim(),form:old.form||d.form||'',createdAt:old.createdAt||tm,updatedAt:tm};
     const win=el&&el.dataset.k?window.open('','_blank'):null;if(win)printVoucher(data,win);
     guard(async()=>{await X.put('vouchers',id,data);if(data.form)await X.upd('forms',data.form,{voucher:id}).catch(()=>{});S.openVc=null;S.hrDraft=null},()=>t('vc_saved'))},
   vcDel(){const id=S.openVc;if(!id||id==='new')return;if(S.confirm!=='vcDel'){S.confirm='vcDel';render();return}
@@ -4243,16 +4246,18 @@ Object.assign(A,{
     guard(async()=>{await X.del('forms',id);S.openForm=null;S.confirm=null},()=>t('li_deleted'))},
   fmPrint(){const f=(S.forms||[]).find(x=>x.id===S.openForm);if(!f)return;printForm(f,window.open('','_blank'))},
   fmVoucher(){const f=(S.forms||[]).find(x=>x.id===S.openForm);if(!f)return;
-    S.openForm=null;S.openVc='new';S.confirm=null;S.hrDraft={no:nextVoucherNo(),date:dayKey(Date.now()),emp:f.emp||'',payee:f.empName,amount:f.amount,cat:'reward',method:'cash',ref:'',purpose:t('fm_reward')+': '+(f.reason||''),form:f.id};render()},
+    S.openForm=null;S.openVc='new';S.confirm=null;S.hrDraft={no:nextVoucherNo(),date:dayKey(Date.now()),emp:f.emp||'',payee:f.empName,amount:f.amount,cat:'reward',...(()=>{const e=f.emp&&empById(f.emp);return e&&e.iban?{method:'bank',bank:e.bank||'',iban:ibanFmt(e.iban)}:{method:'cash'}})(),ref:'',purpose:t('fm_reward')+': '+(f.reason||''),form:f.id};render()},
   tpNew(){S.openTpl=true;S.hrDraft={tpl:'salary',emp:'',date:dayKey(Date.now())};render()},
   tpPrint(){const d=S.hrDraft||{};const e=empById(d.emp);if(!e){toast(t('lr_pickFirst'));return}printTemplate(d.tpl||'salary',e,isDay(d.date)?d.date:dayKey(Date.now()),window.open('','_blank'))}
 });
 document.addEventListener('input',ev=>{const el=ev.target;if(!(el.dataset&&el.dataset.in==='hrF'))return;
   if(S.openVc&&el.dataset.f==='amount'){const o=document.getElementById('vcWords');if(o)o.textContent=num(el.value)>0?tafqeet(num(el.value)):''}
-  if(S.openVc&&el.dataset.f==='emp'&&el.value){const e=empById(el.value);const p=document.getElementById('hr-payee');if(e&&p&&!p.value){p.value=e.name;S.hrDraft.payee=e.name}}});
+  if(S.openVc&&el.dataset.f==='emp'){const e=empById(el.value);const set=(f,v)=>{S.hrDraft[f]=v;const o=document.getElementById('hr-'+f);if(o)o.value=v};
+    if(e){const p=document.getElementById('hr-payee');if(p&&!p.value)set('payee',e.name);set('bank',e.bank||'');set('iban',e.iban?ibanFmt(e.iban):'');if(e.iban&&(S.hrDraft.method||'cash')==='cash')set('method','bank')}
+    else{set('bank','');set('iban','')}}});
 /* voucher export (defined here: it needs VC_CATS / PAY_METHODS above) */
 IO.vouchers={name:()=>t('tab_vc'),readOnly:true,list:()=>[...(S.vouchers||[])].sort((a,b)=>(+a.no||0)-(+b.no||0)),
-    cols:[['no','vc_no','num'],['date','sl_day','date'],['payee','vc_payee'],['amount','vc_amount','num'],['cat','vc_cat',Object.fromEntries(VC_CATS.map(k=>[k,'vc_'+k]))],['method','vc_method',Object.fromEntries(PAY_METHODS.map(k=>[k,'pm_'+k]))],['ref','vc_ref'],['purpose','vc_purpose']]};
+    cols:[['no','vc_no','num'],['date','sl_day','date'],['payee','vc_payee'],['amount','vc_amount','num'],['cat','vc_cat',Object.fromEntries(VC_CATS.map(k=>[k,'vc_'+k]))],['method','vc_method',Object.fromEntries(PAY_METHODS.map(k=>[k,'pm_'+k]))],['ref','vc_ref'],['bank','bk_bank'],['iban','bk_iban'],['purpose','vc_purpose']]};
 document.addEventListener('change',ev=>{const el=ev.target;if(el.id==='vcMonth'&&/^[0-9]{4}-[0-9]{2}$/.test(el.value)){S.vcMonth=el.value;render()}});
 
 /* ================= Branch staff and weekly shift schedule ================= */
