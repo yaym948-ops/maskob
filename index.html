@@ -605,6 +605,21 @@ span.sh-c{cursor:default}
 .sh-L{background:var(--late-soft);color:var(--late);border-color:color-mix(in srgb,var(--late) 35%,var(--line))}
 .sh-sum td{font-weight:700;background:var(--soft)}
 
+/* header: section name at the start (right in Arabic), logo in the middle, language at the end */
+.scene .wrap.hd{display:grid;grid-template-columns:1fr auto 1fr;grid-template-areas:'who logo tools';align-items:center;gap:10px}
+.hd-who{grid-area:who;justify-self:start;min-width:0;max-width:100%}
+.scene .wrap.hd .logo{grid-area:logo;justify-self:center}
+.scene .wrap.hd .tools{grid-area:tools;justify-self:end}
+@media (max-width:560px){
+  .scene .wrap.hd{grid-template-columns:1fr 1fr;grid-template-areas:'logo logo' 'who tools';row-gap:8px}
+  .hd-who .who{max-width:62vw}
+}
+
+/* logout: its own button at the far end of the header (left in Arabic) */
+.hd-who .who{padding-inline:12px}
+.logout-btn{border:0;background:var(--sun);color:#fff;border-radius:999px;padding:6px 14px;font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.logout-btn:hover{filter:brightness(1.05)}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -618,13 +633,14 @@ span.sh-c{cursor:default}
 
 <div dir="rtl" lang="ar" id="app">
   <header class="scene">
-    <div class="wrap">
+    <div class="wrap hd">
+      <div class="hd-who"><div id="who"></div></div>
       <div class="logo" role="img" aria-label="مسكوب MASKOB"></div>
       <div class="tools">
         <select class="langsel" id="langSel" aria-label="Language">
           <option value="ar">العربية</option><option value="en">English</option><option value="bn">বাংলা</option><option value="ur">اردو</option>
         </select>
-        <div id="who"></div>
+        <div id="logoutBox"></div>
       </div>
     </div>
   </header>
@@ -1895,8 +1911,10 @@ function banner(){
 }
 function renderWho(authed){
   const el=document.getElementById('who');
-  if(!authed){el.innerHTML='';return}
-  el.innerHTML=`<div class="who"><span>${esc(roleL(S.role))}${S.role==='branch'?`: <b>${esc(S.branch||'')}</b>`:''}</span><button data-act="logout">${esc(t('logout'))}</button></div>`;
+  const lo=document.getElementById('logoutBox');
+  if(!authed){el.innerHTML='';lo.innerHTML='';return}
+  el.innerHTML=`<div class="who"><span>${esc(roleL(S.role))}${S.role==='branch'?`: <b>${esc(S.branch||'')}</b>`:''}</span></div>`;
+  lo.innerHTML=`<button class="logout-btn" data-act="logout">${esc(t('logout'))}</button>`;
 }
 function pinPad(){
   const L=S.pad;
