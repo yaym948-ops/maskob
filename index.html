@@ -550,6 +550,14 @@ textarea,input,select,button{font-family:inherit}
 .linkish{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--navy);cursor:pointer;text-align:start}
 .tbl tr.hr-exp .linkish{color:var(--late)}
 
+.hr-sub{margin:16px 0 6px;color:var(--navy)}
+.hr-total{margin-top:10px;padding:10px 14px;border-radius:10px;background:var(--sun-soft);color:var(--sun-ink)}
+.ct-pay{display:flex;flex-wrap:wrap;gap:6px 16px;margin:8px 0}.ct-tot{color:var(--sun-ink)}
+
+.ad-bar{display:block;height:5px;border-radius:5px;background:var(--lav-soft);margin-top:6px;overflow:hidden;max-width:260px}
+.ad-bar i{display:block;height:100%;background:var(--sun)}
+.ad-pay{margin-top:10px;flex-wrap:wrap}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -880,6 +888,71 @@ hr_annualUsed:['الإجازات السنوية هذا العام','Annual leave
 hr_days:['{n} يوم','{n} days','{n} দিন','{n} دن'],
 hr_daysN:['عدد الأيام','Days','দিন','دن'],
 hr_pickEmp:['اختر الموظف','Choose employee','কর্মচারী বেছে নিন','ملازم منتخب کریں'],
+al_title:['البدلات','Allowances','ভাতা','الاؤنسز'],
+al_housing:['بدل سكن','Housing allowance','বাসস্থান ভাতা','رہائش الاؤنس'],
+al_transport:['بدل نقل','Transport allowance','যাতায়াত ভাতা','ٹرانسپورٹ الاؤنس'],
+al_food:['بدل طعام','Food allowance','খাদ্য ভাতা','کھانے کا الاؤنس'],
+al_other:['بدلات أخرى','Other allowances','অন্যান্য ভাতা','دیگر الاؤنسز'],
+hr_totalPay:['إجمالي الراتب الشهري','Total monthly pay','মোট মাসিক বেতন','کل ماہانہ تنخواہ'],
+hr_payroll:['إجمالي الرواتب الشهرية','Monthly payroll','মাসিক মোট বেতন','ماہانہ کل تنخواہیں'],
+ct_make:['إنشاء عقد','Create contract','চুক্তি তৈরি করুন','معاہدہ بنائیں'],
+ct_title:['عقد عمل','Employment contract','কর্মসংস্থান চুক্তি','ملازمت کا معاہدہ'],
+ct_start:['بداية العقد','Contract start','চুক্তি শুরু','معاہدے کا آغاز'],
+ct_probation:['فترة التجربة (يوم)','Probation (days)','প্রবেশন (দিন)','آزمائشی مدت (دن)'],
+ct_hours:['ساعات العمل اليومية','Daily working hours','দৈনিক কর্মঘণ্টা','روزانہ اوقاتِ کار'],
+ct_days:['أيام العمل في الأسبوع','Work days per week','সাপ্তাহিক কর্মদিবস','ہفتے میں کام کے دن'],
+ct_leave:['الإجازة السنوية (يوم)','Annual leave (days)','বার্ষিক ছুটি (দিন)','سالانہ چھٹی (دن)'],
+ct_company:['بيانات المنشأة في العقد','Company details on the contract','চুক্তিতে প্রতিষ্ঠানের তথ্য','معاہدے میں ادارے کی تفصیلات'],
+ct_coName:['اسم المنشأة','Company name','প্রতিষ্ঠানের নাম','ادارے کا نام'],
+ct_cr:['رقم السجل التجاري','Commercial registration no.','বাণিজ্যিক নিবন্ধন নং','کمرشل رجسٹریشن نمبر'],
+ct_addr:['العنوان','Address','ঠিকানা','پتہ'],
+ct_rep:['يمثلها (اسم المفوض بالتوقيع)','Represented by (signatory)','প্রতিনিধি (স্বাক্ষরকারী)','نمائندہ (دستخط کنندہ)'],
+ct_print:['طباعة العقد','Print contract','চুক্তি প্রিন্ট করুন','معاہدہ پرنٹ کریں'],
+ct_hint:['يُفتح العقد بالعربية والإنجليزية للطباعة أو الحفظ PDF. راجع بنوده قبل التوقيع.','The contract opens in Arabic and English to print or save as PDF. Review it before signing.','চুক্তিটি আরবি ও ইংরেজিতে প্রিন্ট বা PDF হিসেবে খুলবে। স্বাক্ষরের আগে পর্যালোচনা করুন।','معاہدہ عربی اور انگریزی میں پرنٹ یا PDF کے لیے کھلے گا۔ دستخط سے پہلے جائزہ لیں۔'],
+ct_need:['أدخل تاريخ بداية ونهاية صحيحين','Enter a valid start and end date','সঠিক শুরু ও শেষ তারিখ দিন','درست آغاز اور اختتامی تاریخ درج کریں'],
+ct_last:['آخر عقد أُنشئ: {d}','Last contract created: {d}','শেষ চুক্তি তৈরি: {d}','آخری معاہدہ: {d}'],
+ct_done:['جُهّز العقد للطباعة','Contract ready to print','চুক্তি প্রিন্টের জন্য প্রস্তুত','معاہدہ پرنٹ کے لیے تیار'],
+ct_backEmp:['ملف الموظف','Employee file','কর্মচারীর ফাইল','ملازم کی فائل'],
+tab_custody:['العهد','Custody items','হেফাজতের জিনিস','امانتیں'],
+tab_adv:['السلف','Advances','অগ্রিম','ایڈوانس'],
+cu_add:['تسليم عهدة','Hand over an item','জিনিস হস্তান্তর','امانت حوالے کریں'],
+cu_item:['العهدة','Item','জিনিস','چیز'],
+cu_serial:['الرقم التسلسلي / الوصف','Serial no. / description','সিরিয়াল নং / বিবরণ','سیریل نمبر / تفصیل'],
+cu_value:['القيمة','Value','মূল্য','قیمت'],
+cu_given:['تاريخ التسليم','Handed over on','হস্তান্তরের তারিখ','حوالگی کی تاریخ'],
+cu_returnedAt:['تاريخ الإرجاع','Returned on','ফেরতের তারিখ','واپسی کی تاریخ'],
+cs_out:['لدى الموظف','With employee','কর্মচারীর কাছে','ملازم کے پاس'],
+cs_returned:['مُرجعة','Returned','ফেরত','واپس'],
+cu_outN:['عهد لدى الموظفين','Items with staff','কর্মীদের কাছে জিনিস','ملازمین کے پاس امانتیں'],
+cu_outVal:['قيمة العهد لدى الموظفين','Value of items with staff','কর্মীদের কাছে জিনিসের মূল্য','ملازمین کے پاس امانتوں کی قیمت'],
+cu_need:['اختر الموظف واكتب العهدة','Choose the employee and enter the item','কর্মচারী ও জিনিস দিন','ملازم اور چیز درج کریں'],
+cu_saved:['حُفظت العهدة','Item saved','জিনিস সংরক্ষিত','امانت محفوظ ہو گئی'],
+cu_none:['لا توجد عهد','No custody items','কোনো জিনিস নেই','کوئی امانت نہیں'],
+cu_deleted:['حُذفت العهدة','Item deleted','জিনিস মুছে ফেলা হয়েছে','امانت حذف ہو گئی'],
+cu_delConfirm:['تأكيد حذف العهدة','Confirm delete','মুছে ফেলা নিশ্চিত করুন','حذف کی تصدیق کریں'],
+cu_ofEmp:['عهد لديه: {n}','Items held: {n}','হাতে থাকা জিনিস: {n}','پاس امانتیں: {n}'],
+av_add:['تسجيل سلفة','Add advance','অগ্রিম যোগ করুন','ایڈوانس درج کریں'],
+av_amount:['مبلغ السلفة','Advance amount','অগ্রিমের পরিমাণ','ایڈوانس کی رقم'],
+av_date:['تاريخ السلفة','Advance date','অগ্রিমের তারিখ','ایڈوانس کی تاریخ'],
+av_monthly:['القسط الشهري','Monthly instalment','মাসিক কিস্তি','ماہانہ قسط'],
+av_paid:['المسدد','Repaid','পরিশোধিত','ادا شدہ'],
+av_remain:['المتبقي','Remaining','বাকি','باقی'],
+av_pay:['تسجيل دفعة','Record payment','পরিশোধ লিখুন','ادائیگی درج کریں'],
+av_payments:['الدفعات المسددة','Repayments','পরিশোধ','ادائیگیاں'],
+as_open:['قائمة','Open','চলমান','جاری'],
+as_closed:['مسددة','Repaid','পরিশোধিত','ادا شدہ'],
+av_openN:['سلف قائمة','Open advances','চলমান অগ্রিম','جاری ایڈوانس'],
+av_outTotal:['إجمالي المتبقي','Total outstanding','মোট বাকি','کل باقی'],
+av_need:['اختر الموظف وأدخل مبلغ السلفة','Choose the employee and enter the amount','কর্মচারী বেছে পরিমাণ লিখুন','ملازم منتخب کریں اور رقم درج کریں'],
+av_payNeed:['أدخل مبلغ الدفعة','Enter the payment amount','পরিশোধের পরিমাণ লিখুন','ادائیگی کی رقم درج کریں'],
+av_payTooMuch:['الدفعة أكبر من المتبقي','The payment is more than what is left','পরিশোধ বাকির চেয়ে বেশি','ادائیگی باقی رقم سے زیادہ ہے'],
+av_saved:['حُفظت السلفة','Advance saved','অগ্রিম সংরক্ষিত','ایڈوانس محفوظ ہو گیا'],
+av_paySaved:['سُجلت الدفعة','Payment recorded','পরিশোধ লেখা হয়েছে','ادائیگی درج ہو گئی'],
+av_none:['لا توجد سلف','No advances','কোনো অগ্রিম নেই','کوئی ایڈوانس نہیں'],
+av_deleted:['حُذفت السلفة','Advance deleted','অগ্রিম মুছে ফেলা হয়েছে','ایڈوانس حذف ہو گیا'],
+av_delConfirm:['تأكيد حذف السلفة','Confirm delete','মুছে ফেলা নিশ্চিত করুন','حذف کی تصدیق کریں'],
+av_ofEmp:['متبقي السلف: {n} ريال','Advance balance: SAR {n}','অগ্রিম বাকি: {n} রিয়াল','ایڈوانس باقی: {n} ریال'],
+av_left:['باقي {n} أقساط','{n} instalments left','{n}টি কিস্তি বাকি','{n} قسطیں باقی'],
 lv_add:['تسجيل إجازة','Add leave','ছুটি যোগ করুন','چھٹی درج کریں'],
 lv_emp:['الموظف','Employee','কর্মচারী','ملازم'],
 lv_type:['نوع الإجازة','Leave type','ছুটির ধরন','چھٹی کی قسم'],
@@ -1552,7 +1625,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}">${esc(x.l)}${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.openMaint?maintSheet():S.openEmp?empSheet():S.openLeave?leaveSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -2149,7 +2222,7 @@ async function overlapsOther(v,key){
 const fieldKey=f=>({appr:'approved',sent:'sent',recv:'received'}[f]);
 function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
-  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.review=false;render();window.scrollTo(0,0)},
+  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -2233,7 +2306,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openLeave=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -2365,6 +2438,10 @@ const X={
     const all=Object.assign({},MEM('targets'));const cur=all[b]||{};all[b]=Object.assign({},cur,{m:Object.assign({},cur.m||{},{[mk]:data})});
     MEMSET('targets',all);xLoadDemo();render();
   },
+  async hrCfg(data){
+    if(S.fb)return queue('config/hr',()=>db.doc('config/hr').set(data,{merge:true}));
+    MEMSET('hrcfg',data);xLoadDemo();render();
+  },
   async del(col,id){
     if(S.fb)return queue(col+'/'+id,()=>db.doc(col+'/'+id).delete());
     MEMSET(col,MEM(col).filter(x=>x.id!==id));xLoadDemo();render();
@@ -2378,7 +2455,8 @@ function xLoadDemo(){
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
-  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];
+  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];
+  {const c=S.role==='hr'?MEM('hrcfg'):null;S.hrCfg=c&&!Array.isArray(c)?c:{}}
 }
 /* live subscriptions per role */
 function xStart(){
@@ -2399,12 +2477,15 @@ function xStart(){
   if(S.role==='hr'){
     const out=e=>{if(e&&e.code==='permission-denied')Store.fbSignOut()};   // code changed: sign out
     u.push(db.collection('employees').onSnapshot(s=>{S.emps=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+    u.push(db.collection('custody').onSnapshot(s=>{S.custody=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+    u.push(db.collection('advances').onSnapshot(s=>{S.advances=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+    u.push(db.doc('config/hr').onSnapshot(s=>{S.hrCfg=s.exists?s.data():{};render()},()=>{}));
     u.push(db.collection('leaves').onSnapshot(s=>{S.leaves=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
   }
   if(S.role==='manager')
     u.push(db.collection('targets').onSnapshot(s=>{const t={};s.docs.forEach(d=>t[d.id]=d.data());S.targets=t;render()},onErr));
 }
-function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.emps=[];S.leaves=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
+function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
 /* ---------- sales: numbers for a branch and month ---------- */
 function salesStats(branch,mk){
@@ -2683,11 +2764,13 @@ function hrDocAlerts(){
 const leftLabel=n=>n<0?t('hr_daysAgo',{n:-n}):n===0?t('hr_today'):t('hr_daysLeft',{n});
 function hrTabs(){
   const al=hrDocAlerts(),pend=(S.leaves||[]).filter(l=>l.status==='pending').length;
-  return[{k:'emps',l:t('tab_emps')},{k:'docs',l:t('tab_docs'),b:al.length,late:al.some(a=>a.left<0)},{k:'leaves',l:t('tab_leaves'),b:pend}];
+  return[{k:'emps',l:t('tab_emps')},{k:'docs',l:t('tab_docs'),b:al.length,late:al.some(a=>a.left<0)},{k:'leaves',l:t('tab_leaves'),b:pend},{k:'custody',l:t('tab_custody'),b:(S.custody||[]).filter(custOut).length},{k:'advances',l:t('tab_adv'),b:(S.advances||[]).filter(a=>advRemain(a)>0).length}];
 }
 function hrView(tb){
   if(tb==='docs')return hrDocsView();
   if(tb==='leaves')return hrLeavesView();
+  if(tb==='custody')return custodyView();
+  if(tb==='advances')return advancesView();
   return hrEmpsView();
 }
 function hrEmpsView(){
@@ -2697,7 +2780,7 @@ function hrEmpsView(){
   const al=hrDocAlerts(),lateIds=new Set(al.filter(a=>a.left<0).map(a=>a.e.id));
   const list=all.filter(e=>(!place||e.branch===place)&&(!q||[e.name,e.no,e.idNo,e.phone,e.job].some(x=>String(x||'').toLowerCase().includes(q))));
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_emps')}</h2><div class="row"><button class="btn btn-ghost rp-btn" data-act="hrXls">${t('xlsExport')}</button><button class="btn btn-sun" data-act="hrNew">+ ${t('hr_add')}</button></div></div>
-  <div class="stats">${kpi(t('hr_working'),sar(act.length))}${kpi(t('hr_onLeave'),sar(act.filter(onLeaveToday).length))}${kpi(t('hr_expiring'),sar(al.length),al.length?'hot':'')}${kpi(t('hr_places'),sar(new Set(act.map(e=>e.branch)).size))}</div>
+  <div class="stats">${kpi(t('hr_working'),sar(act.length))}${kpi(t('hr_onLeave'),sar(act.filter(onLeaveToday).length))}${kpi(t('hr_expiring'),sar(al.length),al.length?'hot':'')}${kpi(t('hr_payroll'),sar(act.reduce((a,e)=>a+payTotal(e),0))+' '+t('sar'))}</div>
   <div class="row hr-filter"><input class="field" id="hrQ" data-in="hrQ" placeholder="${esc(t('hr_search'))}" value="${esc(S.hrQ||'')}" style="flex:2;min-width:180px">
     <select class="field" id="hrPlace" style="flex:1;min-width:140px"><option value="">${esc(t('hr_allPlaces'))}</option>${hrPlaces().map(p=>`<option value="${esc(p)}" ${place===p?'selected':''}>${esc(placeL(p))} (${act.filter(e=>e.branch===p).length})</option>`).join('')}</select></div>
   <div class="list">${list.length?list.map(e=>`<button class="oc ${lateIds.has(e.id)?'late':''}" data-act="hrOpen" data-id="${esc(e.id)}">
@@ -2736,7 +2819,7 @@ function empSheet(){
   const yr=String(new Date().getFullYear());
   const used=isNew?0:(S.leaves||[]).filter(l=>l.emp===e.id&&l.type==='annual'&&l.status==='approved'&&String(l.from).startsWith(yr)).reduce((a,l)=>a+leaveDays(l),0);
   const docs=isNew?'':HR_DOCS.filter(k=>e[k]).map(k=>{const n=dayDiff(dayKey(Date.now()),e[k]);return n<=HR_WARN?`<span class="tag ${n<0?'ret':''}">${esc(t(HR_DOC_L[k]))}: ${esc(leftLabel(n))}</span>`:''}).join('');
-  const body=`${isNew?'':`<div class="row" style="gap:8px;margin-bottom:12px">${docs}<span class="tag">${esc(t('hr_annualUsed'))}: ${esc(t('hr_days',{n:used}))}</span></div>`}
+  const body=`${isNew?'':`<div class="row" style="gap:8px;margin-bottom:12px">${docs}<span class="tag">${esc(t('hr_annualUsed'))}: ${esc(t('hr_days',{n:used}))}</span>${(()=>{const cu=(S.custody||[]).filter(c=>c.emp===e.id&&custOut(c)).length,av=(S.advances||[]).filter(a=>a.emp===e.id).reduce((s,a)=>s+advRemain(a),0);return(cu?`<span class="tag">${esc(t('cu_ofEmp',{n:cu}))}</span>`:'')+(av>0?`<span class="tag ret">${esc(t('av_ofEmp',{n:sar2(av)}))}</span>`:'')})()}</div>`}
   <div class="sl-grid hr-grid">
     ${hrIn('name',t('hr_name'))}${hrIn('no',t('hr_no'),'text','dir="ltr"')}
     ${hrSel('branch',t('hr_branch'),hrPlaces().map(p=>[p,placeL(p)]))}${hrIn('job',t('hr_job'))}
@@ -2746,8 +2829,11 @@ function empSheet(){
     ${hrIn('hire',t('hr_hire'),'date')}${hrIn('salary',t('hr_salary')+' ('+t('sar')+')','number')}
     ${hrSel('status',t('hr_status'),[['active',t('es_active')],['left',t('es_left')]])}
   </div>
+  <h4 class="hr-sub">${t('al_title')}</h4>
+  <div class="sl-grid hr-grid">${ALLOWANCES.map(k=>hrIn(k,t(AL_L[k])+' ('+t('sar')+')','number')).join('')}</div>
+  <div class="hr-total">${t('hr_totalPay')}: <b class="num" id="hrTotal">${esc(sar2(payTotal(d)))}</b> ${t('sar')}</div>
   <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>`;
-  const foot=`${isNew?'':`<button class="btn btn-bad" data-act="hrDel">${S.confirm==='hrDel'?t('hr_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="hrSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
+  const foot=`${isNew?'':`<button class="btn btn-bad" data-act="hrDel">${S.confirm==='hrDel'?t('hr_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-navy" data-act="hrContract" ${S.busy?'disabled':''}>${t('ct_make')}</button><button class="btn btn-sun" data-act="hrSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
   return hrSheetWrap(isNew?t('hr_add'):(e.name||''),body,foot);
 }
 function leaveSheet(){
@@ -2765,29 +2851,255 @@ function leaveSheet(){
   const foot=`${isNew?'':`<button class="btn btn-bad" data-act="lvDel">${S.confirm==='lvDel'?t('lv_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="lvSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
   return hrSheetWrap(isNew?t('lv_add'):t('tab_leaves')+': '+empName(l.emp),body,foot);
 }
+/* ---------- allowances and pay ---------- */
+const ALLOWANCES=['alHousing','alTransport','alFood','alOther'];
+const AL_L={alHousing:'al_housing',alTransport:'al_transport',alFood:'al_food',alOther:'al_other'};
+const payTotal=e=>(+e.salary||0)+ALLOWANCES.reduce((a,k)=>a+(+e[k]||0),0);
+const isDay=v=>/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(v||'');
+function empData(d,id){
+  const tm=nowIso();
+  const data={name:String(d.name||'').trim(),status:d.status==='left'?'left':'active',updatedAt:tm};
+  ['no','branch','job','nat','phone','idNo','note'].forEach(k=>data[k]=String(d[k]??'').trim());
+  ['idExp','healthExp','contractEnd','hire'].forEach(k=>data[k]=isDay(d[k])?d[k]:'');
+  ['salary',...ALLOWANCES].forEach(k=>data[k]=d[k]===''||d[k]==null?null:num(d[k]));
+  const old=empById(id)||{};data.createdAt=old.createdAt||tm;if(old.contract)data.contract=old.contract;
+  return data;
+}
+
+/* ---------- employment contract (printable, Arabic + English) ---------- */
+const addYear=k=>{const d=fromKey(k);d.setFullYear(d.getFullYear()+1);d.setDate(d.getDate()-1);return dayKey(d)};
+function contractDefaults(e){
+  const c=e.contract||{};const start=c.start||e.hire||dayKey(Date.now());
+  return{start,end:c.end||e.contractEnd||addYear(start),probation:c.probation??90,hours:c.hours??8,days:c.days??6,leave:c.leave??21};
+}
+function contractSheet(){
+  const e=empById(S.openContract);if(!e)return'';
+  const d=S.ctDraft,co=S.coDraft;
+  const ci=(src,f,label,type,extra)=>`<label><span class="hint">${esc(label)}</span><input class="field${type==='number'?' num':''}" type="${type||'text'}" id="ct-${f}" data-in="${src}" data-f="${f}" value="${esc((src==='ctF'?d:co)[f]??'')}" ${type==='number'?'dir="ltr" inputmode="numeric"':'dir="auto"'} ${extra||''}></label>`;
+  const pay=[['hr_salary',e.salary],...ALLOWANCES.map(k=>[AL_L[k],e[k]])].filter(r=>+r[1]>0);
+  const body=`<div class="box"><div class="row" style="justify-content:space-between"><b>${esc(e.name)}</b><span class="hint">${esc(e.job||'')} · ${esc(placeL(e.branch))}</span></div>
+    <div class="ct-pay">${pay.map(([l,v])=>`<span>${esc(t(l))}: <b class="num">${esc(sar2(v))}</b></span>`).join('')}<span class="ct-tot">${esc(t('hr_totalPay'))}: <b class="num">${esc(sar2(payTotal(e)))} ${t('sar')}</b></span></div>
+    ${e.contract&&e.contract.at?`<div class="hint">${esc(t('ct_last',{d:when(e.contract.at)}))}</div>`:''}</div>
+  <div class="sl-grid hr-grid">${ci('ctF','start',t('ct_start'),'date')}${ci('ctF','end',t('hr_contract'),'date')}${ci('ctF','probation',t('ct_probation'),'number')}${ci('ctF','leave',t('ct_leave'),'number')}${ci('ctF','hours',t('ct_hours'),'number')}${ci('ctF','days',t('ct_days'),'number')}</div>
+  <h4 class="hr-sub">${t('ct_company')}</h4>
+  <div class="sl-grid hr-grid">${ci('coF','name',t('ct_coName'))}${ci('coF','cr',t('ct_cr'),'text','dir="ltr"')}${ci('coF','addr',t('ct_addr'))}${ci('coF','rep',t('ct_rep'))}</div>
+  <p class="hint" style="margin-top:10px">${esc(t('ct_hint'))}</p>`;
+  const foot=`<button class="btn btn-ghost" data-act="ctBack">${t('ct_backEmp')}</button><span class="spacer"></span><button class="btn btn-sun" data-act="ctPrint" ${S.busy?'disabled':''}>${t('ct_print')}</button>`;
+  return hrSheetWrap(t('ct_title')+': '+e.name,body,foot);
+}
+function contractHtml(e,c,co){
+  const h=esc,n=x=>(+x||0).toLocaleString('en-US',{maximumFractionDigits:2});
+  const dt=k=>isDay(k)?k.split('-').reverse().join('/'):'—';
+  const months=Math.max(1,Math.round((dayDiff(c.start,c.end)+1)/30.44));
+  const pl=e.branch==='@wh'?['المستودع','Warehouse']:e.branch==='@office'?['الإدارة','Head office']:[e.branch||'—',e.branch||'—'];
+  const coName=co.name||'مسكوب',dash=v=>h(v||'—');
+  const pay=[['الراتب الأساسي','Basic salary',e.salary],['بدل سكن','Housing allowance',e.alHousing],['بدل نقل','Transport allowance',e.alTransport],['بدل طعام','Food allowance',e.alFood],['بدلات أخرى','Other allowances',e.alOther]].filter(r=>+r[2]>0);
+  const total=payTotal(e);
+  const C=[
+    ['الطرف الأول: '+h(coName)+'، سجل تجاري رقم '+dash(co.cr)+'، العنوان: '+dash(co.addr)+'، ويمثلها: '+dash(co.rep)+'.',
+     'First party: '+h(coName)+', C.R. No. '+dash(co.cr)+', address: '+dash(co.addr)+', represented by: '+dash(co.rep)+'.'],
+    ['الطرف الثاني: '+h(e.name)+'، الجنسية: '+dash(e.nat)+'، رقم الهوية / الإقامة: '+dash(e.idNo)+'، الجوال: '+dash(e.phone)+'.',
+     'Second party: '+h(e.name)+', nationality: '+dash(e.nat)+', ID / Iqama No.: '+dash(e.idNo)+', mobile: '+dash(e.phone)+'.'],
+    ['يعمل الطرف الثاني لدى الطرف الأول بمهنة ('+dash(e.job)+') في ('+h(pl[0])+')، ويؤدي المهام التي يكلفه بها الطرف الأول بما يتناسب مع مهنته.',
+     'The second party works for the first party as ('+dash(e.job)+') at ('+h(pl[1])+'), performing the duties assigned in line with this profession.'],
+    ['مدة هذا العقد '+months+' شهراً، تبدأ في '+dt(c.start)+' وتنتهي في '+dt(c.end)+'، وتُعد الأيام الـ'+n(c.probation)+' الأولى فترة تجربة.',
+     'This contract runs for '+months+' months, from '+dt(c.start)+' to '+dt(c.end)+'. The first '+n(c.probation)+' days are a probation period.'],
+    ['يدفع الطرف الأول للطرف الثاني أجراً شهرياً إجماليه '+n(total)+' ريال سعودي موزعاً كما في الجدول أدناه، ويُصرف في نهاية كل شهر ميلادي.',
+     'The first party pays the second party a total monthly wage of SAR '+n(total)+', broken down in the table below, paid at the end of each calendar month.'],
+    ['ساعات العمل '+n(c.hours)+' ساعات يومياً، لمدة '+n(c.days)+' أيام في الأسبوع.','Working hours are '+n(c.hours)+' hours a day, '+n(c.days)+' days a week.'],
+    ['يستحق الطرف الثاني إجازة سنوية مدفوعة الأجر مدتها '+n(c.leave)+' يوماً.','The second party is entitled to '+n(c.leave)+' days of paid annual leave.'],
+    ['يلتزم الطرف الثاني بأنظمة العمل ولوائح المنشأة، والمحافظة على أسرارها وممتلكاتها.','The second party abides by the company rules and regulations and protects its confidential information and property.'],
+    ['فيما لم يرد فيه نص في هذا العقد يُطبق نظام العمل في المملكة العربية السعودية ولائحته التنفيذية.','Any matter not covered by this contract is governed by the Saudi Labor Law and its implementing regulations.'],
+    ['حُرر هذا العقد من نسختين، بيد كل طرف نسخة للعمل بموجبها.','This contract is made in two copies, one for each party.']
+  ];
+  let logo='https://fllow-maskob.web.app/maskob-wordmark.png';
+  try{if(/^https?:$/.test(location.protocol))logo=new URL('maskob-wordmark.png',location.href).href}catch(e){}
+  return`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>عقد عمل - ${h(e.name)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+@page{size:A4;margin:14mm}
+*{box-sizing:border-box}body{font-family:Tajawal,Arial,sans-serif;color:#13233a;margin:0;font-size:12.5px;line-height:1.7}
+.top{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #0758A7;padding-bottom:10px;margin-bottom:6px}
+.top img{height:40px}.top .meta{font-size:11.5px;color:#4a5b73;text-align:left}
+.bar{height:3px;width:90px;background:#EF8A22;margin:0 0 14px auto}
+h1{font-size:22px;margin:0;color:#0758A7;font-weight:800}h1 small{display:block;font-size:13px;color:#4a5b73;font-weight:500}
+table{width:100%;border-collapse:collapse}
+.cl td{border-bottom:1px solid #dfe6ef;padding:7px 8px;vertical-align:top;width:50%}
+.cl td.en{direction:ltr;text-align:left;color:#33445c}.cl td.no{width:26px;color:#EF8A22;font-weight:800;text-align:center}
+.pay{margin:10px 0 16px}.pay th,.pay td{border:1px solid #c9d5e3;padding:6px 10px}.pay th{background:#e6eff9;color:#0758A7}
+.pay td.v{text-align:center;direction:ltr;font-weight:700}.pay tr.tot td{background:#fdf1e3;font-weight:800}
+.sig{display:flex;gap:30px;margin-top:26px}.sig div{flex:1;border:1px solid #c9d5e3;border-radius:8px;padding:10px 12px;min-height:120px}
+.sig b{color:#0758A7}.line{border-bottom:1px dashed #8a9ab0;height:34px;margin-bottom:4px}
+.foot{margin-top:14px;font-size:10.5px;color:#6b7a90;text-align:center}
+</style></head><body>
+<div class="top"><div><h1>عقد عمل<small>Employment Contract</small></h1></div><img src="${h(logo)}" alt="مسكوب"><div class="meta">${dt(dayKey(Date.now()))}<br>${e.no?'#'+h(e.no):''}</div></div>
+<div class="bar"></div>
+<table class="cl">${C.map((r,i)=>`<tr><td class="no">${i+1}</td><td>${r[0]}</td><td class="en">${r[1]}</td></tr>`).join('')}</table>
+<table class="pay"><thead><tr><th>البند / Item</th><th>المبلغ الشهري (ريال) / Monthly (SAR)</th></tr></thead><tbody>
+${pay.map(r=>`<tr><td>${r[0]} / ${r[1]}</td><td class="v">${n(r[2])}</td></tr>`).join('')}
+<tr class="tot"><td>الإجمالي / Total</td><td class="v">${n(total)}</td></tr></tbody></table>
+<div class="sig"><div><b>الطرف الأول / First party</b><div>${h(coName)}${co.rep?' — '+h(co.rep):''}</div><div class="line"></div>التوقيع والختم / Signature &amp; stamp</div>
+<div><b>الطرف الثاني / Second party</b><div>${h(e.name)}</div><div class="line"></div>التوقيع / Signature</div></div>
+<div class="foot">${h(coName)}</div>
+<script>window.onload=function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print()},250)})}<\/script>
+</body></html>`;
+}
+/* print in a new window; if pop-ups are blocked, print from a hidden frame */
+function printHtml(html,win){
+  if(win&&!win.closed){win.document.open();win.document.write(html);win.document.close();return}
+  const old=document.getElementById('printFrame');if(old)old.remove();
+  const f=document.createElement('iframe');f.id='printFrame';f.style.cssText='position:fixed;width:0;height:0;border:0;inset-inline-start:-9999px';
+  document.body.appendChild(f);f.contentWindow.document.open();f.contentWindow.document.write(html);f.contentWindow.document.close();
+}
+
+/* ---------- custody items (العهد) and salary advances (السلف) ---------- */
+const custOut=c=>c.status!=='returned';
+const advPaid=a=>(a.payments||[]).reduce((s,p)=>s+(+p.amount||0),0);
+const advRemain=a=>Math.max(0,Math.round(((+a.amount||0)-advPaid(a))*100)/100);
+const empOpts=keep=>[['',t('hr_pickEmp')],...(S.emps||[]).filter(e=>e.status!=='left'||e.id===keep).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar')).map(e=>[e.id,e.name+' — '+placeL(e.branch)])];
+const empSub=id=>{const e=empById(id);return e?placeL(e.branch):''};
+function custodyView(){
+  const f=S.cuFilter||'out';
+  const all=[...(S.custody||[])].sort((a,b)=>String(b.given).localeCompare(String(a.given)));
+  const out=all.filter(custOut);
+  const list=f==='out'?out:f==='returned'?all.filter(c=>!custOut(c)):all;
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_custody')}</h2><button class="btn btn-sun" data-act="cuNew" ${(S.emps||[]).some(e=>e.status!=='left')?'':'disabled'}>+ ${t('cu_add')}</button></div>
+  <div class="stats">${kpi(t('cu_outN'),sar(out.length))}${kpi(t('cu_outVal'),sar(out.reduce((a,c)=>a+(+c.value||0),0))+' '+t('sar'))}</div>
+  <div class="filters">${[['out','cs_out'],['returned','cs_returned'],['all','f_all']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="cuFilter" data-k="${k}">${t(l)}</button>`).join('')}</div>
+  <div class="list">${list.length?list.map(c=>{const left=empById(c.emp)&&empById(c.emp).status==='left'&&custOut(c);return`<button class="oc ${left?'late':''}" data-act="cuOpen" data-id="${esc(c.id)}">
+    <span style="min-width:0"><span class="t">${esc(c.item)} ${c.value?`<span class="tag num">${esc(sar(c.value))} ${t('sar')}</span>`:''}</span>
+      <span class="s">${esc(empName(c.emp))} · ${esc(empSub(c.emp))} · ${esc(dateLabel(c.given))}${c.serial?' · '+esc(c.serial):''}</span></span>
+    <span class="side"><span class="pill ${custOut(c)?'ms-progress':'ms-done'}">${esc(t(custOut(c)?'cs_out':'cs_returned'))}</span></span></button>`}).join(''):`<div class="empty">${esc(t('cu_none'))}</div>`}</div>`;
+}
+function custodySheet(){
+  const isNew=S.openCust==='new',c=isNew?null:(S.custody||[]).find(x=>x.id===S.openCust);if(!isNew&&!c)return'';
+  const d=S.hrDraft||{};const ret=d.status==='returned';
+  const body=`<div class="sl-grid hr-grid">
+    ${hrSel('emp',t('lv_emp'),empOpts(d.emp))}${hrIn('item',t('cu_item'))}
+    ${hrIn('serial',t('cu_serial'))}${hrIn('value',t('cu_value')+' ('+t('sar')+')','number')}
+    ${hrIn('given',t('cu_given'),'date')}${ret?hrIn('returnedAt',t('cu_returnedAt'),'date'):''}
+  </div>
+  <div class="kind" style="margin:10px 0">${['out','returned'].map(s=>`<button aria-pressed="${(d.status||'out')===s}" data-act="cuStatus" data-k="${s}">${esc(t('cs_'+s))}</button>`).join('')}</div>
+  <label style="display:block"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>`;
+  const foot=`${isNew?'':`<button class="btn btn-bad" data-act="cuDel">${S.confirm==='cuDel'?t('cu_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="cuSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
+  return hrSheetWrap(isNew?t('cu_add'):t('cu_item')+': '+(c.item||''),body,foot);
+}
+function advancesView(){
+  const f=S.avFilter||'open';
+  const all=[...(S.advances||[])].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const open=all.filter(a=>advRemain(a)>0);
+  const list=f==='open'?open:f==='closed'?all.filter(a=>advRemain(a)<=0):all;
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_adv')}</h2><button class="btn btn-sun" data-act="avNew" ${(S.emps||[]).some(e=>e.status!=='left')?'':'disabled'}>+ ${t('av_add')}</button></div>
+  <div class="stats">${kpi(t('av_openN'),sar(open.length))}${kpi(t('av_outTotal'),sar(open.reduce((s,a)=>s+advRemain(a),0))+' '+t('sar'),open.length?'hot':'')}</div>
+  <div class="filters">${[['open','as_open'],['closed','as_closed'],['all','f_all']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="avFilter" data-k="${k}">${t(l)}</button>`).join('')}</div>
+  <div class="list">${list.length?list.map(a=>{const r=advRemain(a),left=r>0&&+a.monthly>0?Math.ceil(r/ +a.monthly):0;return`<button class="oc" data-act="avOpen" data-id="${esc(a.id)}">
+    <span style="min-width:0"><span class="t">${esc(empName(a.emp))} <span class="tag num">${esc(sar(a.amount))} ${t('sar')}</span></span>
+      <span class="s">${esc(empSub(a.emp))} · ${esc(dateLabel(a.date))} · ${esc(t('av_remain'))}: ${esc(sar(r))} ${t('sar')}${left?' · '+esc(t('av_left',{n:left})):''}</span>
+      <span class="ad-bar"><i style="width:${+a.amount?Math.round(advPaid(a)/ +a.amount*100):0}%"></i></span></span>
+    <span class="side"><span class="pill ${r>0?'ms-progress':'ms-done'}">${esc(t(r>0?'as_open':'as_closed'))}</span></span></button>`}).join(''):`<div class="empty">${esc(t('av_none'))}</div>`}</div>`;
+}
+function advanceSheet(){
+  const isNew=S.openAdv==='new',a=isNew?null:(S.advances||[]).find(x=>x.id===S.openAdv);if(!isNew&&!a)return'';
+  const d=S.hrDraft||{},p=S.avPay||{};
+  const pays=isNew?'':`<h4 class="hr-sub">${t('av_payments')}</h4>
+    <div class="ct-pay"><span>${t('av_paid')}: <b class="num">${esc(sar2(advPaid(a)))}</b></span><span class="ct-tot">${t('av_remain')}: <b class="num">${esc(sar2(advRemain(a)))} ${t('sar')}</b></span></div>
+    ${(a.payments||[]).length?`<div class="scroll"><table class="tbl"><tbody>${a.payments.map((x,i)=>`<tr><td>${esc(dateLabel(x.date))}</td><td class="n">${esc(sar2(x.amount))} ${t('sar')}</td><td style="width:40px"><button class="x" data-act="avDelPay" data-i="${i}" aria-label="${esc(t('del'))}">×</button></td></tr>`).join('')}</tbody></table></div>`:''}
+    ${advRemain(a)>0?`<div class="row ad-pay"><input class="field" type="date" id="av-payDate" data-in="avP" data-f="date" value="${esc(p.date||dayKey(Date.now()))}" style="flex:1;min-width:140px"><input class="field num" id="av-payAmt" data-in="avP" data-f="amount" inputmode="decimal" dir="ltr" placeholder="${esc(sar2(Math.min(advRemain(a),+a.monthly||advRemain(a))))}" value="${esc(p.amount||'')}" style="flex:1;min-width:110px"><button class="btn btn-navy" data-act="avAddPay">${t('av_pay')}</button></div>`:''}`;
+  const body=`<div class="sl-grid hr-grid">
+    ${hrSel('emp',t('lv_emp'),empOpts(d.emp))}${hrIn('amount',t('av_amount')+' ('+t('sar')+')','number')}
+    ${hrIn('date',t('av_date'),'date')}${hrIn('monthly',t('av_monthly')+' ('+t('sar')+')','number')}
+  </div>
+  <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>${pays}`;
+  const foot=`${isNew?'':`<button class="btn btn-bad" data-act="avDel">${S.confirm==='avDel'?t('av_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="avSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
+  return hrSheetWrap(isNew?t('av_add'):t('tab_adv')+': '+empName(a.emp),body,foot);
+}
+Object.assign(A,{
+  cuNew(){S.openCust='new';S.confirm=null;S.hrDraft={emp:'',item:'',given:dayKey(Date.now()),status:'out'};render()},
+  cuOpen(el){const c=(S.custody||[]).find(x=>x.id===el.dataset.id);if(!c)return;S.openCust=c.id;S.confirm=null;S.hrDraft=Object.assign({},c);render()},
+  cuFilter(el){S.cuFilter=el.dataset.k;render()},
+  cuStatus(el){S.hrDraft=S.hrDraft||{};S.hrDraft.status=el.dataset.k;if(el.dataset.k==='returned'&&!S.hrDraft.returnedAt)S.hrDraft.returnedAt=dayKey(Date.now());render()},
+  cuSave(){
+    const d=S.hrDraft||{};const item=String(d.item||'').trim();if(!d.emp||!item){toast(t('cu_need'));return}
+    const id=S.openCust==='new'?hrId('C'):S.openCust;const tm=nowIso();const ret=d.status==='returned';
+    const data={emp:d.emp,item,serial:String(d.serial||'').trim(),value:d.value===''||d.value==null?null:num(d.value),given:isDay(d.given)?d.given:dayKey(Date.now()),
+      status:ret?'returned':'out',returnedAt:ret&&isDay(d.returnedAt)?d.returnedAt:'',note:String(d.note||'').trim(),updatedAt:tm,
+      createdAt:((S.custody||[]).find(x=>x.id===id)||{}).createdAt||tm};
+    guard(async()=>{await X.put('custody',id,data);S.openCust=null;S.hrDraft=null},()=>t('cu_saved'));
+  },
+  cuDel(){const id=S.openCust;if(!id||id==='new')return;if(S.confirm!=='cuDel'){S.confirm='cuDel';render();return}
+    guard(async()=>{await X.del('custody',id);S.openCust=null;S.confirm=null},()=>t('cu_deleted'))},
+  avNew(){S.openAdv='new';S.confirm=null;S.avPay=null;S.hrDraft={emp:'',amount:'',monthly:'',date:dayKey(Date.now())};render()},
+  avOpen(el){const a=(S.advances||[]).find(x=>x.id===el.dataset.id);if(!a)return;S.openAdv=a.id;S.confirm=null;S.avPay=null;S.hrDraft=Object.assign({},a);render()},
+  avFilter(el){S.avFilter=el.dataset.k;render()},
+  avSave(){
+    const d=S.hrDraft||{};const amount=num(d.amount);if(!d.emp||!(amount>0)){toast(t('av_need'));return}
+    const id=S.openAdv==='new'?hrId('A'):S.openAdv;const tm=nowIso();const old=(S.advances||[]).find(x=>x.id===id)||{};
+    const data={emp:d.emp,amount,monthly:d.monthly===''||d.monthly==null?null:num(d.monthly),date:isDay(d.date)?d.date:dayKey(Date.now()),note:String(d.note||'').trim(),
+      payments:old.payments||[],updatedAt:tm,createdAt:old.createdAt||tm};
+    data.status=advRemain(data)>0?'open':'closed';
+    guard(async()=>{await X.put('advances',id,data);S.openAdv=null;S.hrDraft=null},()=>t('av_saved'));
+  },
+  avAddPay(){
+    const a=(S.advances||[]).find(x=>x.id===S.openAdv);if(!a)return;const p=S.avPay||{};
+    const amount=num(p.amount);if(!(amount>0)){toast(t('av_payNeed'));return}
+    if(amount>advRemain(a)+0.001){toast(t('av_payTooMuch'));return}
+    const payments=[...(a.payments||[]),{date:isDay(p.date)?p.date:dayKey(Date.now()),amount}];
+    const status=(+a.amount||0)-payments.reduce((s,x)=>s+x.amount,0)>0.001?'open':'closed';
+    guard(async()=>{await X.upd('advances',a.id,{payments,status,updatedAt:nowIso()});S.avPay=null},()=>t('av_paySaved'));
+  },
+  avDelPay(el){
+    const a=(S.advances||[]).find(x=>x.id===S.openAdv);if(!a)return;const payments=(a.payments||[]).filter((_,i)=>i!==+el.dataset.i);
+    guard(()=>X.upd('advances',a.id,{payments,status:(+a.amount||0)-payments.reduce((s,x)=>s+x.amount,0)>0.001?'open':'closed',updatedAt:nowIso()}),()=>t('av_saved'));
+  },
+  avDel(){const id=S.openAdv;if(!id||id==='new')return;if(S.confirm!=='avDel'){S.confirm='avDel';render();return}
+    guard(async()=>{await X.del('advances',id);S.openAdv=null;S.confirm=null},()=>t('av_deleted'))}
+});
+document.addEventListener('input',ev=>{
+  const el=ev.target;if(el.dataset&&el.dataset.in==='avP'){S.avPay=S.avPay||{};S.avPay[el.dataset.f]=el.value}
+});
+
 const hrId=p=>p+'-'+dayKey(Date.now()).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,7).toUpperCase();
 Object.assign(A,{
   hrNew(){S.openEmp='new';S.confirm=null;S.hrDraft={branch:S.hrPlace||S.branches[0]||'@office',status:'active'};render()},
   hrOpen(el){const e=empById(el.dataset.id);if(!e)return;S.openEmp=e.id;S.confirm=null;S.hrDraft=Object.assign({},e);render()},
   hrSave(){
     const d=S.hrDraft||{};const name=String(d.name||'').trim();if(!name){toast(t('hr_needName'));return}
-    const id=S.openEmp==='new'?hrId('E'):S.openEmp;const tm=nowIso();
-    const data={name,status:d.status==='left'?'left':'active',updatedAt:tm};
-    ['no','branch','job','nat','phone','idNo','note'].forEach(k=>data[k]=String(d[k]??'').trim());
-    ['idExp','healthExp','contractEnd','hire'].forEach(k=>data[k]=/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d[k]||'')?d[k]:'');
-    data.salary=d.salary===''||d.salary==null?null:num(d.salary);
-    data.createdAt=(empById(id)||{}).createdAt||tm;
+    const id=S.openEmp==='new'?hrId('E'):S.openEmp;const data=empData(d,id);
     guard(async()=>{await X.put('employees',id,data);S.openEmp=null;S.hrDraft=null},()=>t('hr_saved'));
   },
   hrDel(){const id=S.openEmp;if(!id||id==='new')return;
     if(S.confirm!=='hrDel'){S.confirm='hrDel';render();return}
-    guard(async()=>{await X.del('employees',id);for(const l of(S.leaves||[]).filter(x=>x.emp===id))await X.del('leaves',l.id);S.openEmp=null;S.confirm=null},()=>t('hr_deleted'))},
+    guard(async()=>{await X.del('employees',id);for(const[col,arr]of[['leaves',S.leaves],['custody',S.custody],['advances',S.advances]])for(const r of(arr||[]).filter(x=>x.emp===id))await X.del(col,r.id);S.openEmp=null;S.confirm=null},()=>t('hr_deleted'))},
   async hrXls(){
-    const rows=[...(S.emps||[])].sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar')).map(e=>[e.name,e.no||'',placeL(e.branch),e.job||'',e.nat||'',e.phone||'',e.idNo||'',e.idExp||'',e.healthExp||'',e.contractEnd||'',e.hire||'',e.salary??'',t(e.status==='left'?'es_left':'es_active'),e.note||'']);
+    const rows=[...(S.emps||[])].sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar')).map(e=>[e.name,e.no||'',placeL(e.branch),e.job||'',e.nat||'',e.phone||'',e.idNo||'',e.idExp||'',e.healthExp||'',e.contractEnd||'',e.hire||'',e.salary??'',...ALLOWANCES.map(k=>e[k]??''),payTotal(e),t(e.status==='left'?'es_left':'es_active'),e.note||'']);
     const lv=[...(S.leaves||[])].sort((a,b)=>String(b.from).localeCompare(String(a.from))).map(l=>[empName(l.emp),t('lt_'+(l.type||'annual')),l.from,l.to,leaveDays(l),t('ls_'+l.status),l.note||'']);
     await saveXlsx('maskob-hr-'+dayKey(Date.now())+'.xlsx',[
-      {name:t('tab_emps'),headers:[t('hr_name'),t('hr_no'),t('hr_branch'),t('hr_job'),t('hr_nat'),t('hr_phone'),t('hr_id'),t('hr_idExp'),t('hr_health'),t('hr_contract'),t('hr_hire'),t('hr_salary'),t('hr_status'),t('hr_note')],rows},
-      {name:t('tab_leaves'),headers:[t('lv_emp'),t('lv_type'),t('lv_from'),t('lv_to'),t('hr_daysN'),t('hr_status'),t('hr_note')],rows:lv}]);
+      {name:t('tab_emps'),headers:[t('hr_name'),t('hr_no'),t('hr_branch'),t('hr_job'),t('hr_nat'),t('hr_phone'),t('hr_id'),t('hr_idExp'),t('hr_health'),t('hr_contract'),t('hr_hire'),t('hr_salary'),...ALLOWANCES.map(k=>t(AL_L[k])),t('hr_totalPay'),t('hr_status'),t('hr_note')],rows},
+      {name:t('tab_leaves'),headers:[t('lv_emp'),t('lv_type'),t('lv_from'),t('lv_to'),t('hr_daysN'),t('hr_status'),t('hr_note')],rows:lv},
+      {name:t('tab_custody'),headers:[t('lv_emp'),t('cu_item'),t('cu_serial'),t('cu_value'),t('cu_given'),t('hr_status'),t('cu_returnedAt'),t('hr_note')],
+        rows:(S.custody||[]).map(c=>[empName(c.emp),c.item,c.serial||'',c.value??'',c.given||'',t(custOut(c)?'cs_out':'cs_returned'),c.returnedAt||'',c.note||''])},
+      {name:t('tab_adv'),headers:[t('lv_emp'),t('av_date'),t('av_amount'),t('av_monthly'),t('av_paid'),t('av_remain'),t('hr_status'),t('hr_note')],
+        rows:(S.advances||[]).map(a=>[empName(a.emp),a.date||'',+a.amount||0,a.monthly??'',advPaid(a),advRemain(a),t(advRemain(a)>0?'as_open':'as_closed'),a.note||''])}]);
+  },
+  hrContract(){
+    const win0=null;const d=S.hrDraft||{};if(!String(d.name||'').trim()){toast(t('hr_needName'));return}
+    const id=S.openEmp==='new'?hrId('E'):S.openEmp;const data=empData(d,id);
+    guard(async()=>{await X.put('employees',id,data);
+      const e=Object.assign({},data,{id});S.openEmp=null;S.hrDraft=null;S.openContract=id;S.ctDraft=contractDefaults(e);
+      S.coDraft=Object.assign({name:'مسكوب',cr:'',addr:'',rep:''},S.hrCfg||{})});
+  },
+  ctBack(){const e=empById(S.openContract);S.openContract=null;if(e){S.openEmp=e.id;S.hrDraft=Object.assign({},e)}render()},
+  ctPrint(){
+    const e=empById(S.openContract);if(!e)return;const c=S.ctDraft||{},co=S.coDraft||{};
+    if(!isDay(c.start)||!isDay(c.end)||c.end<c.start){toast(t('ct_need'));return}
+    const ct={start:c.start,end:c.end,probation:Math.max(0,Math.round(num(c.probation))),hours:num(c.hours)||8,days:Math.round(num(c.days))||6,leave:Math.round(num(c.leave))||21,at:nowIso()};
+    const cof={name:String(co.name||'').trim(),cr:String(co.cr||'').trim(),addr:String(co.addr||'').trim(),rep:String(co.rep||'').trim()};
+    const win=window.open('','_blank');               // open now, while the tap still counts, so pop-up blockers allow it
+    printHtml(contractHtml(e,ct,cof),win);
+    guard(async()=>{
+      const old=S.hrCfg||{};if(['name','cr','addr','rep'].some(k=>(old[k]||'')!==cof[k]))await X.hrCfg(cof);
+      await X.upd('employees',e.id,{contract:ct,hire:e.hire||ct.start,contractEnd:ct.end,updatedAt:nowIso()});S.openContract=null;
+    },()=>t('ct_done'));
   },
   lvNew(){S.openLeave='new';S.confirm=null;const td=dayKey(Date.now());S.hrDraft={emp:'',type:'annual',from:td,to:td,status:'pending'};render()},
   lvOpen(el){const l=(S.leaves||[]).find(x=>x.id===el.dataset.id);if(!l)return;S.openLeave=l.id;S.confirm=null;S.hrDraft=Object.assign({},l);render()},
@@ -2809,7 +3121,10 @@ Object.assign(A,{
 document.addEventListener('input',ev=>{
   const el=ev.target,k=el.dataset&&el.dataset.in;if(!k)return;
   if(k==='hrQ'){S.hrQ=el.value;clearTimeout(S._hrT);S._hrT=setTimeout(render,160);return}
+  if(k==='ctF'){S.ctDraft[el.dataset.f]=el.value;return}
+  if(k==='coF'){S.coDraft[el.dataset.f]=el.value;return}
   if(k==='hrF'){S.hrDraft=S.hrDraft||{};S.hrDraft[el.dataset.f]=el.value;
+    if(el.dataset.f==='salary'||ALLOWANCES.includes(el.dataset.f)){const o=document.getElementById('hrTotal');if(o)o.textContent=sar2(payTotal(S.hrDraft))}
     if(S.openLeave&&(el.dataset.f==='from'||el.dataset.f==='to')){const d=S.hrDraft,o=document.getElementById('lvDays');if(o)o.textContent=d.from&&d.to&&d.to>=d.from?t('hr_days',{n:leaveDays(d)}):''}
     return}
 });

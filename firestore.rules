@@ -134,6 +134,16 @@ service cloud.firestore {
     match /employees/{id} {
       allow read, write: if isRole('hr');
     }
+    // company details printed on employment contracts
+    match /config/hr {
+      allow read, write: if isRole('hr');
+    }
+    match /custody/{id} {
+      allow read, write: if isRole('hr');
+    }
+    match /advances/{id} {
+      allow read, write: if isRole('hr');
+    }
     match /leaves/{id} {
       allow read, write: if isRole('hr');
     }
