@@ -1,0 +1,7 @@
+{
+  "name": "maskob-tests",
+  "private": true,
+  "description": "Automated checks run before every deploy (node --test)",
+  "scripts": { "test": "node --test" },
+  "devDependencies": { "jsdom": "^25.0.1" }
+}

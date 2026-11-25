@@ -1,9 +1,9 @@
 // Maskob orders — service worker for fast repeat visits.
-// - Page and config (same-origin HTML/JS): network first, cached copy only when offline,
-//   so every deploy is picked up on the next open.
+// - Page, scripts and styles (same-origin HTML/JS/CSS): network first, cached copy only when
+//   offline, so every deploy is picked up on the next open.
 // - Versioned libraries, fonts and images: cache first (they never change at the same URL).
 // - Firebase traffic (Firestore, Auth, token refresh) is never intercepted.
-const VERSION = 'maskob-v2';
+const VERSION = 'maskob-v3';
 const CDN_HOSTS = new Set(['cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'fonts.gstatic.com', 'fonts.googleapis.com']);
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -45,7 +45,7 @@ self.addEventListener('fetch', (event) => {
 
   if (sameOrigin) {
     if (url.pathname.startsWith('/__/')) return;                       // Firebase reserved URLs
-    const isPage = req.mode === 'navigate' || url.pathname === '/' || /\.(html|js|webmanifest)$/.test(url.pathname);
+    const isPage = req.mode === 'navigate' || url.pathname === '/' || /\.(html|js|css|webmanifest)$/.test(url.pathname);
     event.respondWith(isPage ? networkFirst(req) : cacheFirst(req));
     return;
   }

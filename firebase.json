@@ -26,7 +26,9 @@
       ".firebase/**",
       "**/.*",
       "**/.*/**",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "tests/**",
+      "*.ps1"
     ],
     "headers": [
       {
@@ -35,6 +37,10 @@
       },
       {
         "source": "firebase-config.js",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
+        "source": "**/*.@(js|css)",
         "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       },
       {

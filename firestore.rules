@@ -150,6 +150,14 @@ service cloud.firestore {
     // human resources: employee files and leave records, visible to HR only
     match /employees/{id} {
       allow read, write: if isRole('hr');
+      // attachments: file details + the file itself split into pieces
+      match /files/{f} {
+        allow read, write: if isRole('hr');
+        match /parts/{p} {
+          allow read, delete: if isRole('hr');
+          allow create, update: if isRole('hr') && request.resource.data.data is string && request.resource.data.data.size() < 900000;
+        }
+      }
     }
     // company details printed on employment contracts
     match /config/hr {

@@ -5,3 +5,4 @@ desktop.ini
 .firebase/
 *.log
 node_modules/
+tests/node_modules/
