@@ -543,6 +543,13 @@ textarea,input,select,button{font-family:inherit}
 .sched-chip{position:relative;min-height:36px;padding:0 12px;font-size:13px;color:var(--sun-ink);border-color:color-mix(in srgb,var(--sun) 55%,var(--line))}
 .sched-chip input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
 
+.hr-filter{margin:6px 0 14px;flex-wrap:wrap}
+.hr-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tbl tr.hr-exp td{background:var(--late-soft);color:var(--late)}
+.tbl tr.hr-soon td{background:var(--sun-soft)}
+.linkish{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--navy);cursor:pointer;text-align:start}
+.tbl tr.hr-exp .linkish{color:var(--late)}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -827,6 +834,71 @@ tg_none:['لم يُحدَّد تارقت','No target set','লক্ষ্য �
 tg_reached:['تم تحقيق التارقت','Target reached','লক্ষ্য অর্জিত','ہدف حاصل ہو گیا'],
 schedBtn:['الموعد','Date','তারিখ','تاریخ'],
 schedSet:['تحديد الموعد','Set date','তারিখ দিন','تاریخ مقرر کریں'],
+r_hr:['الموارد البشرية','Human resources','মানব সম্পদ','انسانی وسائل'],
+tab_emps:['الموظفون','Employees','কর্মচারী','ملازمین'],
+tab_docs:['الوثائق','Documents','নথিপত্র','دستاویزات'],
+tab_leaves:['الإجازات','Leave','ছুটি','چھٹیاں'],
+hr_add:['إضافة موظف','Add employee','কর্মচারী যোগ করুন','ملازم شامل کریں'],
+hr_name:['الاسم','Name','নাম','نام'],
+hr_no:['الرقم الوظيفي','Employee no.','কর্মচারী নং','ملازم نمبر'],
+hr_branch:['مكان العمل','Workplace','কর্মস্থল','کام کی جگہ'],
+hr_job:['المسمى الوظيفي','Job title','পদবি','عہدہ'],
+hr_nat:['الجنسية','Nationality','জাতীয়তা','قومیت'],
+hr_phone:['الجوال','Mobile','মোবাইল','موبائل'],
+hr_id:['رقم الهوية / الإقامة','ID / Iqama no.','আইডি / ইকামা নং','شناختی / اقامہ نمبر'],
+hr_idExp:['انتهاء الإقامة','Iqama expiry','ইকামার মেয়াদ','اقامہ کی میعاد'],
+hr_health:['انتهاء الشهادة الصحية','Health card expiry','হেলথ কার্ডের মেয়াদ','ہیلتھ کارڈ کی میعاد'],
+hr_contract:['انتهاء العقد','Contract end','চুক্তির মেয়াদ শেষ','معاہدے کا اختتام'],
+hr_hire:['تاريخ المباشرة','Start date','যোগদানের তারিখ','شمولیت کی تاریخ'],
+hr_salary:['الراتب الأساسي','Basic salary','মূল বেতন','بنیادی تنخواہ'],
+hr_status:['الحالة','Status','অবস্থা','حیثیت'],
+hr_note:['ملاحظات','Notes','নোট','نوٹس'],
+es_active:['على رأس العمل','Working','কর্মরত','برسرِ کار'],
+es_left:['انتهت خدمته','Left','চাকরি শেষ','ملازمت ختم'],
+hr_inLeave:['في إجازة','On leave','ছুটিতে','چھٹی پر'],
+hr_working:['على رأس العمل','Working','কর্মরত','برسرِ کار'],
+hr_onLeave:['في إجازة اليوم','On leave today','আজ ছুটিতে','آج چھٹی پر'],
+hr_expiring:['وثائق تحتاج تجديد','Documents to renew','নবায়নযোগ্য নথি','تجدید طلب دستاویزات'],
+hr_places:['أماكن العمل','Workplaces','কর্মস্থল','کام کی جگہیں'],
+hr_office:['الإدارة','Head office','প্রধান কার্যালয়','ہیڈ آفس'],
+hr_saved:['حُفظت بيانات الموظف','Employee saved','কর্মচারী সংরক্ষিত','ملازم محفوظ ہو گیا'],
+hr_needName:['اكتب اسم الموظف','Enter the employee name','কর্মচারীর নাম লিখুন','ملازم کا نام لکھیں'],
+hr_deleted:['حُذف الموظف','Employee deleted','কর্মচারী মুছে ফেলা হয়েছে','ملازم حذف ہو گیا'],
+hr_delConfirm:['تأكيد حذف الموظف','Confirm delete','মুছে ফেলা নিশ্চিত করুন','حذف کی تصدیق کریں'],
+hr_none:['لا يوجد موظفون بعد','No employees yet','এখনো কোনো কর্মচারী নেই','ابھی کوئی ملازم نہیں'],
+hr_noMatch:['لا يوجد نتائج','No matches','কিছু পাওয়া যায়নি','کوئی نتیجہ نہیں'],
+hr_search:['بحث بالاسم أو الرقم','Search name or number','নাম বা নম্বর খুঁজুন','نام یا نمبر تلاش کریں'],
+hr_allPlaces:['كل أماكن العمل','All workplaces','সব কর্মস্থল','تمام جگہیں'],
+hr_daysLeft:['باقي {n} يوم','{n} days left','{n} দিন বাকি','{n} دن باقی'],
+hr_daysAgo:['منتهية منذ {n} يوم','Expired {n} days ago','{n} দিন আগে মেয়াদ শেষ','{n} دن پہلے ختم'],
+hr_today:['تنتهي اليوم','Expires today','আজ মেয়াদ শেষ','آج ختم'],
+hr_doc:['الوثيقة','Document','নথি','دستاویز'],
+hr_expiry:['تاريخ الانتهاء','Expiry','মেয়াদ','میعاد'],
+hr_docsWithin:['الوثائق المنتهية أو التي تنتهي خلال {n} يوماً','Documents expired or expiring within {n} days','মেয়াদোত্তীর্ণ বা {n} দিনের মধ্যে শেষ হওয়া নথি','ختم شدہ یا {n} دن میں ختم ہونے والی دستاویزات'],
+hr_docsNone:['لا توجد وثائق تنتهي خلال {n} يوماً','No documents expire within {n} days','{n} দিনের মধ্যে কোনো নথির মেয়াদ শেষ হচ্ছে না','{n} دن میں کوئی دستاویز ختم نہیں ہو رہی'],
+hr_annualUsed:['الإجازات السنوية هذا العام','Annual leave this year','এ বছরের বার্ষিক ছুটি','اس سال کی سالانہ چھٹی'],
+hr_days:['{n} يوم','{n} days','{n} দিন','{n} دن'],
+hr_daysN:['عدد الأيام','Days','দিন','دن'],
+hr_pickEmp:['اختر الموظف','Choose employee','কর্মচারী বেছে নিন','ملازم منتخب کریں'],
+lv_add:['تسجيل إجازة','Add leave','ছুটি যোগ করুন','چھٹی درج کریں'],
+lv_emp:['الموظف','Employee','কর্মচারী','ملازم'],
+lv_type:['نوع الإجازة','Leave type','ছুটির ধরন','چھٹی کی قسم'],
+lt_annual:['سنوية','Annual','বার্ষিক','سالانہ'],
+lt_sick:['مرضية','Sick','অসুস্থতা','بیماری'],
+lt_emergency:['اضطرارية','Emergency','জরুরি','ہنگامی'],
+lt_unpaid:['بدون راتب','Unpaid','বিনা বেতনে','بغیر تنخواہ'],
+lv_from:['من','From','থেকে','سے'],
+lv_to:['إلى','To','পর্যন্ত','تک'],
+ls_pending:['بانتظار القرار','Pending','অপেক্ষমাণ','زیرِ غور'],
+ls_approved:['مقبولة','Approved','অনুমোদিত','منظور'],
+ls_rejected:['مرفوضة','Rejected','প্রত্যাখ্যাত','مسترد'],
+lf_current:['الحالية والقادمة','Current & upcoming','চলতি ও আসন্ন','موجودہ اور آئندہ'],
+lv_saved:['حُفظت الإجازة','Leave saved','ছুটি সংরক্ষিত','چھٹی محفوظ ہو گئی'],
+lv_need:['اختر الموظف وتاريخ البداية والنهاية','Choose the employee and the dates','কর্মচারী ও তারিখ বেছে নিন','ملازم اور تاریخیں منتخب کریں'],
+lv_badDates:['تاريخ النهاية قبل البداية','End date is before start date','শেষ তারিখ শুরুর আগে','اختتامی تاریخ آغاز سے پہلے ہے'],
+lv_none:['لا توجد إجازات','No leave records','কোনো ছুটি নেই','کوئی چھٹی نہیں'],
+lv_deleted:['حُذفت الإجازة','Leave deleted','ছুটি মুছে ফেলা হয়েছে','چھٹی حذف ہو گئی'],
+lv_delConfirm:['تأكيد حذف الإجازة','Confirm delete','মুছে ফেলা নিশ্চিত করুন','حذف کی تصدیق کریں'],
 tab_sales:['المبيعات','Sales','বিক্রয়','فروخت'],
 tab_maint:['الصيانة','Maintenance','রক্ষণাবেক্ষণ','مرمت'],
 tab_checks:['قائمة المهام','Task list','কাজের তালিকা','کاموں کی فہرست'],
@@ -1177,6 +1249,7 @@ function pinEntries(){
   if(S.pins.admin)e.push({role:'admin',key:'admin',h:S.pins.admin});
   if(S.pins.manager)e.push({role:'manager',key:'manager',h:S.pins.manager});
   if(S.pins.warehouse)e.push({role:'warehouse',key:'warehouse',h:S.pins.warehouse});
+  if(S.pins.hr)e.push({role:'hr',key:'hr',h:S.pins.hr});
   const br=S.pins.br||{};Object.keys(br).forEach(b=>{if(br[b])e.push({role:'branch',branch:b,key:'branch:'+b,h:br[b]})});
   return e;
 }
@@ -1303,6 +1376,7 @@ const Store={
     this.fbStop();
     xStart();
     this._unsubC=db.doc('config/contact').onSnapshot(s=>{S.contact=s.exists?s.data():{};render()},()=>{});
+    if(S.role==='hr'){S.loaded=true;render();return}   // human resources: employees and leave only, no orders
     if(S.role==='admin'){            // system admin: settings only, no orders
       S.loaded=true;
       this._unsubP=db.doc('config/pins').onSnapshot(s=>{S.pins=s.exists?Object.assign({},s.data()):{};S.pinsReadable=true;render()},
@@ -1452,6 +1526,7 @@ function tabsFor(){
   if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')}];
   if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'sched',l:t('tab_sched'),b:c.sched,late:c.schedLate},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales')},{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')},{k:'forecast',l:t('tab_fc')}];
   if(S.role==='admin')return[{k:'branches',l:t('tab_settings')}];
+  if(S.role==='hr')return hrTabs();
   if(S.role==='warehouse')return[{k:'prep',l:t('tab_prep'),b:c.prep,late:c.prepLate},{k:'sched',l:t('tab_sched'),b:c.sched,late:c.schedLate},{k:'incoming',l:t('tab_incoming'),b:c.incoming,late:c.incomingLate},{k:'done',l:t('tab_log')}];
   return[];
 }
@@ -1477,7 +1552,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}">${esc(x.l)}${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.openMaint?maintSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.openMaint?maintSheet():S.openEmp?empSheet():S.openLeave?leaveSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -1515,6 +1590,7 @@ function view(){
   if(!S.loaded)return`<p class="hint">${t('loadingOrders')}</p>`;
   const tb=S.tab,v=visible();
   if(S.role==='admin')return branchesView();
+  if(S.role==='hr')return hrView(tb);
   if(tb==='forecast'&&S.role==='manager')return forecastView();
   if(tb==='report'&&S.role==='manager')return reportView();
   if(S.role==='branch')return noticeBanner(v)+branchView(tb,v);
@@ -1783,7 +1859,7 @@ function lenView(){
   const CL=codeLenSet();
   const btn=(v,l)=>`<button class="dday${(CL===v)?' on':''}" data-act="setLen" data-n="${v||0}" aria-pressed="${CL===v}">${esc(l)}</button>`;
   let warn='';
-  if(CL){const keys=['admin','manager','warehouse',...S.branches.map(b=>'branch:'+b)].filter(k=>hashForKey(k));
+  if(CL){const keys=['admin','manager','warehouse','hr',...S.branches.map(b=>'branch:'+b)].filter(k=>hashForKey(k));
     const lens=(S.pins&&S.pins.lens)||{};
     const bad=keys.filter(k=>lens[k]!==CL).map(k=>k.startsWith('branch:')?k.slice(7):roleL(k));
     if(bad.length)warn=`<div class="len-warn">${esc(t('lenWarn',{n:CL,list:bad.join('، ')}))}</div>`}
@@ -1800,7 +1876,7 @@ function adminBootBox(){
 function branchesView(){
   const row=(key,icon,label,id,extra)=>{const set=!!hashForKey(key);return`<div class="code"><div><b>${esc(label)}</b><div class="${set?'set':'unset'}">${set?t('isSet'):t('notSet')}</div></div>
     <div class="wide"><input class="field" type="password" inputmode="numeric" maxlength="${codeLenSet()||6}" id="${id}" placeholder="${esc(codePh())}" value="${esc(S.pinIn[key]||'')}" data-in="pinIn" data-k="${esc(key)}" autocomplete="new-password"><button class="btn btn-navy" data-act="savePin" data-k="${esc(key)}">${set?t('change'):t('assign')}</button>${extra||''}</div></div>`};
-  const codes=row('admin','manager',t('codeOf',{r:roleL('admin')}),'pin-admin')+row('manager','manager',t('codeOf',{r:roleL('manager')}),'pin-manager')+row('warehouse','warehouse',t('codeOf',{r:roleL('warehouse')}),'pin-warehouse');
+  const codes=row('admin','manager',t('codeOf',{r:roleL('admin')}),'pin-admin')+row('manager','manager',t('codeOf',{r:roleL('manager')}),'pin-manager')+row('warehouse','warehouse',t('codeOf',{r:roleL('warehouse')}),'pin-warehouse')+row('hr','manager',t('codeOf',{r:roleL('hr')}),'pin-hr');
   const brs=S.branches.map((b,i)=>{const r=row('branch:'+b,'branch',b,'pin-br-'+i,S.branches.length>1?`<button class="btn btn-bad" data-act="delBranch" data-i="${i}">${t('del')}</button>`:'');return r.slice(0,-6)+daysRow(b,i)+'</div>'}).join('');
   return`<h2>${t('codesTitle')}</h2>${lenView()}
   <div class="codes">${codes}</div>
@@ -2016,7 +2092,7 @@ async function findCode(pin){
   if(!S.fb)return findLocal(pin);
   // Firebase: the server checks the code; try each role/branch until a session is accepted
   // look the code up: codes/{hash} exists only for the role/branch the code belongs to
-  const keys=[['admin',null],['manager',null],['warehouse',null],...S.branches.map(b=>['branch',b])];
+  const keys=[['admin',null],['manager',null],['warehouse',null],['hr',null],...S.branches.map(b=>['branch',b])];
   const hits=await Promise.all(keys.map(async([role,branch])=>{
     const key=role==='branch'?'branch:'+branch:role;const h=await hashPin(key,pin);
     try{const s=await db.doc('codes/'+h).get();return s.exists?{role,branch,key,h}:null}catch(e){return null}
@@ -2157,7 +2233,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.review=false;S.open=null;S.openMaint=null;S.confirm=null;render()},
+  close(){S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openLeave=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -2289,6 +2365,10 @@ const X={
     const all=Object.assign({},MEM('targets'));const cur=all[b]||{};all[b]=Object.assign({},cur,{m:Object.assign({},cur.m||{},{[mk]:data})});
     MEMSET('targets',all);xLoadDemo();render();
   },
+  async del(col,id){
+    if(S.fb)return queue(col+'/'+id,()=>db.doc(col+'/'+id).delete());
+    MEMSET(col,MEM(col).filter(x=>x.id!==id));xLoadDemo();render();
+  },
   async checklist(items){
     if(S.fb)return queue('config/checklist',()=>db.doc('config/checklist').set({items}));
     MEMSET('checklist',items);xLoadDemo();render();
@@ -2298,6 +2378,7 @@ function xLoadDemo(){
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
+  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];
 }
 /* live subscriptions per role */
 function xStart(){
@@ -2315,10 +2396,15 @@ function xStart(){
     list('sales',a=>S.sales=a);list('maintenance',a=>S.maint=a);
     u.push(db.collection('checks').where('date','==',dayKey(Date.now())).onSnapshot(s=>{S.checks=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},onErr));
   }
+  if(S.role==='hr'){
+    const out=e=>{if(e&&e.code==='permission-denied')Store.fbSignOut()};   // code changed: sign out
+    u.push(db.collection('employees').onSnapshot(s=>{S.emps=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+    u.push(db.collection('leaves').onSnapshot(s=>{S.leaves=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+  }
   if(S.role==='manager')
     u.push(db.collection('targets').onSnapshot(s=>{const t={};s.docs.forEach(d=>t[d.id]=d.data());S.targets=t;render()},onErr));
 }
-function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
+function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.emps=[];S.leaves=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
 /* ---------- sales: numbers for a branch and month ---------- */
 function salesStats(branch,mk){
@@ -2571,6 +2657,165 @@ document.addEventListener('change',async ev=>{
     try{const d=await compressImage(el.files[0]);if(S.mDraft.photos.length<3)S.mDraft.photos.push(d)}catch(e){toast(t('m_photoFail'))}
     S.mBusy=false;render();
   }
+});
+
+/* ================= Human resources: employees, document expiry, leave ================= */
+const HR_WARN=60;                                   // documents expiring within this many days are listed
+const HR_DOCS=['idExp','healthExp','contractEnd'];
+const HR_DOC_L={idExp:'hr_idExp',healthExp:'hr_health',contractEnd:'hr_contract'};
+const LEAVE_TYPES=['annual','sick','emergency','unpaid'];
+const hrPlaces=()=>[...S.branches,'@wh','@office'];
+const placeL=p=>p==='@wh'?t('r_warehouse'):p==='@office'?t('hr_office'):(p||'—');
+const dayDiff=(a,b)=>Math.round((fromKey(b)-fromKey(a))/864e5);     // b - a in days
+const leaveDays=l=>l.from&&l.to?dayDiff(l.from,l.to)+1:0;
+const empById=id=>(S.emps||[]).find(e=>e.id===id);
+const empName=id=>{const e=empById(id);return e?e.name:'—'};
+const onLeaveToday=e=>{const d=dayKey(Date.now());return(S.leaves||[]).some(l=>l.emp===e.id&&l.status==='approved'&&l.from<=d&&l.to>=d)};
+/* every document of working staff that expires within HR_WARN days (or already expired) */
+function hrDocAlerts(){
+  const today=dayKey(Date.now()),out=[];
+  (S.emps||[]).filter(e=>e.status!=='left').forEach(e=>HR_DOCS.forEach(k=>{
+    if(!e[k])return;const left=dayDiff(today,e[k]);
+    if(left<=HR_WARN)out.push({e,k,date:e[k],left});
+  }));
+  return out.sort((a,b)=>a.left-b.left);
+}
+const leftLabel=n=>n<0?t('hr_daysAgo',{n:-n}):n===0?t('hr_today'):t('hr_daysLeft',{n});
+function hrTabs(){
+  const al=hrDocAlerts(),pend=(S.leaves||[]).filter(l=>l.status==='pending').length;
+  return[{k:'emps',l:t('tab_emps')},{k:'docs',l:t('tab_docs'),b:al.length,late:al.some(a=>a.left<0)},{k:'leaves',l:t('tab_leaves'),b:pend}];
+}
+function hrView(tb){
+  if(tb==='docs')return hrDocsView();
+  if(tb==='leaves')return hrLeavesView();
+  return hrEmpsView();
+}
+function hrEmpsView(){
+  const all=[...(S.emps||[])].sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
+  const act=all.filter(e=>e.status!=='left');
+  const place=S.hrPlace||'',q=String(S.hrQ||'').trim().toLowerCase();
+  const al=hrDocAlerts(),lateIds=new Set(al.filter(a=>a.left<0).map(a=>a.e.id));
+  const list=all.filter(e=>(!place||e.branch===place)&&(!q||[e.name,e.no,e.idNo,e.phone,e.job].some(x=>String(x||'').toLowerCase().includes(q))));
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_emps')}</h2><div class="row"><button class="btn btn-ghost rp-btn" data-act="hrXls">${t('xlsExport')}</button><button class="btn btn-sun" data-act="hrNew">+ ${t('hr_add')}</button></div></div>
+  <div class="stats">${kpi(t('hr_working'),sar(act.length))}${kpi(t('hr_onLeave'),sar(act.filter(onLeaveToday).length))}${kpi(t('hr_expiring'),sar(al.length),al.length?'hot':'')}${kpi(t('hr_places'),sar(new Set(act.map(e=>e.branch)).size))}</div>
+  <div class="row hr-filter"><input class="field" id="hrQ" data-in="hrQ" placeholder="${esc(t('hr_search'))}" value="${esc(S.hrQ||'')}" style="flex:2;min-width:180px">
+    <select class="field" id="hrPlace" style="flex:1;min-width:140px"><option value="">${esc(t('hr_allPlaces'))}</option>${hrPlaces().map(p=>`<option value="${esc(p)}" ${place===p?'selected':''}>${esc(placeL(p))} (${act.filter(e=>e.branch===p).length})</option>`).join('')}</select></div>
+  <div class="list">${list.length?list.map(e=>`<button class="oc ${lateIds.has(e.id)?'late':''}" data-act="hrOpen" data-id="${esc(e.id)}">
+    <span style="min-width:0"><span class="t">${esc(e.name)} ${e.no?`<span class="hint num" dir="ltr">#${esc(e.no)}</span>`:''}</span>
+      <span class="s">${esc(placeL(e.branch))}${e.job?' · '+esc(e.job):''}${e.nat?' · '+esc(e.nat):''}</span></span>
+    <span class="side">${e.status==='left'?`<span class="pill ms-open">${t('es_left')}</span>`:onLeaveToday(e)?`<span class="pill ms-progress">${t('hr_inLeave')}</span>`:`<span class="pill ms-done">${t('es_active')}</span>`}</span></button>`).join(''):`<div class="empty">${esc(t(all.length?'hr_noMatch':'hr_none'))}</div>`}</div>`;
+}
+function hrDocsView(){
+  const al=hrDocAlerts();
+  return`<h2>${t('tab_docs')}</h2><p class="hint">${esc(t('hr_docsWithin',{n:HR_WARN}))}</p>
+  ${al.length?`<div class="scroll"><table class="tbl"><thead><tr><th>${t('lv_emp')}</th><th>${t('hr_branch')}</th><th>${t('hr_doc')}</th><th style="text-align:center">${t('hr_expiry')}</th><th style="text-align:center">${t('hr_status')}</th></tr></thead><tbody>
+  ${al.map(a=>`<tr class="${a.left<0?'hr-exp':a.left<=30?'hr-soon':''}"><td><button class="linkish" data-act="hrOpen" data-id="${esc(a.e.id)}">${esc(a.e.name)}</button></td><td>${esc(placeL(a.e.branch))}</td><td>${esc(t(HR_DOC_L[a.k]))}</td><td class="n">${esc(dateLabel(a.date))}</td><td class="n"><b>${esc(leftLabel(a.left))}</b></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">${esc(t('hr_docsNone',{n:HR_WARN}))}</div>`}`;
+}
+function hrLeavesView(){
+  const f=S.lvFilter||'current',today=dayKey(Date.now());
+  const all=[...(S.leaves||[])].sort((a,b)=>String(b.from).localeCompare(String(a.from)));
+  const list=f==='pending'?all.filter(l=>l.status==='pending'):f==='current'?all.filter(l=>l.status!=='rejected'&&l.to>=today):all;
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_leaves')}</h2><button class="btn btn-sun" data-act="lvNew" ${(S.emps||[]).some(e=>e.status!=='left')?'':'disabled'}>+ ${t('lv_add')}</button></div>
+  <div class="filters">${[['current','lf_current'],['pending','ls_pending'],['all','f_all']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="lvFilter" data-k="${k}">${t(l)}</button>`).join('')}</div>
+  <div class="list">${list.length?list.map(l=>{const e=empById(l.emp);const now=l.status==='approved'&&l.from<=today&&l.to>=today;return`<button class="oc" data-act="lvOpen" data-id="${esc(l.id)}">
+    <span style="min-width:0"><span class="t">${esc(e?e.name:'—')} <span class="tag">${esc(t('lt_'+(l.type||'annual')))}</span>${now?`<span class="tag ret">${t('hr_inLeave')}</span>`:''}</span>
+      <span class="s">${esc(e?placeL(e.branch):'')} · ${esc(dateLabel(l.from))} ← ${esc(dateLabel(l.to))} · ${esc(t('hr_days',{n:leaveDays(l)}))}</span></span>
+    <span class="side"><span class="pill ${l.status==='approved'?'ms-done':l.status==='rejected'?'ms-open':'ms-progress'}">${esc(t('ls_'+l.status))}</span></span></button>`}).join(''):`<div class="empty">${esc(t('lv_none'))}</div>`}</div>`;
+}
+/* form fields */
+const hrIn=(f,label,type,extra)=>{const d=S.hrDraft||{};return`<label><span class="hint">${esc(label)}</span><input class="field${type==='number'||type==='tel'?' num':''}" type="${type||'text'}" id="hr-${f}" data-in="hrF" data-f="${f}" value="${esc(d[f]??'')}" ${type==='tel'||type==='number'?'dir="ltr" inputmode="'+(type==='tel'?'tel':'decimal')+'"':'dir="auto"'} ${extra||''}></label>`};
+const hrSel=(f,label,opts)=>{const d=S.hrDraft||{};return`<label><span class="hint">${esc(label)}</span><select class="field" id="hr-${f}" data-in="hrF" data-f="${f}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${String(d[f]??'')===String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`};
+function hrSheetWrap(title,body,foot){
+  return`<div class="veil" data-act="veil"><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-brand"><span class="logo sm" role="img" aria-label="مسكوب MASKOB"></span></div>
+  <div class="sh-head"><div class="row"><div style="flex:1;min-width:0"><h2>${esc(title)}</h2></div><button class="x" data-act="close" aria-label="${esc(t('close'))}">×</button></div></div>
+  <div class="sh-body">${body}</div><div class="sh-foot">${foot}</div></div></div>`;
+}
+function empSheet(){
+  const isNew=S.openEmp==='new',e=isNew?null:empById(S.openEmp);if(!isNew&&!e)return'';
+  const d=S.hrDraft||{};
+  const yr=String(new Date().getFullYear());
+  const used=isNew?0:(S.leaves||[]).filter(l=>l.emp===e.id&&l.type==='annual'&&l.status==='approved'&&String(l.from).startsWith(yr)).reduce((a,l)=>a+leaveDays(l),0);
+  const docs=isNew?'':HR_DOCS.filter(k=>e[k]).map(k=>{const n=dayDiff(dayKey(Date.now()),e[k]);return n<=HR_WARN?`<span class="tag ${n<0?'ret':''}">${esc(t(HR_DOC_L[k]))}: ${esc(leftLabel(n))}</span>`:''}).join('');
+  const body=`${isNew?'':`<div class="row" style="gap:8px;margin-bottom:12px">${docs}<span class="tag">${esc(t('hr_annualUsed'))}: ${esc(t('hr_days',{n:used}))}</span></div>`}
+  <div class="sl-grid hr-grid">
+    ${hrIn('name',t('hr_name'))}${hrIn('no',t('hr_no'),'text','dir="ltr"')}
+    ${hrSel('branch',t('hr_branch'),hrPlaces().map(p=>[p,placeL(p)]))}${hrIn('job',t('hr_job'))}
+    ${hrIn('nat',t('hr_nat'))}${hrIn('phone',t('hr_phone'),'tel')}
+    ${hrIn('idNo',t('hr_id'),'tel')}${hrIn('idExp',t('hr_idExp'),'date')}
+    ${hrIn('healthExp',t('hr_health'),'date')}${hrIn('contractEnd',t('hr_contract'),'date')}
+    ${hrIn('hire',t('hr_hire'),'date')}${hrIn('salary',t('hr_salary')+' ('+t('sar')+')','number')}
+    ${hrSel('status',t('hr_status'),[['active',t('es_active')],['left',t('es_left')]])}
+  </div>
+  <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>`;
+  const foot=`${isNew?'':`<button class="btn btn-bad" data-act="hrDel">${S.confirm==='hrDel'?t('hr_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="hrSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
+  return hrSheetWrap(isNew?t('hr_add'):(e.name||''),body,foot);
+}
+function leaveSheet(){
+  const isNew=S.openLeave==='new',l=isNew?null:(S.leaves||[]).find(x=>x.id===S.openLeave);if(!isNew&&!l)return'';
+  const d=S.hrDraft||{};
+  const emps=(S.emps||[]).filter(e=>e.status!=='left'||e.id===d.emp).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
+  const n=d.from&&d.to&&d.to>=d.from?leaveDays(d):0;
+  const body=`<div class="sl-grid hr-grid">
+    ${hrSel('emp',t('lv_emp'),[['',t('hr_pickEmp')],...emps.map(e=>[e.id,e.name+' — '+placeL(e.branch)])])}${hrSel('type',t('lv_type'),LEAVE_TYPES.map(k=>[k,t('lt_'+k)]))}
+    ${hrIn('from',t('lv_from'),'date')}${hrIn('to',t('lv_to'),'date')}
+  </div>
+  <div class="hint" style="margin:8px 0" id="lvDays">${n?esc(t('hr_days',{n})):''}</div>
+  <div class="kind" style="margin-bottom:10px">${['pending','approved','rejected'].map(s=>`<button aria-pressed="${(d.status||'pending')===s}" data-act="lvStatus" data-k="${s}">${esc(t('ls_'+s))}</button>`).join('')}</div>
+  <label style="display:block"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>`;
+  const foot=`${isNew?'':`<button class="btn btn-bad" data-act="lvDel">${S.confirm==='lvDel'?t('lv_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="lvSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
+  return hrSheetWrap(isNew?t('lv_add'):t('tab_leaves')+': '+empName(l.emp),body,foot);
+}
+const hrId=p=>p+'-'+dayKey(Date.now()).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,7).toUpperCase();
+Object.assign(A,{
+  hrNew(){S.openEmp='new';S.confirm=null;S.hrDraft={branch:S.hrPlace||S.branches[0]||'@office',status:'active'};render()},
+  hrOpen(el){const e=empById(el.dataset.id);if(!e)return;S.openEmp=e.id;S.confirm=null;S.hrDraft=Object.assign({},e);render()},
+  hrSave(){
+    const d=S.hrDraft||{};const name=String(d.name||'').trim();if(!name){toast(t('hr_needName'));return}
+    const id=S.openEmp==='new'?hrId('E'):S.openEmp;const tm=nowIso();
+    const data={name,status:d.status==='left'?'left':'active',updatedAt:tm};
+    ['no','branch','job','nat','phone','idNo','note'].forEach(k=>data[k]=String(d[k]??'').trim());
+    ['idExp','healthExp','contractEnd','hire'].forEach(k=>data[k]=/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d[k]||'')?d[k]:'');
+    data.salary=d.salary===''||d.salary==null?null:num(d.salary);
+    data.createdAt=(empById(id)||{}).createdAt||tm;
+    guard(async()=>{await X.put('employees',id,data);S.openEmp=null;S.hrDraft=null},()=>t('hr_saved'));
+  },
+  hrDel(){const id=S.openEmp;if(!id||id==='new')return;
+    if(S.confirm!=='hrDel'){S.confirm='hrDel';render();return}
+    guard(async()=>{await X.del('employees',id);for(const l of(S.leaves||[]).filter(x=>x.emp===id))await X.del('leaves',l.id);S.openEmp=null;S.confirm=null},()=>t('hr_deleted'))},
+  async hrXls(){
+    const rows=[...(S.emps||[])].sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar')).map(e=>[e.name,e.no||'',placeL(e.branch),e.job||'',e.nat||'',e.phone||'',e.idNo||'',e.idExp||'',e.healthExp||'',e.contractEnd||'',e.hire||'',e.salary??'',t(e.status==='left'?'es_left':'es_active'),e.note||'']);
+    const lv=[...(S.leaves||[])].sort((a,b)=>String(b.from).localeCompare(String(a.from))).map(l=>[empName(l.emp),t('lt_'+(l.type||'annual')),l.from,l.to,leaveDays(l),t('ls_'+l.status),l.note||'']);
+    await saveXlsx('maskob-hr-'+dayKey(Date.now())+'.xlsx',[
+      {name:t('tab_emps'),headers:[t('hr_name'),t('hr_no'),t('hr_branch'),t('hr_job'),t('hr_nat'),t('hr_phone'),t('hr_id'),t('hr_idExp'),t('hr_health'),t('hr_contract'),t('hr_hire'),t('hr_salary'),t('hr_status'),t('hr_note')],rows},
+      {name:t('tab_leaves'),headers:[t('lv_emp'),t('lv_type'),t('lv_from'),t('lv_to'),t('hr_daysN'),t('hr_status'),t('hr_note')],rows:lv}]);
+  },
+  lvNew(){S.openLeave='new';S.confirm=null;const td=dayKey(Date.now());S.hrDraft={emp:'',type:'annual',from:td,to:td,status:'pending'};render()},
+  lvOpen(el){const l=(S.leaves||[]).find(x=>x.id===el.dataset.id);if(!l)return;S.openLeave=l.id;S.confirm=null;S.hrDraft=Object.assign({},l);render()},
+  lvStatus(el){S.hrDraft=S.hrDraft||{};S.hrDraft.status=el.dataset.k;render()},
+  lvFilter(el){S.lvFilter=el.dataset.k;render()},
+  lvSave(){
+    const d=S.hrDraft||{};const ok=k=>/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d[k]||'');
+    if(!d.emp||!ok('from')||!ok('to')){toast(t('lv_need'));return}
+    if(d.to<d.from){toast(t('lv_badDates'));return}
+    const id=S.openLeave==='new'?hrId('L'):S.openLeave;const tm=nowIso();
+    const data={emp:d.emp,type:LEAVE_TYPES.includes(d.type)?d.type:'annual',from:d.from,to:d.to,days:leaveDays(d),status:['approved','rejected'].includes(d.status)?d.status:'pending',note:String(d.note||'').trim(),updatedAt:tm,
+      createdAt:((S.leaves||[]).find(x=>x.id===id)||{}).createdAt||tm};
+    guard(async()=>{await X.put('leaves',id,data);S.openLeave=null;S.hrDraft=null},()=>t('lv_saved'));
+  },
+  lvDel(){const id=S.openLeave;if(!id||id==='new')return;
+    if(S.confirm!=='lvDel'){S.confirm='lvDel';render();return}
+    guard(async()=>{await X.del('leaves',id);S.openLeave=null;S.confirm=null},()=>t('lv_deleted'))}
+});
+document.addEventListener('input',ev=>{
+  const el=ev.target,k=el.dataset&&el.dataset.in;if(!k)return;
+  if(k==='hrQ'){S.hrQ=el.value;clearTimeout(S._hrT);S._hrT=setTimeout(render,160);return}
+  if(k==='hrF'){S.hrDraft=S.hrDraft||{};S.hrDraft[el.dataset.f]=el.value;
+    if(S.openLeave&&(el.dataset.f==='from'||el.dataset.f==='to')){const d=S.hrDraft,o=document.getElementById('lvDays');if(o)o.textContent=d.from&&d.to&&d.to>=d.from?t('hr_days',{n:leaveDays(d)}):''}
+    return}
+});
+document.addEventListener('change',ev=>{
+  const el=ev.target;
+  if(el.id==='hrPlace'){S.hrPlace=el.value;render();return}
 });
 
 render();

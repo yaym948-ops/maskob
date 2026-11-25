@@ -11,6 +11,7 @@ rules_version = '2';
 //   manager   — operations management: approvals, reports, all orders, forecasts. No settings.
 //   warehouse — prepares approved orders, receives returns.
 //   branch    — its own orders only.
+//   hr        — human resources: employees and leave records only.
 service cloud.firestore {
   match /databases/{db}/documents {
 
@@ -74,7 +75,7 @@ service cloud.firestore {
       allow read, delete: if signedIn() && request.auth.uid == uid;
       allow create, update: if signedIn() && request.auth.uid == uid
         && exists(pinsPath())
-        && request.resource.data.role in ['admin', 'manager', 'warehouse', 'branch']
+        && request.resource.data.role in ['admin', 'manager', 'warehouse', 'branch', 'hr']
         && hashFor(request.resource.data.role, request.resource.data.get('branch', '')) == request.resource.data.h;
     }
 
@@ -127,6 +128,14 @@ service cloud.firestore {
     match /config/checklist {
       allow read: if valid();
       allow write: if isAdmin();
+    }
+
+    // human resources: employee files and leave records, visible to HR only
+    match /employees/{id} {
+      allow read, write: if isRole('hr');
+    }
+    match /leaves/{id} {
+      allow read, write: if isRole('hr');
     }
 
     match /orders/{id} {
