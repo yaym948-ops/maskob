@@ -587,6 +587,24 @@ textarea,input,select,button{font-family:inherit}
 .co-logo{gap:10px;flex-wrap:wrap}.co-logo img{height:44px;max-width:160px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px;padding:4px}
 .co-prev{width:100%;height:150px;border:1px solid var(--line);border-radius:10px;background:#fff;margin-top:6px}
 
+.lr-card{cursor:default}.lr-card .side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.lr-hr{border:1px solid color-mix(in srgb,var(--sun) 45%,var(--line));border-radius:var(--r);padding:12px 14px;background:color-mix(in srgb,var(--sun-soft) 45%,var(--card))}
+
+.sh-nav{margin:10px 0 4px;flex-wrap:wrap}
+.sh-bar{margin:12px 0 8px;flex-wrap:wrap;gap:8px}
+.sh-times{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}.sh-times label{display:flex;align-items:center;gap:6px}.sh-times input{width:130px;min-height:34px}
+.sh-grid th,.sh-grid td{text-align:center;white-space:nowrap}.sh-grid td:first-child,.sh-grid th:first-child{text-align:start}
+.sh-grid th.sh-today{color:var(--sun-ink)}
+.sh-c{display:inline-block;min-width:58px;padding:5px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+span.sh-c{cursor:default}
+.sh-none{color:var(--muted);border-style:dashed}
+.sh-m{background:var(--sun-soft);color:var(--sun-ink);border-color:color-mix(in srgb,var(--sun) 40%,var(--line))}
+.sh-e{background:var(--lav-soft);color:var(--navy);border-color:color-mix(in srgb,var(--navy) 30%,var(--line))}
+.sh-n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.sh-off{background:var(--soft);color:var(--muted)}
+.sh-L{background:var(--late-soft);color:var(--late);border-color:color-mix(in srgb,var(--late) 35%,var(--line))}
+.sh-sum td{font-weight:700;background:var(--soft)}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -1094,6 +1112,50 @@ co_logoDefault:['يُستخدم شعار مسكوب إذا لم يُرفع شع�
 co_preview:['معاينة الترويسة','Letterhead preview','লেটারহেড প্রিভিউ','لیٹر ہیڈ کا جائزہ'],
 co_saved:['حُفظت بيانات المنشأة','Company details saved','প্রতিষ্ঠানের তথ্য সংরক্ষিত','ادارے کی تفصیلات محفوظ ہو گئیں'],
 co_editHint:['تُعدّل بيانات المنشأة من صفحة إدارة النظام.','Company details are edited on the system admin page.','প্রতিষ্ঠানের তথ্য সিস্টেম অ্যাডমিন পাতায় সম্পাদনা হয়।','ادارے کی تفصیلات سسٹم ایڈمن صفحے سے بدلی جاتی ہیں۔'],
+tab_lr:['طلب إجازة','Leave request','ছুটির আবেদন','چھٹی کی درخواست'],
+lr_empName:['اسم الموظف','Employee name','কর্মচারীর নাম','ملازم کا نام'],
+lr_reason:['السبب / ملاحظات','Reason / notes','কারণ / নোট','وجہ / نوٹس'],
+lr_send:['إرسال للموارد البشرية','Send to HR','মানব সম্পদে পাঠান','انسانی وسائل کو بھیجیں'],
+lr_sent:['أُرسل الطلب للموارد البشرية','Request sent to HR','আবেদন মানব সম্পদে পাঠানো হয়েছে','درخواست انسانی وسائل کو بھیج دی گئی'],
+lr_mine:['طلبات الفرع','Branch requests','শাখার আবেদন','برانچ کی درخواستیں'],
+lr_none:['لا توجد طلبات','No requests','কোনো আবেদন নেই','کوئی درخواست نہیں'],
+lr_hrNote:['ملاحظة الموارد البشرية','HR note','মানব সম্পদের নোট','انسانی وسائل کا نوٹ'],
+lr_cancel:['إلغاء الطلب','Cancel request','আবেদন বাতিল','درخواست منسوخ کریں'],
+lr_cancelConfirm:['تأكيد الإلغاء','Confirm cancel','বাতিল নিশ্চিত করুন','منسوخی کی تصدیق'],
+lr_cancelled:['أُلغي الطلب','Request cancelled','আবেদন বাতিল হয়েছে','درخواست منسوخ ہو گئی'],
+lr_need:['اكتب اسم الموظف والتواريخ','Enter the employee name and dates','কর্মচারীর নাম ও তারিখ লিখুন','ملازم کا نام اور تاریخیں درج کریں'],
+lr_fromBranches:['طلبات إجازة من الفروع','Leave requests from branches','শাখা থেকে ছুটির আবেদন','برانچوں سے چھٹی کی درخواستیں'],
+lr_title:['طلب إجازة من فرع','Branch leave request','শাখার ছুটির আবেদন','برانچ کی چھٹی کی درخواست'],
+lr_linkEmp:['ربط بالموظف','Link to employee','কর্মচারীর সাথে যুক্ত করুন','ملازم سے جوڑیں'],
+lr_noMatch:['لم يُعثر على الموظف تلقائياً، اختره من القائمة لقبول الطلب.','The employee was not matched automatically; choose them to approve.','কর্মচারী স্বয়ংক্রিয়ভাবে মেলেনি; অনুমোদনের জন্য বেছে নিন।','ملازم خودکار طور پر نہیں ملا؛ منظوری کے لیے منتخب کریں۔'],
+lr_pickFirst:['اختر الموظف أولاً','Choose the employee first','আগে কর্মচারী বেছে নিন','پہلے ملازم منتخب کریں'],
+lr_approved:['قُبل الطلب وسُجلت الإجازة','Approved and leave recorded','অনুমোদিত ও ছুটি লেখা হয়েছে','منظور اور چھٹی درج ہو گئی'],
+lr_rejected:['رُفض الطلب','Request rejected','আবেদন প্রত্যাখ্যাত','درخواست مسترد'],
+lr_fromBranch:['طلب من فرع {b}','Requested by {b}','{b} শাখার আবেদন','{b} برانچ کی درخواست'],
+tab_shifts:['الشفتات والإجازات','Shifts & leave','শিফট ও ছুটি','شفٹیں اور چھٹیاں'],
+sh_sched:['جدول الشفتات','Shift schedule','শিফট সূচি','شفٹ شیڈول'],
+sh_leave:['طلبات الإجازة','Leave requests','ছুটির আবেদন','چھٹی کی درخواستیں'],
+sh_staff:['موظفو الفرع','Branch staff','শাখার কর্মী','برانچ کا عملہ'],
+sh_noStaff:['لم يُضف موظفون للفرع بعد.','No staff added for this branch yet.','এই শাখায় এখনো কর্মী যোগ হয়নি।','اس برانچ میں ابھی عملہ شامل نہیں۔'],
+sh_addStaff:['إضافة موظف','Add staff member','কর্মী যোগ করুন','عملہ شامل کریں'],
+sh_prev:['الأسبوع السابق','Previous week','আগের সপ্তাহ','پچھلا ہفتہ'],
+sh_next:['الأسبوع التالي','Next week','পরের সপ্তাহ','اگلا ہفتہ'],
+sh_weekOf:['أسبوع {d}','Week of {d}','{d} সপ্তাহ','ہفتہ {d}'],
+sh_thisWeek:['هذا الأسبوع','This week','এই সপ্তাহ','یہ ہفتہ'],
+sh_copyPrev:['نسخ الأسبوع السابق','Copy last week','গত সপ্তাহ কপি','پچھلا ہفتہ کاپی کریں'],
+sh_hint:['اضغط على الخانة لتغيير الشفت: صباحي ← مسائي ← ليلي ← راحة ← فارغ. الإجازات المقبولة من الموارد البشرية تظهر تلقائياً. يُحفظ الجدول تلقائياً.','Tap a cell to change the shift: morning → evening → night → off → empty. Leave approved by HR shows automatically. Saved automatically.','শিফট বদলাতে ঘরে চাপুন: সকাল → সন্ধ্যা → রাত → ছুটি → খালি। অনুমোদিত ছুটি নিজে থেকে দেখাবে। স্বয়ংক্রিয়ভাবে সংরক্ষিত।','شفٹ بدلنے کے لیے خانے پر ٹیپ کریں: صبح ← شام ← رات ← آرام ← خالی۔ منظور شدہ چھٹی خود دکھے گی۔ خودکار محفوظ۔'],
+sh_working:['عدد العاملين','On duty','কর্মরত','ڈیوٹی پر'],
+sh_m:['صباحي','Morning','সকাল','صبح'],
+sh_e:['مسائي','Evening','সন্ধ্যা','شام'],
+sh_n:['ليلي','Night','রাত','رات'],
+sh_off:['راحة','Off','বিশ্রাম','آرام'],
+sh_L:['إجازة','Leave','ছুটি','چھٹی'],
+sh_noPrev:['لا يوجد جدول في الأسبوع السابق','No schedule last week','গত সপ্তাহে সূচি নেই','پچھلے ہفتے کوئی شیڈول نہیں'],
+sh_copied:['نُسخ جدول الأسبوع السابق','Last week copied','গত সপ্তাহ কপি হয়েছে','پچھلا ہفتہ کاپی ہو گیا'],
+sh_staffHint:['الموظف الموقوف لا يظهر في الجدول ولا في طلبات الإجازة. الموظفون الجدد يظهرون للموارد البشرية لإضافتهم لملفاتها.','A switched-off staff member is hidden from the schedule and leave requests. New staff appear to HR so it can add them to its files.','বন্ধ কর্মী সূচি ও ছুটিতে দেখাবে না। নতুন কর্মী মানব সম্পদে দেখাবে।','بند عملہ شیڈول اور چھٹیوں میں نہیں دکھے گا۔ نیا عملہ انسانی وسائل کو دکھے گا۔'],
+sh_staffSaved:['حُفظ الموظف','Staff member saved','কর্মী সংরক্ষিত','عملہ محفوظ ہو گیا'],
+sh_hrInbox:['موظفون أضافتهم الفروع ولم يُسجلوا هنا بعد','Staff added by branches, not in HR files yet','শাখা যোগ করেছে, এখনো এখানে নেই','برانچوں نے شامل کیا، ابھی یہاں درج نہیں'],
+sh_hrAdd:['إضافة لملفات الموظفين','Add to employee files','কর্মচারী ফাইলে যোগ','ملازمین کی فائلوں میں شامل کریں'],
 io_menu:['استيراد وتصدير','Import / export','আমদানি / রপ্তানি','درآمد / برآمد'],
 io_export:['تصدير','Export','রপ্তানি','برآمد'],
 io_import:['استيراد','Import','আমদানি','درآمد'],
@@ -1789,7 +1851,7 @@ function counts(){
 }
 function tabsFor(){
   const c=counts();
-  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')},{k:'fc',l:t('tab_fc')}];
+  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')},{k:'lr',l:t('tab_shifts'),b:(S.leaveReqs||[]).filter(r=>r.status==='pending').length},{k:'fc',l:t('tab_fc')}];
   if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales')},{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')}];
   if(S.role==='admin')return[{k:'branches',l:t('tab_settings')},{k:'catalog',l:t('tab_catalog')}];
   if(S.role==='hr')return hrTabs();
@@ -1818,7 +1880,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}">${esc(x.l)}${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -1859,6 +1921,7 @@ function view(){
   if(S.role==='hr')return hrView(tb);
   if(tb==='report'&&S.role==='manager')return reportView();
   if(S.role==='branch'&&tb==='fc')return branchForecastView();
+  if(S.role==='branch'&&tb==='lr')return branchStaffTab(tb);
   if(S.role==='branch')return noticeBanner(v)+branchView(tb,v);
   return staffView(tb,v);
 }
@@ -2435,7 +2498,7 @@ async function overlapsOther(v,key){
 const fieldKey=f=>({appr:'approved',sent:'sent',recv:'received'}[f]);
 function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
-  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
+  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -2520,7 +2583,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.imp=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.imp=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -2695,7 +2758,7 @@ function xLoadDemo(){
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
-  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];
+  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];S.leaveReqs=S.role==='hr'||S.role==='branch'?mine(MEM('leaveReqs')):[];S.staff=S.role==='hr'||S.role==='branch'?mine(MEM('staff')):[];S.shifts=S.role==='branch'?mine(MEM('shifts')):[];
   {const c=S.role==='hr'?MEM('hrcfg'):null;S.hrCfg=c&&!Array.isArray(c)?c:{}}
 }
 /* live subscriptions per role */
@@ -2712,7 +2775,7 @@ function xStart(){
   if(S.role==='branch'||S.role==='manager'||S.role==='admin')
     u.push(db.doc('config/checklist').onSnapshot(s=>{S.checklist=s.exists&&Array.isArray(s.data().items)?s.data().items:null;render()},onErr));
   if(S.role==='branch'){
-    list('sales',a=>S.sales=a);list('maintenance',a=>S.maint=a);list('checks',a=>S.checks=a);
+    list('sales',a=>S.sales=a);list('maintenance',a=>S.maint=a);list('checks',a=>S.checks=a);list('leaveReqs',a=>S.leaveReqs=a);list('staff',a=>S.staff=a);list('shifts',a=>S.shifts=a);
     u.push(db.doc('targets/'+S.branch).onSnapshot(s=>{S.targets={[S.branch]:s.exists?s.data():{}};render()},onErr));
   }
   if(S.role==='manager'){
@@ -2723,6 +2786,8 @@ function xStart(){
     const out=e=>{if(e&&e.code==='permission-denied')Store.fbSignOut()};   // code changed: sign out
     u.push(db.collection('employees').onSnapshot(s=>{S.emps=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('custody').onSnapshot(s=>{S.custody=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+    u.push(db.collection('staff').onSnapshot(s=>{S.staff=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+    u.push(db.collection('leaveReqs').onSnapshot(s=>{S.leaveReqs=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('licenses').onSnapshot(s=>{S.licenses=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('advances').onSnapshot(s=>{S.advances=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.doc('config/hr').onSnapshot(s=>{S.hrCfg=s.exists?s.data():{};render()},()=>{}));
@@ -2731,7 +2796,7 @@ function xStart(){
   if(S.role==='manager')
     u.push(db.collection('targets').onSnapshot(s=>{const t={};s.docs.forEach(d=>t[d.id]=d.data());S.targets=t;render()},onErr));
 }
-function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
+function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
 /* ---------- sales: numbers for a branch and month ---------- */
 function salesStats(branch,mk){
@@ -3009,7 +3074,7 @@ function hrDocAlerts(){
 }
 const leftLabel=n=>n<0?t('hr_daysAgo',{n:-n}):n===0?t('hr_today'):t('hr_daysLeft',{n});
 function hrTabs(){
-  const al=hrDocAlerts(),pend=(S.leaves||[]).filter(l=>l.status==='pending').length;
+  const al=hrDocAlerts(),pend=(S.leaves||[]).filter(l=>l.status==='pending').length+(S.leaveReqs||[]).filter(r=>r.status==='pending').length;
   return[{k:'emps',l:t('tab_emps')},{k:'docs',l:t('tab_docs'),b:al.length,late:al.some(a=>a.left<0)},{k:'leaves',l:t('tab_leaves'),b:pend},{k:'custody',l:t('tab_custody'),b:(S.custody||[]).filter(custOut).length},{k:'advances',l:t('tab_adv'),b:(S.advances||[]).filter(a=>advRemain(a)>0).length},{k:'lic',l:t('tab_lic'),b:(S.licenses||[]).filter(l=>['expired','soon'].includes(licState(l))).length,late:(S.licenses||[]).some(l=>licState(l)==='expired')}];
 }
 function hrView(tb){
@@ -3029,6 +3094,7 @@ function hrEmpsView(){
   const list=all.filter(e=>(show==='all'||(show==='left')===(e.status==='left'))&&(!place||e.branch===place)&&(!q||[e.name,e.no,e.idNo,e.phone,e.job].some(x=>String(x||'').toLowerCase().includes(q))));
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_emps')}</h2><div class="row">${ioBtns('employees',`<button class="io-item" role="menuitem" data-act="hrXls">⬇ ${t('io_exportAll')}</button>`)}<button class="btn btn-sun" data-act="hrNew">+ ${t('hr_add')}</button></div></div>
   <div class="stats">${kpi(t('hr_working'),sar(act.length))}${kpi(t('hr_onLeave'),sar(act.filter(onLeaveToday).length))}${kpi(t('hr_expiring'),sar(al.length),al.length?'hot':'')}${kpi(t('hr_payroll'),sar(act.reduce((a,e)=>a+payTotal(e),0))+' '+t('sar'))}</div>
+  ${hrStaffInbox()}
   <div class="row hr-filter"><input class="field" id="hrQ" data-in="hrQ" placeholder="${esc(t('hr_search'))}" value="${esc(S.hrQ||'')}" style="flex:2;min-width:180px">
     <select class="field" id="hrPlace" style="flex:1;min-width:140px"><option value="">${esc(t('hr_allPlaces'))}</option>${hrPlaces().map(p=>`<option value="${esc(p)}" ${place===p?'selected':''}>${esc(placeL(p))} (${act.filter(e=>e.branch===p).length})</option>`).join('')}</select></div>
   <div class="filters">${[['active','es_active'],['left','es_left'],['all','f_all']].map(([k,l])=>`<button class="chip" aria-pressed="${show===k}" data-act="hrShow" data-k="${k}">${t(l)} (${k==='all'?all.length:all.filter(e=>(k==='left')===(e.status==='left')).length})</button>`).join('')}</div>
@@ -3048,6 +3114,7 @@ function hrLeavesView(){
   const all=[...(S.leaves||[])].sort((a,b)=>String(b.from).localeCompare(String(a.from)));
   const list=f==='pending'?all.filter(l=>l.status==='pending'):f==='current'?all.filter(l=>l.status!=='rejected'&&l.to>=today):all;
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_leaves')}</h2><div class="row">${ioBtns('leaves')}<button class="btn btn-sun" data-act="lvNew" ${(S.emps||[]).some(e=>e.status!=='left')?'':'disabled'}>+ ${t('lv_add')}</button></div></div>
+  ${hrLeaveRequests()}
   <div class="filters">${[['current','lf_current'],['pending','ls_pending'],['all','f_all']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="lvFilter" data-k="${k}">${t(l)}</button>`).join('')}</div>
   <div class="list">${list.length?list.map(l=>{const e=empById(l.emp);const now=l.status==='approved'&&l.from<=today&&l.to>=today;return`<button class="oc" data-act="lvOpen" data-id="${esc(l.id)}">
     <span style="min-width:0"><span class="t">${esc(e?e.name:'—')} <span class="tag">${esc(t('lt_'+(l.type||'annual')))}</span>${now?`<span class="tag ret">${t('hr_inLeave')}</span>`:''}</span>
@@ -3808,6 +3875,179 @@ document.addEventListener('change',ev=>{
   const f=el.files[0],k=el.dataset.k;el.value='';
   if(ioCan(k))ioRead(k,f);
 });
+
+/* ================= Branch staff and weekly shift schedule ================= */
+/* staff/{id}: {branch, name, no, job, phone, nat, active}  — the branch's own list (no salaries)
+   shifts/{branch}_{week}: {branch, week (Sunday, YYYY-MM-DD), cells:{staffId:{0..6:code}}, times:{m,e,n}} */
+const SHIFT_CODES=['m','e','n','off'];
+const SHIFT_TIMES={m:'06:00-14:00',e:'14:00-22:00',n:'22:00-06:00'};
+const weekStart=k=>{const d=fromKey(k);d.setDate(d.getDate()-d.getDay());return dayKey(d)};
+const addDays=(k,n)=>{const d=fromKey(k);d.setDate(d.getDate()+n);return dayKey(d)};
+const activeStaff=()=>(S.staff||[]).filter(x=>x.active!==false).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
+/* approved leave from HR for a staff member on a day */
+const onLeaveDay=(st,day)=>(S.leaveReqs||[]).some(r=>r.status==='approved'&&(r.staffId===st.id||(!r.staffId&&r.empName===st.name))&&r.from<=day&&r.to>=day);
+function branchStaffTab(tb){
+  const sub=S.shSub||'sched';
+  const pend=(S.leaveReqs||[]).filter(r=>r.status==='pending').length;
+  const nav=`<div class="kind sh-nav" role="tablist">${[['sched','sh_sched'],['leave','sh_leave'],['staff','sh_staff']].map(([k,l])=>`<button aria-pressed="${sub===k}" data-act="shSub" data-k="${k}">${esc(t(l))}${k==='leave'&&pend?` <span class="c num">(${pend})</span>`:''}${k==='staff'?` <span class="c num">(${activeStaff().length})</span>`:''}</button>`).join('')}</div>`;
+  return`<h2>${t('tab_shifts')}</h2>${nav}`+(sub==='leave'?branchLeaveView(true):sub==='staff'?branchStaffList():shiftView());
+}
+function shiftView(){
+  const wk=S.shWeek||weekStart(dayKey(Date.now()));const id=S.branch+'_'+wk;
+  const doc=(S.shifts||[]).find(x=>x.id===id)||{};
+  if(!S.shDraft||S.shDraft.id!==id)S.shDraft={id,cells:JSON.parse(JSON.stringify(doc.cells||{})),times:Object.assign({},SHIFT_TIMES,doc.times||{})};
+  const d=S.shDraft,staff=activeStaff(),days=[0,1,2,3,4,5,6].map(i=>addDays(wk,i)),today=dayKey(Date.now());
+  if(!staff.length)return`<div class="empty" style="margin-top:12px">${esc(t('sh_noStaff'))} <button class="btn btn-sun rp-btn" data-act="shSub" data-k="staff">${t('sh_addStaff')}</button></div>`;
+  const cnt=days.map((_,i)=>staff.filter(st=>['m','e','n'].includes((d.cells[st.id]||{})[i])&&!onLeaveDay(st,days[i])).length);
+  const lbl=dt=>{try{return fromKey(dt).toLocaleDateString(LOCALE[LANG],{weekday:'short',day:'numeric',month:'numeric'})}catch(e){return dt}};
+  return`<div class="row sh-bar"><button class="btn btn-ghost rp-btn" data-act="shWeek" data-n="-7" aria-label="${esc(t('sh_prev'))}">→</button>
+    <b>${esc(t('sh_weekOf',{d:dateLabel(wk)}))}</b><button class="btn btn-ghost rp-btn" data-act="shWeek" data-n="7" aria-label="${esc(t('sh_next'))}">←</button>
+    ${wk!==weekStart(today)?`<button class="btn btn-ghost rp-btn" data-act="shWeek" data-n="0">${t('sh_thisWeek')}</button>`:''}
+    <span class="spacer"></span><button class="btn btn-ghost rp-btn" data-act="shCopyPrev">${t('sh_copyPrev')}</button><button class="btn btn-ghost rp-btn" data-act="shXls">${t('xlsExport')}</button></div>
+  <div class="sh-times">${['m','e','n'].map(k=>`<label><span class="sh-c sh-${k}">${esc(t('sh_'+k))}</span><input class="field" id="shT-${k}" data-in="shT" data-k="${k}" value="${esc(d.times[k]||'')}" dir="ltr"></label>`).join('')}</div>
+  <p class="hint">${esc(t('sh_hint'))}</p>
+  <div class="scroll"><table class="tbl sh-grid"><thead><tr><th>${t('lv_emp')}</th>${days.map(x=>`<th class="${x===today?'sh-today':''}">${esc(lbl(x))}</th>`).join('')}</tr></thead><tbody>
+  ${staff.map(st=>`<tr><td><b>${esc(st.name)}</b>${st.job?`<div class="hint">${esc(st.job)}</div>`:''}</td>${days.map((x,i)=>{
+    if(onLeaveDay(st,x))return`<td><span class="sh-c sh-L">${esc(t('sh_L'))}</span></td>`;
+    const c=(d.cells[st.id]||{})[i]||'';
+    return`<td><button class="sh-c sh-${c||'none'}" data-act="shCell" data-s="${esc(st.id)}" data-i="${i}" aria-label="${esc(st.name+' '+lbl(x))}">${c?esc(t('sh_'+c)):'+'}</button></td>`}).join('')}</tr>`).join('')}
+  <tr class="sh-sum"><td>${t('sh_working')}</td>${cnt.map(n=>`<td class="n">${n}</td>`).join('')}</tr></tbody></table></div>`;
+}
+function branchStaffList(){
+  const all=[...(S.staff||[])].sort((a,b)=>(+(b.active!==false)-+(a.active!==false))||String(a.name).localeCompare(String(b.name),'ar'));
+  return`<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn btn-sun" data-act="stNew">+ ${t('sh_addStaff')}</button></div>
+  <div class="list" style="margin-top:10px">${all.length?all.map(st=>`<button class="oc ${st.active===false?'cat-off':''}" data-act="stOpen" data-id="${esc(st.id)}">
+    <span style="min-width:0"><span class="t">${esc(st.name)} ${st.no?`<span class="hint num" dir="ltr">#${esc(st.no)}</span>`:''}</span>
+      <span class="s">${[st.job,st.nat,st.phone].filter(Boolean).map(esc).join(' · ')}</span></span>
+    <span class="side">${st.active===false?`<span class="pill ms-open">${t('cat_off')}</span>`:''}</span></button>`).join(''):`<div class="empty">${esc(t('sh_noStaff'))}</div>`}</div>`;
+}
+function staffSheet(){
+  const isNew=S.openStaff==='new';const d=S.hrDraft||{};
+  const body=`<div class="sl-grid hr-grid">${hrIn('name',t('hr_name'))}${hrIn('no',t('hr_no'),'text','dir="ltr"')}${hrIn('job',t('hr_job'))}${hrIn('nat',t('hr_nat'))}${hrIn('phone',t('hr_phone'),'tel')}</div>
+  <div class="kind" style="margin-top:12px">${[['on','es_active'],['off','cat_off']].map(([k,l])=>`<button aria-pressed="${(d.active===false?'off':'on')===k}" data-act="stActive" data-k="${k}">${esc(t(l))}</button>`).join('')}</div>
+  <p class="hint">${esc(t('sh_staffHint'))}</p>`;
+  const foot=`<span class="spacer"></span><button class="btn btn-sun" data-act="stSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
+  return hrSheetWrap(isNew?t('sh_addStaff'):(d.name||''),body,foot);
+}
+let shTimer=null;
+function shSaveSoon(){
+  clearTimeout(shTimer);const d=S.shDraft;if(!d)return;
+  shTimer=setTimeout(()=>{const wk=d.id.slice(S.branch.length+1);
+    X.put('shifts',d.id,{branch:S.branch,week:wk,cells:d.cells,times:d.times,updatedAt:nowIso()}).catch(()=>toast(t('saveFail')))},700);
+}
+/* HR: staff added by branches that are not in the HR employee files yet */
+function hrStaffInbox(){
+  const E=S.emps||[];
+  const miss=(S.staff||[]).filter(st=>st.active!==false&&!E.some(e=>(st.no&&String(e.no||'')===String(st.no))||(e.name===st.name&&e.branch===st.branch)));
+  if(!miss.length)return'';
+  return`<div class="rp-sec lr-hr"><h3>${t('sh_hrInbox')} <span class="badge num">${miss.length}</span></h3><div class="list" style="margin-top:10px">${miss.map(st=>`<div class="oc lr-card"><span style="min-width:0"><span class="t">${esc(st.name)} ${st.no?`<span class="hint num" dir="ltr">#${esc(st.no)}</span>`:''}</span><span class="s">${esc(st.branch)}${st.job?' · '+esc(st.job):''}</span></span>
+    <span class="side"><button class="btn btn-sun rp-btn" data-act="hrFromStaff" data-id="${esc(st.id)}">${t('sh_hrAdd')}</button></span></div>`).join('')}</div></div>`;
+}
+Object.assign(A,{
+  shSub(el){S.shSub=el.dataset.k;render()},
+  shWeek(el){const n=+el.dataset.n;S.shWeek=n?addDays(S.shWeek||weekStart(dayKey(Date.now())),n):weekStart(dayKey(Date.now()));render()},
+  shCell(el){const d=S.shDraft;if(!d)return;const s=el.dataset.s,i=el.dataset.i;d.cells[s]=d.cells[s]||{};
+    const cur=d.cells[s][i]||'';const next=cur===''?'m':SHIFT_CODES[SHIFT_CODES.indexOf(cur)+1]||'';
+    if(next)d.cells[s][i]=next;else delete d.cells[s][i];render();shSaveSoon()},
+  shCopyPrev(){const d=S.shDraft;if(!d)return;const wk=d.id.slice(S.branch.length+1);const prev=(S.shifts||[]).find(x=>x.id===S.branch+'_'+addDays(wk,-7));
+    if(!prev||!prev.cells||!Object.keys(prev.cells).length){toast(t('sh_noPrev'));return}
+    d.cells=JSON.parse(JSON.stringify(prev.cells));d.times=Object.assign({},SHIFT_TIMES,prev.times||{});render();shSaveSoon();toast(t('sh_copied'))},
+  async shXls(){const d=S.shDraft;if(!d)return;const wk=d.id.slice(S.branch.length+1);const days=[0,1,2,3,4,5,6].map(i=>addDays(wk,i));
+    const name=x=>{try{return fromKey(x).toLocaleDateString(LOCALE[LANG],{weekday:'long'})+' '+x.split('-').reverse().join('/')}catch(e){return x}};
+    const code=(st,i)=>onLeaveDay(st,days[i])?t('sh_L'):((d.cells[st.id]||{})[i]?t('sh_'+d.cells[st.id][i])+(d.times[d.cells[st.id][i]]?' ('+d.times[d.cells[st.id][i]]+')':''):'');
+    await saveXlsx('maskob-shifts-'+S.branch+'-'+wk+'.xlsx',[{name:t('tab_shifts')+' '+S.branch,headers:[t('lv_emp'),t('hr_job'),...days.map(name)],rows:activeStaff().map(st=>[st.name,st.job||'',...days.map((_,i)=>code(st,i))])}])},
+  stNew(){S.openStaff='new';S.hrDraft={name:'',no:'',job:'',nat:'',phone:'',active:true};render()},
+  stOpen(el){const st=(S.staff||[]).find(x=>x.id===el.dataset.id);if(!st)return;S.openStaff=st.id;S.hrDraft=Object.assign({},st);render()},
+  stActive(el){S.hrDraft.active=el.dataset.k!=='off';render()},
+  stSave(){const d=S.hrDraft||{};const name=String(d.name||'').trim();if(!name){toast(t('hr_needName'));return}
+    const id=S.openStaff==='new'?hrId('ST'):S.openStaff;const old=(S.staff||[]).find(x=>x.id===id)||{};const tm=nowIso();
+    const data={branch:S.branch,name,no:String(d.no||'').trim(),job:String(d.job||'').trim(),nat:String(d.nat||'').trim(),phone:String(d.phone||'').trim(),active:d.active!==false,createdAt:old.createdAt||tm,updatedAt:tm};
+    guard(async()=>{await X.put('staff',id,data);S.openStaff=null;S.hrDraft=null},()=>t('sh_staffSaved'))},
+  hrFromStaff(el){const st=(S.staff||[]).find(x=>x.id===el.dataset.id);if(!st)return;
+    S.openEmp='new';S.confirm=null;S.hrDraft={name:st.name,no:st.no||'',job:st.job||'',nat:st.nat||'',phone:st.phone||'',branch:S.branches.includes(st.branch)?st.branch:'@office',status:'active'};render()}
+});
+document.addEventListener('input',ev=>{const el=ev.target;if(!(el.dataset&&el.dataset.in==='shT')||!S.shDraft)return;S.shDraft.times[el.dataset.k]=el.value;shSaveSoon()});
+
+/* ================= Leave requests: a branch asks, HR decides ================= */
+/* leaveReqs/{id}: {branch, empName, empNo, type, from, to, days, note, status pending|approved|rejected, hrNote, emp, leaveId, createdAt, decidedAt} */
+const lrDays=r=>isDay(r.from)&&isDay(r.to)&&r.to>=r.from?dayDiff(r.from,r.to)+1:0;
+const lrPill=st=>`<span class="pill ${st==='approved'?'ms-done':st==='rejected'?'li-expired':'ms-progress'}">${esc(t('ls_'+st))}</span>`;
+function branchLeaveView(embedded){
+  const d=S.lrDraft||(S.lrDraft={empName:'',empNo:'',type:'annual',from:dayKey(Date.now()),to:dayKey(Date.now()),note:''});
+  const list=[...(S.leaveReqs||[])].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+  const n=lrDays(d);
+  const li=(f,label,type,extra)=>`<label><span class="hint">${esc(label)}</span><input class="field" type="${type||'text'}" id="lr-${f}" data-in="lrF" data-f="${f}" value="${esc(d[f]||'')}" ${extra||'dir="auto"'}></label>`;
+  return`${embedded?'':`<h2>${t('tab_lr')}</h2>`}
+  <div class="box m-form" style="margin-top:12px">
+    <div class="sl-grid hr-grid">${activeStaff().length?`<label><span class="hint">${t('lv_emp')}</span><select class="field" id="lr-staff" data-in="lrStaff"><option value="">${esc(t('hr_pickEmp'))}</option>${activeStaff().map(st=>`<option value="${esc(st.id)}" ${d.staffId===st.id?'selected':''}>${esc(st.name)}${st.no?' #'+esc(st.no):''}</option>`).join('')}</select></label>`:li('empName',t('lr_empName'))+li('empNo',t('hr_no'),'text','dir="ltr"')}
+      <label><span class="hint">${t('lv_type')}</span><select class="field" id="lr-type" data-in="lrF" data-f="type">${LEAVE_TYPES.map(k=>`<option value="${k}" ${d.type===k?'selected':''}>${esc(t('lt_'+k))}</option>`).join('')}</select></label>
+      ${li('from',t('lv_from'),'date','')}${li('to',t('lv_to'),'date','')}</div>
+    <div class="hint" id="lrDays" style="margin:6px 0">${n?esc(t('hr_days',{n})):''}</div>
+    <label style="display:block"><span class="hint">${t('lr_reason')}</span><textarea class="field" id="lr-note" rows="2" dir="auto" data-in="lrF" data-f="note">${esc(d.note||'')}</textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn btn-sun" data-act="lrSend" ${S.busy?'disabled':''}>${t('lr_send')}</button></div>
+  </div>
+  <div class="rp-sec"><h3>${t('lr_mine')}</h3><div class="list" style="margin-top:10px">${list.length?list.map(r=>`<div class="oc lr-card">
+    <span style="min-width:0"><span class="t">${esc(r.empName)}${r.empNo?` <span class="hint num" dir="ltr">#${esc(r.empNo)}</span>`:''} <span class="tag">${esc(t('lt_'+(r.type||'annual')))}</span></span>
+      <span class="s">${esc(dateLabel(r.from))} ← ${esc(dateLabel(r.to))} · ${esc(t('hr_days',{n:lrDays(r)}))}</span>
+      ${r.hrNote?`<span class="s"><b>${esc(t('lr_hrNote'))}:</b> ${esc(r.hrNote)}</span>`:''}</span>
+    <span class="side">${lrPill(r.status)}${r.status==='pending'?`<button class="btn btn-ghost rp-btn" data-act="lrCancel" data-id="${esc(r.id)}">${S.confirm==='lrCancel:'+r.id?t('lr_cancelConfirm'):t('lr_cancel')}</button>`:''}</span></div>`).join(''):`<div class="empty">${esc(t('lr_none'))}</div>`}</div></div>`;
+}
+/* HR: requests waiting at the top of the leave tab */
+function hrLeaveRequests(){
+  const pend=(S.leaveReqs||[]).filter(r=>r.status==='pending').sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
+  if(!pend.length)return'';
+  return`<div class="rp-sec lr-hr"><h3>${t('lr_fromBranches')} <span class="badge num">${pend.length}</span></h3><div class="list" style="margin-top:10px">${pend.map(r=>`<button class="oc" data-act="lrOpen" data-id="${esc(r.id)}">
+    <span style="min-width:0"><span class="t">${esc(r.empName)}${r.empNo?` <span class="hint num" dir="ltr">#${esc(r.empNo)}</span>`:''} <span class="tag">${esc(t('lt_'+(r.type||'annual')))}</span></span>
+      <span class="s">${esc(r.branch)} · ${esc(dateLabel(r.from))} ← ${esc(dateLabel(r.to))} · ${esc(t('hr_days',{n:lrDays(r)}))} · ${esc(when(r.createdAt))}</span></span>
+    <span class="side">${lrPill('pending')}</span></button>`).join('')}</div></div>`;
+}
+const lrMatch=r=>{const L=(S.emps||[]).filter(e=>e.status!=='left');
+  return(r.empNo&&L.find(e=>String(e.no||'')===String(r.empNo)))||L.find(e=>e.name===r.empName&&e.branch===r.branch)||L.find(e=>e.name===r.empName)||null};
+function lrSheet(){
+  const r=(S.leaveReqs||[]).find(x=>x.id===S.openLr);if(!r)return'';
+  const d=S.hrDraft||{};
+  const emps=(S.emps||[]).filter(e=>e.status!=='left').sort((a,b)=>(+(b.branch===r.branch)-+(a.branch===r.branch))||String(a.name).localeCompare(String(b.name),'ar'));
+  const body=`<div class="box"><div class="row" style="justify-content:space-between"><b>${esc(r.empName)}${r.empNo?' <span class="hint num" dir="ltr">#'+esc(r.empNo)+'</span>':''}</b><span class="hint">${esc(r.branch)} · ${esc(when(r.createdAt))}</span></div>
+    <div>${esc(t('lt_'+(r.type||'annual')))} · ${esc(dateLabel(r.from))} ← ${esc(dateLabel(r.to))} · <b>${esc(t('hr_days',{n:lrDays(r)}))}</b></div>
+    ${r.note?`<div class="hint" style="margin-top:6px" dir="auto">${esc(r.note)}</div>`:''}</div>
+  <div class="sl-grid hr-grid" style="margin-top:12px">
+    ${hrSel('emp',t('lr_linkEmp'),[['',t('hr_pickEmp')],...emps.map(e=>[e.id,e.name+(e.no?' #'+e.no:'')+' — '+placeL(e.branch)])])}
+  </div>
+  ${d.emp?'':`<p class="hint">${esc(t('lr_noMatch'))}</p>`}
+  <label style="display:block;margin-top:10px"><span class="hint">${t('lr_hrNote')}</span><textarea class="field" id="hr-hrNote" rows="2" dir="auto" data-in="hrF" data-f="hrNote">${esc(d.hrNote||'')}</textarea></label>`;
+  const foot=`<button class="btn btn-bad" data-act="lrDecide" data-k="rejected" ${S.busy?'disabled':''}>${t('lv_reject')}</button><span class="spacer"></span><button class="btn btn-sun" data-act="lrDecide" data-k="approved" ${S.busy?'disabled':''}>${t('lv_approve')}</button>`;
+  return hrSheetWrap(t('lr_title'),body,foot);
+}
+Object.assign(A,{
+  lrSend(){
+    const d=S.lrDraft||{};const empName=String(d.empName||'').trim();
+    if(!empName||!isDay(d.from)||!isDay(d.to)){toast(t('lr_need'));return}
+    if(d.to<d.from){toast(t('lv_badDates'));return}
+    const id=hrId('LR');const tm=nowIso();
+    const data={branch:S.branch,staffId:d.staffId||'',empName,empNo:String(d.empNo||'').trim(),type:LEAVE_TYPES.includes(d.type)?d.type:'annual',from:d.from,to:d.to,days:lrDays(d),
+      note:String(d.note||'').trim(),status:'pending',createdAt:tm};
+    guard(async()=>{await X.put('leaveReqs',id,data);S.lrDraft=null},()=>t('lr_sent'));
+  },
+  lrCancel(el){const id=el.dataset.id;if(S.confirm!=='lrCancel:'+id){S.confirm='lrCancel:'+id;render();return}
+    guard(async()=>{await X.del('leaveReqs',id);S.confirm=null},()=>t('lr_cancelled'))},
+  lrOpen(el){const r=(S.leaveReqs||[]).find(x=>x.id===el.dataset.id);if(!r)return;const m=lrMatch(r);
+    S.openLr=r.id;S.hrDraft={emp:m?m.id:'',hrNote:''};render()},
+  lrDecide(el){
+    const r=(S.leaveReqs||[]).find(x=>x.id===S.openLr);if(!r)return;const d=S.hrDraft||{};const st=el.dataset.k;const tm=nowIso();
+    if(st==='approved'&&!d.emp){toast(t('lr_pickFirst'));return}
+    guard(async()=>{
+      const upd={status:st,hrNote:String(d.hrNote||'').trim(),decidedAt:tm};
+      if(st==='approved'){const lid=hrId('L');
+        await X.put('leaves',lid,{emp:d.emp,type:r.type||'annual',from:r.from,to:r.to,days:lrDays(r),status:'approved',note:[r.note,t('lr_fromBranch',{b:r.branch})].filter(Boolean).join(' — '),req:r.id,createdAt:tm,updatedAt:tm});
+        upd.emp=d.emp;upd.leaveId=lid}
+      await X.upd('leaveReqs',r.id,upd);S.openLr=null;S.hrDraft=null;
+    },()=>t(st==='approved'?'lr_approved':'lr_rejected'));
+  }
+});
+document.addEventListener('input',ev=>{const el=ev.target;if(el.dataset&&el.dataset.in==='lrStaff'){const st=(S.staff||[]).find(x=>x.id===el.value);S.lrDraft=S.lrDraft||{};S.lrDraft.staffId=st?st.id:'';S.lrDraft.empName=st?st.name:'';S.lrDraft.empNo=st?(st.no||''):'';return}
+  if(!(el.dataset&&el.dataset.in==='lrF'))return;
+  S.lrDraft=S.lrDraft||{};S.lrDraft[el.dataset.f]=el.value;
+  if(el.dataset.f==='from'||el.dataset.f==='to'){const o=document.getElementById('lrDays');const n=lrDays(S.lrDraft);if(o)o.textContent=n?t('hr_days',{n}):''}});
 
 /* ================= Company details: letterhead for contracts, settlements and other printed documents ================= */
 const CO_FIELDS=[['nameAr','co_nameAr'],['nameEn','co_nameEn','ltr'],['cr','ct_cr','ltr'],['vat','co_vat','ltr'],['addrAr','co_addrAr'],['addrEn','co_addrEn','ltr'],

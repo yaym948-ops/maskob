@@ -169,6 +169,27 @@ service cloud.firestore {
         allow create, update: if isRole('hr') && request.resource.data.data is string && request.resource.data.data.size() < 900000;
       }
     }
+    // branch staff list (no salaries): the branch manages its own; HR and operations read
+    match /staff/{id} {
+      allow read: if isRole('hr') || isMgr() || (isBranch() && resource.data.branch == myBranch());
+      allow create: if isRole('hr') || (isBranch() && request.resource.data.branch == myBranch());
+      allow update, delete: if isRole('hr') || (isBranch() && resource.data.branch == myBranch() && (request.resource == null || request.resource.data.branch == myBranch()));
+    }
+    // weekly shift schedule per branch
+    match /shifts/{id} {
+      allow read: if isRole('hr') || isMgr() || (isBranch() && resource.data.branch == myBranch());
+      allow create: if isBranch() && request.resource.data.branch == myBranch();
+      allow update: if isBranch() && resource.data.branch == myBranch() && request.resource.data.branch == myBranch();
+      allow delete: if isMgr();
+    }
+
+    // leave requests: a branch files and can withdraw its own pending ones; HR decides
+    match /leaveReqs/{id} {
+      allow read: if isRole('hr') || (isBranch() && resource.data.branch == myBranch());
+      allow create: if isBranch() && request.resource.data.branch == myBranch() && request.resource.data.status == 'pending';
+      allow update: if isRole('hr');
+      allow delete: if isRole('hr') || (isBranch() && resource.data.branch == myBranch() && resource.data.status == 'pending');
+    }
     match /leaves/{id} {
       allow read, write: if isRole('hr');
     }
