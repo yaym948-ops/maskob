@@ -540,6 +540,9 @@ textarea,input,select,button{font-family:inherit}
 .tg-line b{color:var(--fg)}
 .tg-card .tg-bar{margin-top:2px;height:22px}
 
+.sched-chip{position:relative;min-height:36px;padding:0 12px;font-size:13px;color:var(--sun-ink);border-color:color-mix(in srgb,var(--sun) 55%,var(--line))}
+.sched-chip input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -822,9 +825,11 @@ tg_cards:['تارقت الفروع','Branch targets','শাখার লক্�
 tg_achieved:['المحقق','Achieved','অর্জিত','حاصل'],
 tg_none:['لم يُحدَّد تارقت','No target set','লক্ষ্য নির্ধারিত নেই','ہدف مقرر نہیں'],
 tg_reached:['تم تحقيق التارقت','Target reached','লক্ষ্য অর্জিত','ہدف حاصل ہو گیا'],
+schedBtn:['الموعد','Date','তারিখ','تاریخ'],
+schedSet:['تحديد الموعد','Set date','তারিখ দিন','تاریخ مقرر کریں'],
 tab_sales:['المبيعات','Sales','বিক্রয়','فروخت'],
 tab_maint:['الصيانة','Maintenance','রক্ষণাবেক্ষণ','مرمت'],
-tab_checks:['التشييك','Checklist','চেকলিস্ট','چیک لسٹ'],
+tab_checks:['قائمة المهام','Task list','কাজের তালিকা','کاموں کی فہرست'],
 sar:['ر.س','SAR','রিয়াল','ریال'],
 sl_day:['التاريخ','Date','তারিখ','تاریخ'],
 sl_sales:['المبيعات','Sales','বিক্রয়','فروخت'],
@@ -848,11 +853,11 @@ sl_totalAll:['مبيعات كل الفروع','All branches','সব শাখ�
 sl_avgBranch:['متوسط الفرع','Average per branch','শাখাপ্রতি গড়','فی برانچ اوسط'],
 sl_byBranch:['المبيعات مقابل التارقت','Sales vs target','বিক্রয় বনাম লক্ষ্য','فروخت بمقابلہ ہدف'],
 sl_noData:['لا توجد بيانات','No data','তথ্য নেই','ڈیٹا نہیں'],
-ck_today:['التشييك اليوم','Checklist today','আজকের চেকলিস্ট','آج کی چیک لسٹ'],
+ck_today:['قائمة المهام اليوم','Task list today','আজকের কাজের তালিকা','آج کی کاموں کی فہرست'],
 ck_done:['تم {d} من {n}','{d} of {n} done','{n}টির মধ্যে {d}টি সম্পন্ন','{n} میں سے {d} مکمل'],
 ck_week:['آخر 7 أيام','Last 7 days','শেষ 7 দিন','آخری 7 دن'],
-ck_items:['قائمة التشييك','Checklist items','চেকলিস্টের বিষয়','چیک لسٹ کی اشیاء'],
-ck_saved:['حُفظت قائمة التشييك','Checklist saved','চেকলিস্ট সংরক্ষিত','چیک لسٹ محفوظ ہو گئی'],
+ck_items:['بنود قائمة المهام','Task list items','কাজের তালিকার বিষয়','کاموں کی فہرست کی اشیاء'],
+ck_saved:['حُفظت قائمة المهام','Task list saved','কাজের তালিকা সংরক্ষিত','کاموں کی فہرست محفوظ ہو گئی'],
 ck_needOne:['أضف بنداً واحداً على الأقل','Add at least one item','অন্তত একটি বিষয় দিন','کم از کم ایک چیز شامل کریں'],
 tg_title:['التارقت الشهري للفروع','Monthly branch targets','শাখার মাসিক লক্ষ্য','برانچوں کا ماہانہ ہدف'],
 tg_sales:['تارقت المبيعات (ر.س)','Sales target (SAR)','বিক্রয় লক্ষ্য (রিয়াল)','فروخت کا ہدف (ریال)'],
@@ -1880,7 +1885,7 @@ function sheet(){
   const o=S.orders.find(x=>x.id===S.open);if(!o)return'';
   const m=modeFor(o);const w=S.work[o.id]||initWork(o);
   const head=`<div class="sh-head"><div class="row"><div style="flex:1;min-width:0"><div class="row" style="gap:8px"><h2>${esc(o.branch)}</h2><span class="tag ${o.kind==='return'?'ret':''}">${esc(kindL(o.kind))}</span><span class="pill st-${esc(o.status)}">${esc(statusL(o.status))}</span>${latePill(o)}</div>
-   <div class="hint num" dir="ltr">${esc(o.num||o.id)}</div></div>${S.role==='branch'&&['pending','approved'].includes(o.status)?waLink(o,true):''}<button class="btn btn-ghost" style="padding:7px 12px;font-size:13px" data-act="xlsOrder" data-id="${esc(o.id)}">${t('xlsExport')}</button>${canDelete(o)?`<button class="btn btn-bad del-top" data-act="confirm" data-k="delete">${t('delOrder')}</button>`:''}<button class="x" data-act="close" aria-label="${esc(t('close'))}">×</button></div>${timeline(o)}</div>`;
+   <div class="hint num" dir="ltr">${esc(o.num||o.id)}</div></div>${S.role==='branch'&&['pending','approved'].includes(o.status)?waLink(o,true):''}<button class="btn btn-ghost" style="padding:7px 12px;font-size:13px" data-act="xlsOrder" data-id="${esc(o.id)}">${t('xlsExport')}</button>${schedChip(o)}${canDelete(o)?`<button class="btn btn-bad del-top" data-act="confirm" data-k="delete">${t('delOrder')}</button>`:''}<button class="x" data-act="close" aria-label="${esc(t('close'))}">×</button></div>${m==='prepare'&&S.role==='warehouse'?'':timeline(o)}</div>`;
   let body='',foot='';
   const wa=o.waNotify&&S.role==="manager"?`<p class="hint" style="margin:0 0 10px">${esc(o.waNotify.sent?t("waSent",{n:o.waNotify.sent}):t("waFail",{e:o.waNotify.error||"-"}))}</p>`:"";
   const notes0=[o.note&&['n_branch',o.note],o.managerNote&&['n_mgr',o.managerNote],o.shipNote&&['n_ship',o.shipNote],o.receiveNote&&['n_recv',o.receiveNote]].filter(Boolean).map(([h,x])=>`<div class="box"><h4>${t(h)}</h4><div dir="auto">${esc(x)}</div></div>`).join('');
@@ -1893,9 +1898,10 @@ function sheet(){
       ?`<span style="flex:1">${t('rejectQ')}</span><button class="btn btn-ghost" data-act="unconfirm">${t('undo')}</button><button class="btn btn-bad" data-act="reject">${t('confirmReject')}</button>`
       :`<button class="btn btn-bad" data-act="confirm" data-k="reject">${t('reject')}</button><span class="spacer"></span><button class="btn btn-navy" data-act="approve">${o.kind==='return'?t('approveBr'):t('approveWh')}</button>`;
   }else if(m==='prepare'){
-    const done=o.lines.filter(l=>w.lines[l.id].checked).length,n=o.lines.length;
-    body=notes+`<div class="prog"><span class="num">${esc(t('preparedOf',{d:done,n}))}</span><div class="bar"><i style="width:${n?Math.round(done/n*100):0}%"></i></div></div>
-    <div class="lines">${o.lines.map(l=>{const i=lineInfo(l),x=w.lines[l.id];const ap=l.approved??l.qty;return`<div class="ln has-chk ${x.checked?'done':''}">
+    const PL=o.lines.filter(l=>+(l.approved??l.qty)>0);      // items set to 0 at approval have nothing to prepare
+    const done=PL.filter(l=>w.lines[l.id].checked).length,n=PL.length;
+    body=(S.role==='warehouse'?'':notes)+`<div class="prog"><span class="num">${esc(t('preparedOf',{d:done,n}))}</span><div class="bar"><i style="width:${n?Math.round(done/n*100):0}%"></i></div></div>
+    <div class="lines">${PL.map(l=>{const i=lineInfo(l),x=w.lines[l.id];const ap=l.approved??l.qty;return`<div class="ln has-chk ${x.checked?'done':''}">
       <button class="chk ${x.checked?'on':''}" data-act="check" data-id="${l.id}" aria-pressed="${x.checked}" aria-label="${esc(t('markPacked',{x:i.name}))}">✓</button>
       <div style="min-width:0"><div class="nm">${esc(i.name)}</div><div class="sub">${t('approvedQ')}: <b class="num">${fmt(ap)}</b> ${esc(i.u)}${x.sent!==ap?` · <span style="color:var(--bad)">${t('sentDiff')}</span>`:''}</div></div>
       <div class="ctl">${stepper('s-'+l.id,x.sent,'sent',l.id)}</div></div>`}).join('')}</div>
@@ -1919,12 +1925,16 @@ function sheet(){
         :`<span class="hint" style="flex:1">${t('waitingApproval')}</span><button class="btn btn-bad" data-act="confirm" data-k="cancel">${t('cancelOrder')}</button>`;
     }
   }
-  if(m==='prepare'&&o.kind!=='return')body=schedBox(o)+body;
   if(canDelete(o)&&S.confirm==='delete')foot=`<span class="del-q">${esc(t('delOrderQ'))}</span><button class="btn btn-ghost" data-act="unconfirm">${t('undo')}</button><button class="btn btn-del" data-act="deleteOrder">${t('confirmDel')}</button>`;
   return`<div class="veil" data-act="veil"><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-brand"><span class="logo sm" role="img" aria-label="مسكوب MASKOB"></span></div>${head}<div class="sh-body">${body}</div>${foot?`<div class="sh-foot">${foot}</div>`:''}</div></div>`;
 }
+function schedChip(o){
+  if(!isWaitingDispatch(o)||!(S.role==='warehouse'||S.role==='manager'))return'';
+  return`<label class="btn btn-ghost sched-chip" title="${esc(t('setDate'))}"><span>${o.scheduledFor?esc(t('schedBtn'))+': '+esc(dateLabel(o.scheduledFor)):esc(t('schedSet'))}</span><input type="date" id="schedDate" value="${esc(o.scheduledFor||'')}" data-oid="${esc(o.id)}" min="${dayKey(Date.now())}" aria-label="${esc(t('setDate'))}"></label>`;
+}
 function schedBox(o){
   if(!isWaitingDispatch(o))return'';
+  if(S.role==='warehouse'||S.role==='manager')return'';      // they use the small button in the header
   if(S.role==='warehouse'||S.role==='manager')
     return`<div class="box sched-box"><label for="schedDate"><h4>${t('setDate')}</h4></label><input class="field" type="date" id="schedDate" value="${esc(o.scheduledFor||'')}" data-oid="${esc(o.id)}" min="${dayKey(Date.now())}"></div>`;
   return o.scheduledFor?`<div class="box sched-box"><h4>${t('setDate')}</h4><b>${esc(dateLabel(o.scheduledFor))}</b></div>`:'';
@@ -2183,7 +2193,7 @@ const A={
     guard(async()=>{await Store.remove(id);S.open=null;S.confirm=null;if(S.justSent===id)S.justSent=null},()=>t('t_deleted'))},
   cancel(){const c=curWork();if(!c)return;const tm=nowIso();guard(async()=>{await Store.patch(c.o.id,{status:'cancelled',cancelledAt:tm,updatedAt:tm});S.open=null;S.confirm=null},()=>t('t_cancelled'));},
   ship(){const c=curWork();if(!c)return;const{o,w}=c;
-    const left=o.lines.filter(l=>!w.lines[l.id].checked).length;
+    const left=o.lines.filter(l=>+(l.approved??l.qty)>0&&!w.lines[l.id].checked).length;
     if(left&&S.confirm!=='ship'){S.confirm='ship';render();return}
     clearTimeout(progTimer);const tm=nowIso();
     const lines=o.lines.map(l=>{const x=w.lines[l.id];return Object.assign({},l,{checked:x.checked,sent:x.checked?x.sent:0})});
@@ -2201,6 +2211,8 @@ const A={
 };
 
 document.addEventListener('click',ev=>{
+  const sc=ev.target.closest&&ev.target.closest('.sched-chip');
+  if(sc){const inp=sc.querySelector('input');if(inp&&inp.showPicker){try{inp.showPicker()}catch(e){}}return}
   const el=ev.target.closest('[data-act]');if(!el)return;
   const fn=A[el.dataset.act];if(!fn)return;
   if(el.dataset.act==='veil'){fn(el,ev);return}
