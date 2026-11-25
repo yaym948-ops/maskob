@@ -558,6 +558,13 @@ textarea,input,select,button{font-family:inherit}
 .ad-bar i{display:block;height:100%;background:var(--sun)}
 .ad-pay{margin-top:10px;flex-wrap:wrap}
 
+.eos-sum{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--card)}
+.eos-line{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.eos-line:last-child{border-bottom:0}.eos-line.minus b{color:var(--late)}
+.eos-line.net{margin-top:4px;padding:8px 10px;border-radius:8px;background:var(--sun-soft);color:var(--sun-ink);font-size:16px}
+.eos-warn{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--late-soft);color:var(--late)}
+.eos-chk{display:flex;align-items:center;gap:8px;margin-top:8px;font-weight:500}.eos-chk input{width:18px;height:18px;accent-color:var(--sun)}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -953,6 +960,49 @@ av_deleted:['حُذفت السلفة','Advance deleted','অগ্রিম ম�
 av_delConfirm:['تأكيد حذف السلفة','Confirm delete','মুছে ফেলা নিশ্চিত করুন','حذف کی تصدیق کریں'],
 av_ofEmp:['متبقي السلف: {n} ريال','Advance balance: SAR {n}','অগ্রিম বাকি: {n} রিয়াল','ایڈوانس باقی: {n} ریال'],
 av_left:['باقي {n} أقساط','{n} instalments left','{n}টি কিস্তি বাকি','{n} قسطیں باقی'],
+eos_title:['إنهاء الخدمة','End of service','চাকরির সমাপ্তি','ملازمت کا اختتام'],
+eos_view:['المخالصة','Settlement','নিষ্পত্তি','تصفیہ'],
+eos_last:['آخر يوم عمل','Last working day','শেষ কর্মদিবস','آخری کام کا دن'],
+eos_reason:['سبب انتهاء الخدمة','Reason','কারণ','وجہ'],
+er_contract:['انتهاء مدة العقد','End of contract term','চুক্তির মেয়াদ শেষ','معاہدے کی مدت ختم'],
+er_resign:['استقالة','Resignation','পদত্যাগ','استعفیٰ'],
+er_employer:['إنهاء من صاحب العمل','Terminated by employer','নিয়োগকর্তা কর্তৃক সমাপ্তি','آجر کی طرف سے برطرفی'],
+er_mutual:['اتفاق الطرفين','Mutual agreement','পারস্পরিক সম্মতি','باہمی رضامندی'],
+er_art80:['فصل وفق المادة 80','Dismissal under Article 80','ধারা ৮০ অনুযায়ী বরখাস্ত','دفعہ 80 کے تحت برطرفی'],
+er_other:['أخرى','Other','অন্যান্য','دیگر'],
+eos_wage:['الأجر المعتمد للحساب','Wage used for the award','হিসাবের মজুরি','حساب کے لیے اجرت'],
+eos_wageHint:['يُملأ تلقائياً بإجمالي الراتب مع البدلات، ويمكن تعديله. رصيد الإجازات تقديري ويمكن تعديله.','Filled with total pay including allowances; the leave balance is an estimate. Both can be changed.','ভাতাসহ মোট বেতন ও আনুমানিক ছুটি দিয়ে পূরণ; পরিবর্তন করা যায়।','الاؤنسز سمیت کل تنخواہ اور اندازاً چھٹیاں بھری گئیں؛ تبدیل کر سکتے ہیں۔'],
+eos_leaveDays:['رصيد الإجازات غير المستخدمة (يوم)','Unused leave balance (days)','অব্যবহৃত ছুটি (দিন)','غیر استعمال شدہ چھٹیاں (دن)'],
+eos_otherDue:['مستحقات أخرى','Other dues','অন্যান্য পাওনা','دیگر واجبات'],
+eos_otherDed:['خصومات أخرى','Other deductions','অন্যান্য কর্তন','دیگر کٹوتیاں'],
+eos_dedAdv:['خصم السلف المتبقية ({n} ريال)','Deduct outstanding advances (SAR {n})','বাকি অগ্রিম কাটুন ({n} রিয়াল)','باقی ایڈوانس کاٹیں ({n} ریال)'],
+eos_dedCust:['خصم قيمة العهد غير المسترجعة ({n} ريال)','Deduct value of unreturned items (SAR {n})','ফেরত না দেওয়া জিনিসের মূল্য কাটুন ({n} রিয়াল)','واپس نہ کی گئی امانتوں کی قیمت کاٹیں ({n} ریال)'],
+eos_custWarn:['عهد لم تُسترجع:','Items not returned:','ফেরত না দেওয়া জিনিস:','واپس نہ کی گئی امانتیں:'],
+eos_period:['مدة الخدمة','Length of service','চাকরির মেয়াদ','مدتِ ملازمت'],
+eos_y:['{n} سنة','{n} y','{n} বছর','{n} سال'],
+eos_m:['{n} شهر','{n} m','{n} মাস','{n} ماہ'],
+eos_d:['{n} يوم','{n} d','{n} দিন','{n} دن'],
+eos_award:['مكافأة نهاية الخدمة','End-of-service award','চাকরি শেষের ভাতা','اختتامِ ملازمت کا انعام'],
+eos_fFull:['كاملة','full','পূর্ণ','مکمل'],
+eos_fNone:['لا تستحق','not due','প্রাপ্য নয়','واجب نہیں'],
+eos_fThird:['الثلث','one third','এক-তৃতীয়াংশ','ایک تہائی'],
+eos_fTwoThirds:['الثلثان','two thirds','দুই-তৃতীয়াংশ','دو تہائی'],
+eos_leaveComp:['بدل رصيد الإجازات','Unused leave pay','অব্যবহৃত ছুটির টাকা','چھٹیوں کا معاوضہ'],
+eos_minusAdv:['خصم السلف','Less advances','অগ্রিম বাদ','ایڈوانس کٹوتی'],
+eos_minusCust:['خصم العهد','Less custody items','জিনিস বাদ','امانتوں کی کٹوتی'],
+eos_net:['صافي المستحق للموظف','Net due to employee','কর্মচারীর নিট পাওনা','ملازم کا خالص واجب'],
+eos_netOwed:['مستحق على الموظف','Owed by employee','কর্মচারীর দেনা','ملازم کے ذمے'],
+eos_needDates:['أدخل تاريخ المباشرة وآخر يوم عمل','Enter the start date and last working day','যোগদান ও শেষ কর্মদিবস লিখুন','شمولیت اور آخری دن درج کریں'],
+eos_needWage:['أدخل الأجر المعتمد للحساب','Enter the wage for the calculation','হিসাবের মজুরি লিখুন','حساب کے لیے اجرت درج کریں'],
+eos_do:['إنهاء الخدمة وطباعة المخالصة','End service & print settlement','চাকরি শেষ করে নিষ্পত্তি প্রিন্ট','ملازمت ختم کریں اور تصفیہ پرنٹ کریں'],
+eos_confirm:['تأكيد إنهاء الخدمة','Confirm end of service','নিশ্চিত করুন','تصدیق کریں'],
+eos_reprint:['طباعة المخالصة','Print settlement','নিষ্পত্তি প্রিন্ট','تصفیہ پرنٹ کریں'],
+eos_done:['انتهت خدمة {n}','Service ended: {n}','চাকরি শেষ: {n}','ملازمت ختم: {n}'],
+eos_already:['انتهت خدمة الموظف في {d}','Service ended on {d}','{d} তারিখে চাকরি শেষ','{d} کو ملازمت ختم ہوئی'],
+eos_reinstate:['إعادة للعمل','Reinstate','পুনর্বহাল','بحال کریں'],
+eos_reinstateConfirm:['تأكيد الإعادة للعمل','Confirm reinstate','নিশ্চিত করুন','تصدیق کریں'],
+eos_reinstated:['أُعيد الموظف للعمل','Employee reinstated','কর্মচারী পুনর্বহাল','ملازم بحال ہو گیا'],
+cs_deducted:['خُصمت في المخالصة','Deducted in settlement','নিষ্পত্তিতে কাটা','تصفیے میں کٹوتی'],
 lv_add:['تسجيل إجازة','Add leave','ছুটি যোগ করুন','چھٹی درج کریں'],
 lv_emp:['الموظف','Employee','কর্মচারী','ملازم'],
 lv_type:['نوع الإجازة','Leave type','ছুটির ধরন','چھٹی کی قسم'],
@@ -1625,7 +1675,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}">${esc(x.l)}${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -2222,7 +2272,7 @@ async function overlapsOther(v,key){
 const fieldKey=f=>({appr:'approved',sent:'sent',recv:'received'}[f]);
 function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
-  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
+  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -2306,7 +2356,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -2778,11 +2828,13 @@ function hrEmpsView(){
   const act=all.filter(e=>e.status!=='left');
   const place=S.hrPlace||'',q=String(S.hrQ||'').trim().toLowerCase();
   const al=hrDocAlerts(),lateIds=new Set(al.filter(a=>a.left<0).map(a=>a.e.id));
-  const list=all.filter(e=>(!place||e.branch===place)&&(!q||[e.name,e.no,e.idNo,e.phone,e.job].some(x=>String(x||'').toLowerCase().includes(q))));
+  const show=S.hrShow||'active';
+  const list=all.filter(e=>(show==='all'||(show==='left')===(e.status==='left'))&&(!place||e.branch===place)&&(!q||[e.name,e.no,e.idNo,e.phone,e.job].some(x=>String(x||'').toLowerCase().includes(q))));
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_emps')}</h2><div class="row"><button class="btn btn-ghost rp-btn" data-act="hrXls">${t('xlsExport')}</button><button class="btn btn-sun" data-act="hrNew">+ ${t('hr_add')}</button></div></div>
   <div class="stats">${kpi(t('hr_working'),sar(act.length))}${kpi(t('hr_onLeave'),sar(act.filter(onLeaveToday).length))}${kpi(t('hr_expiring'),sar(al.length),al.length?'hot':'')}${kpi(t('hr_payroll'),sar(act.reduce((a,e)=>a+payTotal(e),0))+' '+t('sar'))}</div>
   <div class="row hr-filter"><input class="field" id="hrQ" data-in="hrQ" placeholder="${esc(t('hr_search'))}" value="${esc(S.hrQ||'')}" style="flex:2;min-width:180px">
     <select class="field" id="hrPlace" style="flex:1;min-width:140px"><option value="">${esc(t('hr_allPlaces'))}</option>${hrPlaces().map(p=>`<option value="${esc(p)}" ${place===p?'selected':''}>${esc(placeL(p))} (${act.filter(e=>e.branch===p).length})</option>`).join('')}</select></div>
+  <div class="filters">${[['active','es_active'],['left','es_left'],['all','f_all']].map(([k,l])=>`<button class="chip" aria-pressed="${show===k}" data-act="hrShow" data-k="${k}">${t(l)} (${k==='all'?all.length:all.filter(e=>(k==='left')===(e.status==='left')).length})</button>`).join('')}</div>
   <div class="list">${list.length?list.map(e=>`<button class="oc ${lateIds.has(e.id)?'late':''}" data-act="hrOpen" data-id="${esc(e.id)}">
     <span style="min-width:0"><span class="t">${esc(e.name)} ${e.no?`<span class="hint num" dir="ltr">#${esc(e.no)}</span>`:''}</span>
       <span class="s">${esc(placeL(e.branch))}${e.job?' · '+esc(e.job):''}${e.nat?' · '+esc(e.nat):''}</span></span>
@@ -2833,7 +2885,7 @@ function empSheet(){
   <div class="sl-grid hr-grid">${ALLOWANCES.map(k=>hrIn(k,t(AL_L[k])+' ('+t('sar')+')','number')).join('')}</div>
   <div class="hr-total">${t('hr_totalPay')}: <b class="num" id="hrTotal">${esc(sar2(payTotal(d)))}</b> ${t('sar')}</div>
   <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>`;
-  const foot=`${isNew?'':`<button class="btn btn-bad" data-act="hrDel">${S.confirm==='hrDel'?t('hr_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-navy" data-act="hrContract" ${S.busy?'disabled':''}>${t('ct_make')}</button><button class="btn btn-sun" data-act="hrSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
+  const foot=`${isNew?'':`<button class="btn btn-bad" data-act="hrDel">${S.confirm==='hrDel'?t('hr_delConfirm'):t('del')}</button>`}${isNew?'':`<button class="btn btn-ghost" data-act="hrEos">${e.status==='left'&&e.settlement?t('eos_view'):t('eos_title')}</button>`}<span class="spacer"></span><button class="btn btn-navy" data-act="hrContract" ${S.busy?'disabled':''}>${t('ct_make')}</button><button class="btn btn-sun" data-act="hrSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
   return hrSheetWrap(isNew?t('hr_add'):(e.name||''),body,foot);
 }
 function leaveSheet(){
@@ -2953,7 +3005,7 @@ function printHtml(html,win){
 }
 
 /* ---------- custody items (العهد) and salary advances (السلف) ---------- */
-const custOut=c=>c.status!=='returned';
+const custOut=c=>!c.status||c.status==='out';
 const advPaid=a=>(a.payments||[]).reduce((s,p)=>s+(+p.amount||0),0);
 const advRemain=a=>Math.max(0,Math.round(((+a.amount||0)-advPaid(a))*100)/100);
 const empOpts=keep=>[['',t('hr_pickEmp')],...(S.emps||[]).filter(e=>e.status!=='left'||e.id===keep).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar')).map(e=>[e.id,e.name+' — '+placeL(e.branch)])];
@@ -2969,7 +3021,7 @@ function custodyView(){
   <div class="list">${list.length?list.map(c=>{const left=empById(c.emp)&&empById(c.emp).status==='left'&&custOut(c);return`<button class="oc ${left?'late':''}" data-act="cuOpen" data-id="${esc(c.id)}">
     <span style="min-width:0"><span class="t">${esc(c.item)} ${c.value?`<span class="tag num">${esc(sar(c.value))} ${t('sar')}</span>`:''}</span>
       <span class="s">${esc(empName(c.emp))} · ${esc(empSub(c.emp))} · ${esc(dateLabel(c.given))}${c.serial?' · '+esc(c.serial):''}</span></span>
-    <span class="side"><span class="pill ${custOut(c)?'ms-progress':'ms-done'}">${esc(t(custOut(c)?'cs_out':'cs_returned'))}</span></span></button>`}).join(''):`<div class="empty">${esc(t('cu_none'))}</div>`}</div>`;
+    <span class="side"><span class="pill ${custOut(c)?'ms-progress':'ms-done'}">${esc(t('cs_'+(c.status||'out')))}</span></span></button>`}).join(''):`<div class="empty">${esc(t('cu_none'))}</div>`}</div>`;
 }
 function custodySheet(){
   const isNew=S.openCust==='new',c=isNew?null:(S.custody||[]).find(x=>x.id===S.openCust);if(!isNew&&!c)return'';
@@ -3058,6 +3110,164 @@ document.addEventListener('input',ev=>{
   const el=ev.target;if(el.dataset&&el.dataset.in==='avP'){S.avPay=S.avPay||{};S.avPay[el.dataset.f]=el.value}
 });
 
+/* ---------- end of service (إنهاء الخدمة) and final settlement ---------- */
+const EOS_REASONS=['contract','resign','employer','mutual','art80','other'];
+/* calendar difference: years, months, days (inclusive of the last day) */
+function ymd(a,b){
+  const s=fromKey(a),e=fromKey(b);e.setDate(e.getDate()+1);
+  let y=e.getFullYear()-s.getFullYear(),m=e.getMonth()-s.getMonth(),d=e.getDate()-s.getDate();
+  if(d<0){m--;d+=new Date(e.getFullYear(),e.getMonth(),0).getDate()}
+  if(m<0){y--;m+=12}
+  return{y:Math.max(0,y),m:Math.max(0,m),d:Math.max(0,d)};
+}
+const ymdText=p=>[p.y?t('eos_y',{n:p.y}):'',p.m?t('eos_m',{n:p.m}):'',p.d?t('eos_d',{n:p.d}):''].filter(Boolean).join(' ، ')||t('eos_d',{n:0});
+const r2=x=>Math.round((+x||0)*100)/100;
+/* Saudi Labor Law: half a month's wage for each of the first five years, a full month for each year after
+   (fractions pro rata); resignation: none under 2 years, 1/3 for 2-5, 2/3 for 5-10, full from 10 (art. 85);
+   dismissal under art. 80: none */
+function eosCalc(e,d){
+  const ok=isDay(d.start)&&isDay(d.last)&&d.last>=d.start;
+  const days=ok?dayDiff(d.start,d.last)+1:0,years=days/365;
+  const wage=num(d.wage);
+  const full=years<=5?years*wage/2:2.5*wage+(years-5)*wage;
+  const factor=d.reason==='art80'?0:d.reason==='resign'?(years<2?0:years<5?1/3:years<10?2/3:1):1;
+  const award=r2(full*factor),leaveComp=r2(num(d.leaveDays)*wage/30),otherDue=r2(num(d.otherDue));
+  const adv=r2((S.advances||[]).filter(a=>a.emp===e.id).reduce((s,a)=>s+advRemain(a),0));
+  const cust=(S.custody||[]).filter(c=>c.emp===e.id&&custOut(c));
+  const custVal=r2(cust.reduce((s,c)=>s+(+c.value||0),0));
+  const dedAdv=d.dedAdv?adv:0,dedCust=d.dedCust?custVal:0,otherDed=r2(num(d.otherDed));
+  const net=r2(award+leaveComp+otherDue-dedAdv-dedCust-otherDed);
+  return{ok,days,years,period:ok?ymd(d.start,d.last):{y:0,m:0,d:0},wage,full:r2(full),factor,award,leaveComp,otherDue,adv,cust,custVal,dedAdv,dedCust,otherDed,net};
+}
+const factorText=f=>f===1?t('eos_fFull'):f===0?t('eos_fNone'):f<0.5?t('eos_fThird'):t('eos_fTwoThirds');
+function eosDefaults(e){
+  const st=e.settlement;if(st&&st.input)return Object.assign({},st.input);
+  const last=dayKey(Date.now()),start=e.hire||'';
+  // leave before the employee was added here is not recorded, so only estimate the balance from then on
+  const added=e.createdAt?dayKey(e.createdAt):last,from=isDay(start)&&start>added?start:added;
+  const yrs=Math.max(0,(dayDiff(from,last)+1)/365);
+  const per=(e.contract&&+e.contract.leave)||21;
+  const used=(S.leaves||[]).filter(l=>l.emp===e.id&&l.type==='annual'&&l.status==='approved').reduce((s,l)=>s+leaveDays(l),0);
+  return{start,last,reason:'contract',wage:payTotal(e)||'',leaveDays:Math.max(0,Math.round(yrs*per-used)),otherDue:'',otherDed:'',dedAdv:true,dedCust:false,note:''};
+}
+function eosSheet(){
+  const e=empById(S.openEos);if(!e)return'';
+  const d=S.eosDraft,c=eosCalc(e,d);
+  const ei=(f,label,type,extra)=>`<label><span class="hint">${esc(label)}</span><input class="field${type==='number'?' num':''}" type="${type||'text'}" id="eos-${f}" data-in="eosF" data-f="${f}" value="${esc(d[f]??'')}" ${type==='number'?'dir="ltr" inputmode="decimal"':''} ${extra||''}></label>`;
+  const line=(l,v,cls)=>`<div class="eos-line ${cls||''}"><span>${l}</span><b class="num">${esc(sar2(v))} ${t('sar')}</b></div>`;
+  const body=`${e.status==='left'&&e.settlement?`<div class="note-bar" style="margin-bottom:12px">${esc(t('eos_already',{d:dateLabel(e.endDate||e.settlement.input.last)}))}</div>`:''}
+  <div class="sl-grid hr-grid">
+    ${ei('start',t('hr_hire'),'date')}${ei('last',t('eos_last'),'date')}
+    <label><span class="hint">${t('eos_reason')}</span><select class="field" id="eos-reason" data-in="eosF" data-f="reason">${EOS_REASONS.map(r=>`<option value="${r}" ${d.reason===r?'selected':''}>${esc(t('er_'+r))}</option>`).join('')}</select></label>
+    ${ei('wage',t('eos_wage')+' ('+t('sar')+')','number')}
+    ${ei('leaveDays',t('eos_leaveDays'),'number')}${ei('otherDue',t('eos_otherDue')+' ('+t('sar')+')','number')}
+    ${ei('otherDed',t('eos_otherDed')+' ('+t('sar')+')','number')}
+  </div>
+  <div class="hint" style="margin-top:6px">${esc(t('eos_wageHint'))}</div>
+  ${c.adv>0?`<label class="eos-chk"><input type="checkbox" id="eos-dedAdv" ${d.dedAdv?'checked':''}> ${esc(t('eos_dedAdv',{n:sar2(c.adv)}))}</label>`:''}
+  ${c.cust.length?`<div class="eos-warn"><b>${esc(t('eos_custWarn'))}</b> ${c.cust.map(x=>esc(x.item)+(x.value?' ('+esc(sar(x.value))+')':'')).join('، ')}
+    ${c.custVal>0?`<label class="eos-chk"><input type="checkbox" id="eos-dedCust" ${d.dedCust?'checked':''}> ${esc(t('eos_dedCust',{n:sar2(c.custVal)}))}</label>`:''}</div>`:''}
+  <div class="eos-sum" id="eosSum">${eosSummary(c)}</div>
+  <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="eos-note" rows="2" dir="auto" data-in="eosF" data-f="note">${esc(d.note||'')}</textarea></label>`;
+  const foot=`<button class="btn btn-ghost" data-act="eosBack">${t('ct_backEmp')}</button><span class="spacer"></span>
+    ${e.status==='left'&&e.settlement?`<button class="btn btn-ghost" data-act="eosReinstate">${S.confirm==='reinstate'?t('eos_reinstateConfirm'):t('eos_reinstate')}</button>`:''}
+    <button class="btn btn-bad" data-act="eosDo" ${S.busy?'disabled':''}>${S.confirm==='eos'?t('eos_confirm'):e.status==='left'&&e.settlement?t('eos_reprint'):t('eos_do')}</button>`;
+  return hrSheetWrap(t('eos_title')+': '+e.name,body,foot);
+}
+function eosSummary(c){
+  const line=(l,v,cls)=>`<div class="eos-line ${cls||''}"><span>${esc(l)}</span><b class="num">${esc(sar2(v))} ${t('sar')}</b></div>`;
+  if(!c.ok)return`<div class="hint">${esc(t('eos_needDates'))}</div>`;
+  return`<div class="eos-line"><span>${esc(t('eos_period'))}</span><b>${esc(ymdText(c.period))}</b></div>
+    ${line(t('eos_award')+' — '+factorText(c.factor),c.award)}
+    ${c.leaveComp?line(t('eos_leaveComp'),c.leaveComp):''}${c.otherDue?line(t('eos_otherDue'),c.otherDue):''}
+    ${c.dedAdv?line(t('eos_minusAdv'),-c.dedAdv,'minus'):''}${c.dedCust?line(t('eos_minusCust'),-c.dedCust,'minus'):''}${c.otherDed?line(t('eos_otherDed'),-c.otherDed,'minus'):''}
+    ${line(c.net<0?t('eos_netOwed'):t('eos_net'),Math.abs(c.net),'net')}`;
+}
+function settlementHtml(e,d,c,co){
+  const h=esc,n=x=>(+x||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const dt=k=>isDay(k)?k.split('-').reverse().join('/'):'—';
+  const AR={contract:'انتهاء مدة العقد',resign:'استقالة',employer:'إنهاء من صاحب العمل',mutual:'اتفاق الطرفين',art80:'فصل وفق المادة 80',other:'أخرى'};
+  const EN={contract:'End of contract term',resign:'Resignation',employer:'Terminated by employer',mutual:'Mutual agreement',art80:'Dismissal under Article 80',other:'Other'};
+  const fr=c.factor===1?['كاملة','full']:c.factor===0?['لا تستحق','not due']:c.factor<0.5?['ثلث المكافأة','one third']:['ثلثا المكافأة','two thirds'];
+  const pl=e.branch==='@wh'?'المستودع / Warehouse':e.branch==='@office'?'الإدارة / Head office':(e.branch||'—');
+  const per=c.period,perAr=`${per.y} سنة، ${per.m} شهر، ${per.d} يوم`,perEn=`${per.y} y, ${per.m} m, ${per.d} d`;
+  const rows=[['مكافأة نهاية الخدمة ('+fr[0]+')','End-of-service award ('+fr[1]+')',c.award],
+    ['بدل رصيد الإجازات ('+n(d.leaveDays).replace('.00','')+' يوم)','Unused leave ('+n(d.leaveDays).replace('.00','')+' days)',c.leaveComp],
+    ['مستحقات أخرى','Other dues',c.otherDue],['خصم السلف المتبقية','Less: outstanding advances',-c.dedAdv],
+    ['خصم العهد غير المسترجعة','Less: unreturned custody items',-c.dedCust],['خصومات أخرى','Other deductions',-c.otherDed]].filter(r=>r[2]);
+  let logo='https://fllow-maskob.web.app/maskob-wordmark.png';
+  try{if(/^https?:$/.test(location.protocol))logo=new URL('maskob-wordmark.png',location.href).href}catch(x){}
+  const coName=co.name||'مسكوب';
+  const info=[['الموظف','Employee',h(e.name)],['الرقم الوظيفي','Employee no.',h(e.no||'—')],['رقم الهوية / الإقامة','ID / Iqama',h(e.idNo||'—')],['الجنسية','Nationality',h(e.nat||'—')],
+    ['المهنة','Job',h(e.job||'—')],['مكان العمل','Workplace',h(pl)],['تاريخ المباشرة','Start date',dt(d.start)],['آخر يوم عمل','Last working day',dt(d.last)],
+    ['مدة الخدمة','Length of service',perAr+' / '+perEn],['سبب انتهاء الخدمة','Reason',AR[d.reason]+' / '+EN[d.reason]],['الأجر المعتمد للحساب','Wage used',n(c.wage)+' SAR']];
+  return`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>مخالصة نهائية - ${h(e.name)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:Tajawal,Arial,sans-serif;color:#13233a;margin:0;font-size:12.5px;line-height:1.7}
+.top{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #0758A7;padding-bottom:10px;margin-bottom:6px}
+.top img{height:40px}.top .meta{font-size:11.5px;color:#4a5b73;text-align:left}.bar{height:3px;width:90px;background:#EF8A22;margin:0 0 14px auto}
+h1{font-size:22px;margin:0;color:#0758A7;font-weight:800}h1 small{display:block;font-size:13px;color:#4a5b73;font-weight:500}
+table{width:100%;border-collapse:collapse;margin-bottom:14px}td,th{border:1px solid #c9d5e3;padding:6px 10px}th{background:#e6eff9;color:#0758A7;text-align:start}
+.info td:first-child{width:34%;background:#f4f7fb;font-weight:700}.v{text-align:center;direction:ltr;font-weight:700;width:30%}
+.neg{color:#b3261e}.net td{background:#fdf1e3;font-weight:800;font-size:14px}
+.decl{border:1px solid #c9d5e3;border-radius:8px;padding:10px 12px;margin-bottom:6px}.decl .en{direction:ltr;text-align:left;color:#33445c;margin-top:6px}
+.sig{display:flex;gap:30px;margin-top:22px}.sig div{flex:1;border:1px solid #c9d5e3;border-radius:8px;padding:10px 12px;min-height:110px}.sig b{color:#0758A7}
+.line{border-bottom:1px dashed #8a9ab0;height:34px;margin-bottom:4px}.foot{margin-top:14px;font-size:10.5px;color:#6b7a90;text-align:center}
+</style></head><body>
+<div class="top"><div><h1>مخالصة نهائية<small>Final Settlement</small></h1></div><img src="${h(logo)}" alt="مسكوب"><div class="meta">${dt(dayKey(Date.now()))}<br>${e.no?'#'+h(e.no):''}</div></div>
+<div class="bar"></div>
+<table class="info">${info.map(r=>`<tr><td>${r[0]} / ${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>
+<table><thead><tr><th>البند / Item</th><th style="text-align:center">المبلغ (ريال) / Amount (SAR)</th></tr></thead><tbody>
+${rows.map(r=>`<tr><td>${r[0]} / ${r[1]}</td><td class="v ${r[2]<0?'neg':''}">${r[2]<0?'(':''}${n(Math.abs(r[2]))}${r[2]<0?')':''}</td></tr>`).join('')}
+<tr class="net"><td>${c.net<0?'المبلغ المستحق على الموظف / Amount owed by employee':'صافي المستحق للموظف / Net amount due to employee'}</td><td class="v">${n(Math.abs(c.net))}</td></tr></tbody></table>
+${d.note?`<div class="decl">${h(d.note)}</div>`:''}
+<div class="decl">أقر أنا الموظف الموقع أدناه بأنني استلمت من ${h(coName)} كامل مستحقاتي المذكورة أعلاه عن مدة خدمتي، وأنه لا يحق لي المطالبة بأي حقوق أخرى بعد ذلك، وهذه مخالصة نهائية مني بذلك.
+<div class="en">I, the undersigned employee, confirm that I have received from ${h(coName)} all my dues stated above for my period of service, that I have no further claims, and that this is my final settlement.</div></div>
+<div class="sig"><div><b>الموظف / Employee</b><div>${h(e.name)}</div><div class="line"></div>التوقيع والتاريخ / Signature &amp; date</div>
+<div><b>عن المنشأة / For the company</b><div>${h(coName)}${co.rep?' — '+h(co.rep):''}</div><div class="line"></div>التوقيع والختم / Signature &amp; stamp</div></div>
+<div class="foot">${h(coName)}</div>
+<script>window.onload=function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print()},250)})}<\/script>
+</body></html>`;
+}
+Object.assign(A,{
+  hrEos(){const e=empById(S.openEmp);if(!e)return;S.openEmp=null;S.hrDraft=null;S.openEos=e.id;S.confirm=null;S.eosDraft=eosDefaults(e);render()},
+  eosBack(){const e=empById(S.openEos);S.openEos=null;S.confirm=null;if(e){S.openEmp=e.id;S.hrDraft=Object.assign({},e)}render()},
+  eosDo(){
+    const e=empById(S.openEos);if(!e)return;const d=S.eosDraft,c=eosCalc(e,d);
+    if(!c.ok){toast(t('eos_needDates'));return}
+    if(!(c.wage>0)){toast(t('eos_needWage'));return}
+    const again=e.status==='left'&&e.settlement;
+    if(!again&&S.confirm!=='eos'){S.confirm='eos';render();return}
+    const win=window.open('','_blank');
+    printHtml(settlementHtml(e,d,c,S.hrCfg||{}),win);
+    if(again){S.confirm=null;return}
+    const tm=nowIso();
+    const settlement={input:Object.assign({},d),award:c.award,leaveComp:c.leaveComp,otherDue:c.otherDue,dedAdv:c.dedAdv,dedCust:c.dedCust,otherDed:c.otherDed,net:c.net,factor:c.factor,at:tm};
+    guard(async()=>{
+      await X.upd('employees',e.id,{status:'left',endDate:d.last,endReason:d.reason,hire:e.hire||d.start,settlement,updatedAt:tm});
+      if(c.dedAdv)for(const a of(S.advances||[]).filter(a=>a.emp===e.id&&advRemain(a)>0))
+        await X.upd('advances',a.id,{payments:[...(a.payments||[]),{date:d.last,amount:advRemain(a),settle:true}],status:'closed',updatedAt:tm});
+      if(c.dedCust)for(const x of c.cust)await X.upd('custody',x.id,{status:'deducted',returnedAt:d.last,updatedAt:tm});
+      S.openEos=null;S.confirm=null;
+    },()=>t('eos_done',{n:e.name}));
+  },
+  eosReinstate(){const e=empById(S.openEos);if(!e)return;
+    if(S.confirm!=='reinstate'){S.confirm='reinstate';render();return}
+    guard(async()=>{await X.upd('employees',e.id,{status:'active',endDate:'',endReason:'',settlement:null,updatedAt:nowIso()});S.openEos=null;S.confirm=null},()=>t('eos_reinstated'))},
+  hrShow(el){S.hrShow=el.dataset.k;render()}
+});
+document.addEventListener('input',ev=>{
+  const el=ev.target;if(!(el.dataset&&el.dataset.in==='eosF'))return;
+  S.eosDraft[el.dataset.f]=el.value;if(S.confirm==='eos'){S.confirm=null;const b=document.querySelector('[data-act="eosDo"]');if(b)b.textContent=t('eos_do')}
+  const e=empById(S.openEos),o=document.getElementById('eosSum');if(e&&o)o.innerHTML=eosSummary(eosCalc(e,S.eosDraft));
+});
+document.addEventListener('change',ev=>{
+  const el=ev.target;if(el.id!=='eos-dedAdv'&&el.id!=='eos-dedCust')return;
+  S.eosDraft[el.id==='eos-dedAdv'?'dedAdv':'dedCust']=el.checked;
+  const e=empById(S.openEos),o=document.getElementById('eosSum');if(e&&o)o.innerHTML=eosSummary(eosCalc(e,S.eosDraft));
+});
+
 const hrId=p=>p+'-'+dayKey(Date.now()).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,7).toUpperCase();
 Object.assign(A,{
   hrNew(){S.openEmp='new';S.confirm=null;S.hrDraft={branch:S.hrPlace||S.branches[0]||'@office',status:'active'};render()},
@@ -3077,7 +3287,7 @@ Object.assign(A,{
       {name:t('tab_emps'),headers:[t('hr_name'),t('hr_no'),t('hr_branch'),t('hr_job'),t('hr_nat'),t('hr_phone'),t('hr_id'),t('hr_idExp'),t('hr_health'),t('hr_contract'),t('hr_hire'),t('hr_salary'),...ALLOWANCES.map(k=>t(AL_L[k])),t('hr_totalPay'),t('hr_status'),t('hr_note')],rows},
       {name:t('tab_leaves'),headers:[t('lv_emp'),t('lv_type'),t('lv_from'),t('lv_to'),t('hr_daysN'),t('hr_status'),t('hr_note')],rows:lv},
       {name:t('tab_custody'),headers:[t('lv_emp'),t('cu_item'),t('cu_serial'),t('cu_value'),t('cu_given'),t('hr_status'),t('cu_returnedAt'),t('hr_note')],
-        rows:(S.custody||[]).map(c=>[empName(c.emp),c.item,c.serial||'',c.value??'',c.given||'',t(custOut(c)?'cs_out':'cs_returned'),c.returnedAt||'',c.note||''])},
+        rows:(S.custody||[]).map(c=>[empName(c.emp),c.item,c.serial||'',c.value??'',c.given||'',t('cs_'+(c.status||'out')),c.returnedAt||'',c.note||''])},
       {name:t('tab_adv'),headers:[t('lv_emp'),t('av_date'),t('av_amount'),t('av_monthly'),t('av_paid'),t('av_remain'),t('hr_status'),t('hr_note')],
         rows:(S.advances||[]).map(a=>[empName(a.emp),a.date||'',+a.amount||0,a.monthly??'',advPaid(a),advRemain(a),t(advRemain(a)>0?'as_open':'as_closed'),a.note||''])}]);
   },
