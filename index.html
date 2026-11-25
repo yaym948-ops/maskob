@@ -815,6 +815,9 @@ nBody:['الطلب {n}: من {a} إلى {b}','Order {n}: from {a} to {b}','অ�
 nBodySet:['الطلب {n}: موعد الاستلام {b}','Order {n}: delivery on {b}','অর্ডার {n}: ডেলিভারি {b}','آرڈر {n}: ترسیل {b}'],
 nOk:['تم','OK','ঠিক আছে','ٹھیک ہے'],
 nEnable:['تفعيل التنبيهات على هذا الجهاز','Turn on alerts on this device','এই ডিভাইসে বার্তা চালু করুন','اس ڈیوائس پر اطلاعات فعال کریں'],
+tg_copyPrev:['نسخ تارقت الشهر السابق','Copy last month\'s targets','গত মাসের লক্ষ্য কপি করুন','پچھلے ماہ کے اہداف کاپی کریں'],
+tg_copied:['نُسخ تارقت {n} فرع من الشهر السابق','Copied targets for {n} branches from last month','গত মাস থেকে {n}টি শাখার লক্ষ্য কপি হয়েছে','پچھلے ماہ سے {n} برانچوں کے اہداف کاپی ہو گئے'],
+tg_nothing:['لا يوجد تارقت في الشهر السابق لنسخه','No targets last month to copy','গত মাসে কপি করার মতো লক্ষ্য নেই','پچھلے ماہ کاپی کرنے کو کوئی ہدف نہیں'],
 tg_cards:['تارقت الفروع','Branch targets','শাখার লক্ষ্য','برانچوں کے اہداف'],
 tg_achieved:['المحقق','Achieved','অর্জিত','حاصل'],
 tg_none:['لم يُحدَّد تارقت','No target set','লক্ষ্য নির্ধারিত নেই','ہدف مقرر نہیں'],
@@ -2269,9 +2272,10 @@ const X={
     if(S.fb){const q=await db.collection('maintenance/'+mid+'/photos').get();return q.docs.sort((a,b)=>a.id.localeCompare(b.id)).map(d=>d.data().data)}
     return(S._demoPhotos&&S._demoPhotos[mid])||[];
   },
-  async target(b,data){
-    if(S.fb)return queue('targets/'+b,()=>db.doc('targets/'+b).set(data));
-    MEMSET('targets',Object.assign({},MEM('targets'),{[b]:data}));xLoadDemo();render();
+  async target(b,mk,data){
+    if(S.fb)return queue('targets/'+b,()=>db.doc('targets/'+b).set({m:{[mk]:data}},{merge:true}));
+    const all=Object.assign({},MEM('targets'));const cur=all[b]||{};all[b]=Object.assign({},cur,{m:Object.assign({},cur.m||{},{[mk]:data})});
+    MEMSET('targets',all);xLoadDemo();render();
   },
   async checklist(items){
     if(S.fb)return queue('config/checklist',()=>db.doc('config/checklist').set({items}));
@@ -2308,7 +2312,7 @@ function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S
 function salesStats(branch,mk){
   const rows=(S.sales||[]).filter(r=>r.branch===branch&&String(r.date).startsWith(mk));
   const sales=rows.reduce((a,r)=>a+(+r.sales||0),0),inv=rows.reduce((a,r)=>a+(+r.invoices||0),0);
-  const tg=(S.targets&&S.targets[branch])||{};
+  const td=(S.targets&&S.targets[branch])||{};const tg=(td.m&&td.m[mk])||{};
   const dim=daysInMonth(mk),today=dayKey(Date.now());
   const daysLeft=mk===today.slice(0,7)?dim-(+today.slice(8))+1:(mk>today.slice(0,7)?dim:0);
   const remain=tg.sales?Math.max(0,tg.sales-sales):null;
@@ -2471,8 +2475,12 @@ function checksView(){
 }
 
 /* ---------- settings (system admin): targets + checklist items ---------- */
+const monthName=mk=>{try{return fromKey(mk+'-01').toLocaleDateString(LOCALE[LANG],{month:'long',year:'numeric'})}catch(e){return mk}};
+const prevMonth=mk=>{const d=fromKey(mk+'-01');d.setMonth(d.getMonth()-1);return monthKey(d)};
+const tgFor=(b,mk)=>{const td=(S.targets&&S.targets[b])||{};return(td.m&&td.m[mk])||{}};
 function targetsView(){
-  return`<h2 style="margin-top:28px">${t('tg_title')}</h2><div class="codes">${S.branches.map((b,i)=>{const tg=(S.targets&&S.targets[b])||{};const d=(S.tgDraft&&S.tgDraft[b])||{};
+  const mk=S.slMonth||monthKey(Date.now());
+  return`<div class="row" style="justify-content:space-between;margin-top:28px"><h2>${t('tg_title')} — ${esc(monthName(mk))}</h2><button class="btn btn-ghost rp-btn" data-act="copyPrevTargets">${t('tg_copyPrev')}</button></div><div class="codes">${S.branches.map((b,i)=>{const tg=tgFor(b,mk);const d=(S.tgDraft&&S.tgDraft[mk+'|'+b])||{};
     return`<div class="code"><div><b>${esc(b)}</b></div><div class="wide"><input class="field num" inputmode="numeric" id="tgS-${i}" placeholder="${esc(t('tg_sales'))}" value="${esc(d.sales!=null?d.sales:(tg.sales||''))}" data-in="tgS" data-b="${esc(b)}"><input class="field num" inputmode="numeric" id="tgI-${i}" placeholder="${esc(t('tg_inv'))}" value="${esc(d.invoices!=null?d.invoices:(tg.invoices||''))}" data-in="tgI" data-b="${esc(b)}"><button class="btn btn-navy" data-act="saveTarget" data-b="${esc(b)}">${t('waSave')}</button></div></div>`}).join('')}</div>`;
 }
 function checklistEditView(){
@@ -2521,9 +2529,13 @@ Object.assign(A,{
       const done=items.filter(x=>marks[itemKey(x)]).length;
       X.put('checks',id,{branch:S.branch,date:today,items:marks,done,total:items.length,at:nowIso()}).catch(()=>toast(t('saveFail')))},600);
   },
-  saveTarget(el){const b=el.dataset.b;const d=(S.tgDraft&&S.tgDraft[b])||{};const cur=(S.targets&&S.targets[b])||{};
+  saveTarget(el){const b=el.dataset.b,mk=S.slMonth||monthKey(Date.now());const key=mk+'|'+b;const d=(S.tgDraft&&S.tgDraft[key])||{};const cur=tgFor(b,mk);
     const sales=num(d.sales!=null?d.sales:cur.sales),invoices=Math.round(num(d.invoices!=null?d.invoices:cur.invoices));
-    guard(async()=>{await X.target(b,{sales,invoices});if(S.tgDraft)delete S.tgDraft[b]},()=>t('tg_saved'))},
+    guard(async()=>{await X.target(b,mk,{sales,invoices});if(S.tgDraft)delete S.tgDraft[key]},()=>t('tg_saved'))},
+  copyPrevTargets(){const mk=S.slMonth||monthKey(Date.now()),pm=prevMonth(mk);
+    const todo=S.branches.filter(b=>{const p=tgFor(b,pm);return(p.sales||p.invoices)});
+    if(!todo.length){toast(t('tg_nothing'));return}
+    guard(async()=>{for(const b of todo){const p=tgFor(b,pm);await X.target(b,mk,{sales:+p.sales||0,invoices:+p.invoices||0})}S.tgDraft={}},()=>t('tg_copied',{n:todo.length}))},
   saveChecklist(){const items=String(S.ckEdit!=null?S.ckEdit:checklistItems().join('\n')).split('\n').map(x=>x.trim()).filter(Boolean).slice(0,40);
     if(!items.length){toast(t('ck_needOne'));return}
     guard(async()=>{await X.checklist(items);S.ckEdit=null},()=>t('ck_saved'))}
@@ -2534,7 +2546,7 @@ document.addEventListener('input',ev=>{
   if(k==='mDesc'){S.mDraft.desc=el.value;const b=document.querySelector('[data-act="sendMaint"]');if(b)b.disabled=!el.value.trim();return}
   if(k==='mReply'){S.mReply=el.value;return}
   if(k==='ckEdit'){S.ckEdit=el.value;return}
-  if(k==='tgS'||k==='tgI'){const b=el.dataset.b;S.tgDraft=S.tgDraft||{};S.tgDraft[b]=S.tgDraft[b]||{};S.tgDraft[b][k==='tgS'?'sales':'invoices']=el.value;return}
+  if(k==='tgS'||k==='tgI'){const b=(S.slMonth||monthKey(Date.now()))+'|'+el.dataset.b;S.tgDraft=S.tgDraft||{};S.tgDraft[b]=S.tgDraft[b]||{};S.tgDraft[b][k==='tgS'?'sales':'invoices']=el.value;return}
 });
 document.addEventListener('change',async ev=>{
   const el=ev.target;
