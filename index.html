@@ -570,6 +570,9 @@ textarea,input,select,button{font-family:inherit}
 .pill.li-expired{background:var(--late-soft);color:var(--late)}
 .pill.li-none{background:var(--lav-soft);color:var(--navy)}
 
+.io-imp{position:relative;overflow:hidden}
+.io-imp input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -1058,6 +1061,32 @@ ct_t_cleaning:['عقد نظافة','Cleaning','পরিচ্ছন্নতা
 ct_t_insurance:['عقد تأمين','Insurance','বীমা চুক্তি','انشورنس معاہدہ'],
 ct_t_service:['عقد خدمات','Services','সেবা চুক্তি','خدمات کا معاہدہ'],
 ct_t_other:['أخرى','Other','অন্যান্য','دیگر'],
+io_export:['تصدير','Export','রপ্তানি','برآمد'],
+io_import:['استيراد','Import','আমদানি','درآمد'],
+io_exportAll:['تصدير الكل','Export all','সব রপ্তানি','سب برآمد کریں'],
+io_title:['استيراد: {n}','Import: {n}','আমদানি: {n}','درآمد: {n}'],
+io_new:['جديد','New','নতুন','نیا'],
+io_upd:['تحديث','Update','হালনাগাদ','اپڈیٹ'],
+io_err:['أخطاء','Errors','ত্রুটি','غلطیاں'],
+io_go:['استيراد {n} سطر','Import {n} rows','{n}টি সারি আমদানি','{n} قطاریں درآمد کریں'],
+io_done:['اُستورد {n} سطر','Imported {n} rows','{n}টি সারি আমদানি হয়েছে','{n} قطاریں درآمد ہو گئیں'],
+io_row:['سطر {n}','Row {n}','সারি {n}','قطار {n}'],
+io_req:['«{c}» مطلوب','"{c}" is required','"{c}" প্রয়োজন','"{c}" لازمی ہے'],
+io_badDate:['تاريخ غير صحيح في «{c}»','Invalid date in "{c}"','"{c}"-এ ভুল তারিখ','"{c}" میں غلط تاریخ'],
+io_badNum:['رقم غير صحيح في «{c}»','Invalid number in "{c}"','"{c}"-এ ভুল সংখ্যা','"{c}" میں غلط نمبر'],
+io_badOpt:['قيمة غير معروفة في «{c}»: {v}','Unknown value in "{c}": {v}','"{c}"-এ অজানা মান: {v}','"{c}" میں نامعلوم قدر: {v}'],
+io_noEmp:['موظف غير موجود: {v}','Employee not found: {v}','কর্মচারী পাওয়া যায়নি: {v}','ملازم نہیں ملا: {v}'],
+io_noPlace:['مكان غير معروف: {v}','Unknown place: {v}','অজানা স্থান: {v}','نامعلوم جگہ: {v}'],
+io_missing:['أعمدة مطلوبة غير موجودة في الملف: {c}','Required columns missing from the file: {c}','ফাইলে প্রয়োজনীয় কলাম নেই: {c}','فائل میں لازمی کالم موجود نہیں: {c}'],
+io_empty:['الملف لا يحتوي بيانات','The file has no data','ফাইলে কোনো তথ্য নেই','فائل میں کوئی ڈیٹا نہیں'],
+io_readFail:['تعذرت قراءة الملف','Could not read the file','ফাইল পড়া যায়নি','فائل نہیں پڑھی جا سکی'],
+io_hint:['استخدم ملف «تصدير» كنموذج: نفس عناوين الأعمدة وبأي لغة. الصفوف الموجودة تُحدَّث والجديدة تُضاف، ولا يُحذف شيء.','Use an exported file as the template: same column headers, in any language. Existing rows are updated, new ones added, nothing is deleted.','রপ্তানি করা ফাইলকে নমুনা হিসেবে ব্যবহার করুন: একই কলাম শিরোনাম, যেকোনো ভাষায়। বিদ্যমান সারি হালনাগাদ হবে, নতুন যোগ হবে, কিছু মুছবে না।','برآمد شدہ فائل کو نمونہ بنائیں: وہی کالم عنوانات، کسی بھی زبان میں۔ موجودہ قطاریں اپڈیٹ، نئی شامل، کچھ حذف نہیں ہوگا۔'],
+io_otherBranch:['لا يمكن استيراد بيانات فرع آخر','Cannot import data for another branch','অন্য শাখার তথ্য আমদানি করা যাবে না','دوسری برانچ کا ڈیٹا درآمد نہیں ہو سکتا'],
+io_month:['الشهر','Month','মাস','مہینہ'],
+io_kind:['ترخيص / عقد','License / contract','লাইসেন্স / চুক্তি','لائسنس / معاہدہ'],
+io_yes:['نعم','Yes','হ্যাঁ','ہاں'],
+io_no:['لا','No','না','نہیں'],
+io_cancel:['إلغاء','Cancel','বাতিল','منسوخ'],
 lv_add:['تسجيل إجازة','Add leave','ছুটি যোগ করুন','چھٹی درج کریں'],
 lv_emp:['الموظف','Employee','কর্মচারী','ملازم'],
 lv_type:['نوع الإجازة','Leave type','ছুটির ধরন','چھٹی کی قسم'],
@@ -1730,7 +1759,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}">${esc(x.l)}${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -2411,7 +2440,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.imp=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -2646,7 +2675,7 @@ function salesView(){
   const f=S.slForm&&S.slForm.day===day?S.slForm:{day,sales:ex?ex.sales:'',invoices:ex?ex.invoices:''};S.slForm=f;
   const metric=S.slMetric||'sales';
   const recent=[...st.rows].sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,10);
-  return`<h2>${t('tab_sales')}</h2>
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_sales')}</h2><div class="row">${ioBtns('sales')}</div></div>
   <div class="box sl-form">
     <div class="sl-grid">
       <label><span class="hint">${t('sl_day')}</span><input class="field" type="date" id="slDay" value="${esc(day)}" max="${dayKey(Date.now())}"></label>
@@ -2690,7 +2719,7 @@ function salesAllView(){
   const tot=act.reduce((a,r)=>({s:a.s+r.st.sales,i:a.i+r.st.inv}),{s:0,i:0});
   const avgBranch=act.length?tot.s/act.length:0,avgTicket=tot.i?tot.s/tot.i:0;
   const maxS=Math.max(1,...rows.map(r=>Math.max(r.st.sales,r.st.target)));
-  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_sales')}</h2><input class="field" type="month" id="slMonth" value="${esc(mk)}" style="width:auto"></div>
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_sales')}</h2><div class="row">${ioBtns('sales')}<input class="field" type="month" id="slMonth" value="${esc(mk)}" style="width:auto"></div></div>
   <div class="stats">${kpi(t('sl_totalAll'),sar(tot.s)+' '+t('sar'))}${kpi(t('sl_invCount'),sar(tot.i))}${kpi(t('sl_avgBranch'),sar(avgBranch)+' '+t('sar'))}${kpi(t('sl_avg'),sar2(avgTicket)+' '+t('sar'))}</div>
   <div class="rp-sec"><h3>${t('tg_cards')}</h3><div class="tg-cards">${rows.map(r=>targetCard(r.b,r.st)).join('')}</div></div>
   <div class="rp-sec"><h3>${t('sl_byBranch')}</h3><div class="cmp">${rows.map(r=>`<div class="cmp-row"><b>${esc(r.b)}</b><div class="cmp-bar"><i style="width:${Math.round(r.st.sales/maxS*100)}%"></i>${r.st.target?`<u style="inset-inline-start:${Math.round(r.st.target/maxS*100)}%"></u>`:''}</div><span class="num">${sar(r.st.sales)}</span></div>`).join('')}</div></div>
@@ -2726,7 +2755,7 @@ function maintAllView(){
   const f=S.mFilter||'open';
   const all=[...(S.maint||[])].sort((a,b)=>(+!!b.urgent - +!!a.urgent)||String(b.createdAt).localeCompare(String(a.createdAt)));
   const list=f==='all'?all:f==='done'?all.filter(m=>m.status==='done'):all.filter(m=>m.status!=='done');
-  return`<h2>${t('tab_maint')}</h2><div class="filters">${['open','done','all'].map(k=>`<button class="chip" aria-pressed="${f===k}" data-act="mFilter" data-k="${k}">${t(k==='open'?'f_active':'f_'+k)}</button>`).join('')}</div>
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_maint')}</h2><div class="row">${ioBtns('maint')}</div></div><div class="filters">${['open','done','all'].map(k=>`<button class="chip" aria-pressed="${f===k}" data-act="mFilter" data-k="${k}">${t(k==='open'?'f_active':'f_'+k)}</button>`).join('')}</div>
   <div class="list">${list.length?list.map(maintCard).join(''):`<div class="empty">${esc(t('m_none'))}</div>`}</div>`;
 }
 function maintSheet(){
@@ -2777,7 +2806,7 @@ const prevMonth=mk=>{const d=fromKey(mk+'-01');d.setMonth(d.getMonth()-1);return
 const tgFor=(b,mk)=>{const td=(S.targets&&S.targets[b])||{};return(td.m&&td.m[mk])||{}};
 function targetsView(){
   const mk=S.slMonth||monthKey(Date.now());
-  return`<div class="row" style="justify-content:space-between;margin-top:28px"><h2>${t('tg_title')} — ${esc(monthName(mk))}</h2><button class="btn btn-ghost rp-btn" data-act="copyPrevTargets">${t('tg_copyPrev')}</button></div><div class="codes">${S.branches.map((b,i)=>{const tg=tgFor(b,mk);const d=(S.tgDraft&&S.tgDraft[mk+'|'+b])||{};
+  return`<div class="row" style="justify-content:space-between;margin-top:28px"><h2>${t('tg_title')} — ${esc(monthName(mk))}</h2><div class="row">${ioBtns('targets')}<button class="btn btn-ghost rp-btn" data-act="copyPrevTargets">${t('tg_copyPrev')}</button></div></div><div class="codes">${S.branches.map((b,i)=>{const tg=tgFor(b,mk);const d=(S.tgDraft&&S.tgDraft[mk+'|'+b])||{};
     return`<div class="code"><div><b>${esc(b)}</b></div><div class="wide"><input class="field num" inputmode="numeric" id="tgS-${i}" placeholder="${esc(t('tg_sales'))}" value="${esc(d.sales!=null?d.sales:(tg.sales||''))}" data-in="tgS" data-b="${esc(b)}"><input class="field num" inputmode="numeric" id="tgI-${i}" placeholder="${esc(t('tg_inv'))}" value="${esc(d.invoices!=null?d.invoices:(tg.invoices||''))}" data-in="tgI" data-b="${esc(b)}"><button class="btn btn-navy" data-act="saveTarget" data-b="${esc(b)}">${t('waSave')}</button></div></div>`}).join('')}</div>`;
 }
 function checklistEditView(){
@@ -2899,7 +2928,7 @@ function hrEmpsView(){
   const al=hrDocAlerts(),lateIds=new Set(al.filter(a=>a.left<0).map(a=>a.e.id));
   const show=S.hrShow||'active';
   const list=all.filter(e=>(show==='all'||(show==='left')===(e.status==='left'))&&(!place||e.branch===place)&&(!q||[e.name,e.no,e.idNo,e.phone,e.job].some(x=>String(x||'').toLowerCase().includes(q))));
-  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_emps')}</h2><div class="row"><button class="btn btn-ghost rp-btn" data-act="hrXls">${t('xlsExport')}</button><button class="btn btn-sun" data-act="hrNew">+ ${t('hr_add')}</button></div></div>
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_emps')}</h2><div class="row">${ioBtns('employees')}<button class="btn btn-ghost rp-btn" data-act="hrXls">${t('io_exportAll')}</button><button class="btn btn-sun" data-act="hrNew">+ ${t('hr_add')}</button></div></div>
   <div class="stats">${kpi(t('hr_working'),sar(act.length))}${kpi(t('hr_onLeave'),sar(act.filter(onLeaveToday).length))}${kpi(t('hr_expiring'),sar(al.length),al.length?'hot':'')}${kpi(t('hr_payroll'),sar(act.reduce((a,e)=>a+payTotal(e),0))+' '+t('sar'))}</div>
   <div class="row hr-filter"><input class="field" id="hrQ" data-in="hrQ" placeholder="${esc(t('hr_search'))}" value="${esc(S.hrQ||'')}" style="flex:2;min-width:180px">
     <select class="field" id="hrPlace" style="flex:1;min-width:140px"><option value="">${esc(t('hr_allPlaces'))}</option>${hrPlaces().map(p=>`<option value="${esc(p)}" ${place===p?'selected':''}>${esc(placeL(p))} (${act.filter(e=>e.branch===p).length})</option>`).join('')}</select></div>
@@ -2919,7 +2948,7 @@ function hrLeavesView(){
   const f=S.lvFilter||'current',today=dayKey(Date.now());
   const all=[...(S.leaves||[])].sort((a,b)=>String(b.from).localeCompare(String(a.from)));
   const list=f==='pending'?all.filter(l=>l.status==='pending'):f==='current'?all.filter(l=>l.status!=='rejected'&&l.to>=today):all;
-  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_leaves')}</h2><button class="btn btn-sun" data-act="lvNew" ${(S.emps||[]).some(e=>e.status!=='left')?'':'disabled'}>+ ${t('lv_add')}</button></div>
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_leaves')}</h2><div class="row">${ioBtns('leaves')}<button class="btn btn-sun" data-act="lvNew" ${(S.emps||[]).some(e=>e.status!=='left')?'':'disabled'}>+ ${t('lv_add')}</button></div></div>
   <div class="filters">${[['current','lf_current'],['pending','ls_pending'],['all','f_all']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="lvFilter" data-k="${k}">${t(l)}</button>`).join('')}</div>
   <div class="list">${list.length?list.map(l=>{const e=empById(l.emp);const now=l.status==='approved'&&l.from<=today&&l.to>=today;return`<button class="oc" data-act="lvOpen" data-id="${esc(l.id)}">
     <span style="min-width:0"><span class="t">${esc(e?e.name:'—')} <span class="tag">${esc(t('lt_'+(l.type||'annual')))}</span>${now?`<span class="tag ret">${t('hr_inLeave')}</span>`:''}</span>
@@ -3084,7 +3113,7 @@ function custodyView(){
   const all=[...(S.custody||[])].sort((a,b)=>String(b.given).localeCompare(String(a.given)));
   const out=all.filter(custOut);
   const list=f==='out'?out:f==='returned'?all.filter(c=>!custOut(c)):all;
-  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_custody')}</h2><button class="btn btn-sun" data-act="cuNew" ${(S.emps||[]).some(e=>e.status!=='left')?'':'disabled'}>+ ${t('cu_add')}</button></div>
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_custody')}</h2><div class="row">${ioBtns('custody')}<button class="btn btn-sun" data-act="cuNew" ${(S.emps||[]).some(e=>e.status!=='left')?'':'disabled'}>+ ${t('cu_add')}</button></div></div>
   <div class="stats">${kpi(t('cu_outN'),sar(out.length))}${kpi(t('cu_outVal'),sar(out.reduce((a,c)=>a+(+c.value||0),0))+' '+t('sar'))}</div>
   <div class="filters">${[['out','cs_out'],['returned','cs_returned'],['all','f_all']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="cuFilter" data-k="${k}">${t(l)}</button>`).join('')}</div>
   <div class="list">${list.length?list.map(c=>{const left=empById(c.emp)&&empById(c.emp).status==='left'&&custOut(c);return`<button class="oc ${left?'late':''}" data-act="cuOpen" data-id="${esc(c.id)}">
@@ -3110,7 +3139,7 @@ function advancesView(){
   const all=[...(S.advances||[])].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   const open=all.filter(a=>advRemain(a)>0);
   const list=f==='open'?open:f==='closed'?all.filter(a=>advRemain(a)<=0):all;
-  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_adv')}</h2><button class="btn btn-sun" data-act="avNew" ${(S.emps||[]).some(e=>e.status!=='left')?'':'disabled'}>+ ${t('av_add')}</button></div>
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_adv')}</h2><div class="row">${ioBtns('advances')}<button class="btn btn-sun" data-act="avNew" ${(S.emps||[]).some(e=>e.status!=='left')?'':'disabled'}>+ ${t('av_add')}</button></div></div>
   <div class="stats">${kpi(t('av_openN'),sar(open.length))}${kpi(t('av_outTotal'),sar(open.reduce((s,a)=>s+advRemain(a),0))+' '+t('sar'),open.length?'hot':'')}</div>
   <div class="filters">${[['open','as_open'],['closed','as_closed'],['all','f_all']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="avFilter" data-k="${k}">${t(l)}</button>`).join('')}</div>
   <div class="list">${list.length?list.map(a=>{const r=advRemain(a),left=r>0&&+a.monthly>0?Math.ceil(r/ +a.monthly):0;return`<button class="oc" data-act="avOpen" data-id="${esc(a.id)}">
@@ -3347,7 +3376,7 @@ function licensesView(){
   const all=[...(S.licenses||[])].sort((a,b)=>String(a.expiry||'9999').localeCompare(String(b.expiry||'9999')));
   const list=f==='soon'?all.filter(l=>['expired','soon'].includes(licState(l))):f==='all'?all:all.filter(l=>l.kind===f);
   const n=k=>all.filter(l=>licState(l)===k).length;
-  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_lic')}</h2><div class="row"><button class="btn btn-ghost rp-btn" data-act="liNew" data-k="contract">+ ${t('li_addContract')}</button><button class="btn btn-sun" data-act="liNew" data-k="license">+ ${t('li_addLicense')}</button></div></div>
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_lic')}</h2><div class="row">${ioBtns('licenses')}<button class="btn btn-ghost rp-btn" data-act="liNew" data-k="contract">+ ${t('li_addContract')}</button><button class="btn btn-sun" data-act="liNew" data-k="license">+ ${t('li_addLicense')}</button></div></div>
   <div class="stats">${kpi(t('li_licenses'),sar(all.filter(l=>l.kind!=='contract').length))}${kpi(t('li_contracts'),sar(all.filter(l=>l.kind==='contract').length))}${kpi(t('li_soon'),sar(n('soon')),n('soon')?'hot':'')}${kpi(t('li_expired'),sar(n('expired')),n('expired')?'hot':'')}</div>
   <div class="filters">${[['all','f_all'],['license','li_licenses'],['contract','li_contracts'],['soon','li_needAction']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="liFilter" data-k="${k}">${t(l)}</button>`).join('')}</div>
   <div class="list">${list.length?list.map(l=>{const st=licState(l),left=licLeft(l);return`<button class="oc ${st==='expired'?'late':''}" data-act="liOpen" data-id="${esc(l.id)}">
@@ -3482,6 +3511,179 @@ document.addEventListener('input',ev=>{
 document.addEventListener('change',ev=>{
   const el=ev.target;
   if(el.id==='hrPlace'){S.hrPlace=el.value;render();return}
+});
+
+/* ================= Excel import / export for every data list ================= */
+/* each dataset: columns [key, label key, type, required]; type: text (default) | num | date | month | place | branch | emp | litype | {value: label key} */
+const yesNo={yes:'io_yes',no:'io_no'};
+const IO={
+  employees:{name:()=>t('tab_emps'),col:'employees',idp:'E',list:()=>S.emps||[],
+    cols:[['name','hr_name','text',2],['no','hr_no'],['branch','hr_branch','place'],['job','hr_job'],['nat','hr_nat'],['phone','hr_phone'],['idNo','hr_id'],
+      ['idExp','hr_idExp','date'],['healthExp','hr_health','date'],['contractEnd','hr_contract','date'],['hire','hr_hire','date'],
+      ['salary','hr_salary','num'],['alHousing','al_housing','num'],['alTransport','al_transport','num'],['alFood','al_food','num'],['alOther','al_other','num'],
+      ['status','hr_status',{active:'es_active',left:'es_left'}],['note','hr_note']],
+    extra:[['hr_totalPay',e=>payTotal(e)]],
+    match:(r,L)=>L.find(e=>(r.no&&String(e.no)===r.no)||(r.idNo&&String(e.idNo)===r.idNo))||(!r.no&&!r.idNo?L.find(e=>e.name===r.name):null),
+    build:(r,o)=>Object.assign({status:'active',branch:S.branches[0]||'@office'},o||{},r)},
+  leaves:{name:()=>t('tab_leaves'),col:'leaves',idp:'L',list:()=>S.leaves||[],
+    cols:[['emp','lv_emp','emp',1],['type','lv_type',{annual:'lt_annual',sick:'lt_sick',emergency:'lt_emergency',unpaid:'lt_unpaid'}],['from','lv_from','date',1],['to','lv_to','date',1],
+      ['status','hr_status',{pending:'ls_pending',approved:'ls_approved',rejected:'ls_rejected'}],['note','hr_note']],
+    extra:[['hr_daysN',l=>leaveDays(l)]],
+    check:r=>r.to<r.from?t('lv_badDates'):null,
+    match:(r,L)=>L.find(l=>l.emp===r.emp&&l.from===r.from),
+    build:(r,o)=>{const d=Object.assign({type:'annual',status:'pending'},o||{},r);d.days=leaveDays(d);return d}},
+  custody:{name:()=>t('tab_custody'),col:'custody',idp:'C',list:()=>S.custody||[],
+    cols:[['emp','lv_emp','emp',1],['item','cu_item','text',1],['serial','cu_serial'],['value','cu_value','num'],['given','cu_given','date'],
+      ['status','hr_status',{out:'cs_out',returned:'cs_returned',deducted:'cs_deducted'}],['returnedAt','cu_returnedAt','date'],['note','hr_note']],
+    match:(r,L)=>L.find(c=>c.emp===r.emp&&c.item===r.item&&String(c.serial||'')===String(r.serial||'')),
+    build:(r,o)=>Object.assign({status:'out',given:dayKey(Date.now())},o||{},r)},
+  advances:{name:()=>t('tab_adv'),col:'advances',idp:'A',list:()=>S.advances||[],
+    cols:[['emp','lv_emp','emp',1],['date','av_date','date'],['amount','av_amount','num',1],['monthly','av_monthly','num'],['paid','av_paid','num'],['note','hr_note']],
+    extra:[['av_remain',a=>advRemain(a)]],
+    get:(a,k)=>k==='paid'?advPaid(a):a[k],
+    match:(r,L)=>L.find(a=>a.emp===r.emp&&a.date===r.date&&+a.amount===+r.amount),
+    build:(r,o)=>{const d=Object.assign({date:dayKey(Date.now())},o||{},r);delete d.paid;
+      if(r.paid!=null&&r.paid!==advPaid(o||{}))d.payments=r.paid>0?[{date:d.date,amount:Math.min(r.paid,+d.amount||0)}]:[];else d.payments=(o&&o.payments)||[];
+      d.status=advRemain(d)>0?'open':'closed';return d}},
+  licenses:{name:()=>t('tab_lic'),col:'licenses',idp:'LC',list:()=>S.licenses||[],
+    cols:[['kind','io_kind',{license:'li_license',contract:'li_contract'},1],['type','li_type','litype'],['title','li_title'],['number','li_num'],['place','hr_branch','place'],
+      ['party','li_party'],['amount','li_amount','num'],['start','li_issued','date'],['expiry','hr_expiry','date'],['note','hr_note']],
+    extra:[['hr_status',l=>t('ls2_'+licState(l))]],
+    match:(r,L)=>L.find(l=>l.kind===r.kind&&l.type===r.type&&(r.number?String(l.number||'')===r.number:(l.title||'')===(r.title||''))),
+    build:(r,o)=>{const d=Object.assign({place:'@all',history:[],hasFile:false},o||{},r);if(!d.type)d.type='other';return d}},
+  sales:{name:()=>t('tab_sales'),col:'sales',list:()=>S.sales||[],
+    cols:[['branch','r_branch','branch'],['date','sl_day','date',1],['sales','sl_sales','num',1],['invoices','sl_inv','num',1]],
+    check:r=>{if(S.role==='branch'){if(r.branch&&r.branch!==S.branch)return t('io_otherBranch');r.branch=S.branch}
+      if(!r.branch)return t('io_req',{c:t('r_branch')});if(r.date>dayKey(Date.now()))return t('sl_future');return null},
+    idOf:r=>r.branch+'_'+r.date,
+    match:(r,L)=>L.find(x=>x.branch===r.branch&&x.date===r.date),
+    build:(r,o)=>Object.assign({},o||{},r,{invoices:Math.round(r.invoices),at:nowIso()})},
+  targets:{name:()=>t('tg_title'),list:()=>{const out=[];for(const b in(S.targets||{})){const m=(S.targets[b]||{}).m||{};for(const mk in m)out.push({id:b+'|'+mk,branch:b,month:mk,sales:m[mk].sales,invoices:m[mk].invoices})}return out.sort((a,b)=>(a.month+a.branch).localeCompare(b.month+b.branch))},
+    cols:[['branch','r_branch','branch',1],['month','io_month','month',1],['sales','sl_target','num'],['invoices','sl_inv','num']],
+    idOf:r=>r.branch+'|'+r.month,
+    match:(r,L)=>L.find(x=>x.branch===r.branch&&x.month===r.month),
+    build:(r,o)=>Object.assign({},o||{},r),
+    save:x=>X.target(x.data.branch,x.data.month,{sales:+x.data.sales||0,invoices:Math.round(+x.data.invoices||0)})},
+  maint:{name:()=>t('tab_maint'),readOnly:true,list:()=>[...(S.maint||[])].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))),
+    cols:[['branch','r_branch','branch'],['cat','m_cat',Object.fromEntries(MAINT_CATS.map(c=>[c,'mc_'+c]))],['desc','m_desc'],['urgent','m_urgent',yesNo],
+      ['status','hr_status',{open:'ms_open',progress:'ms_progress',done:'ms_done'}],['createdAt','c_created'],['opsNote','m_reply']],
+    get:(m,k)=>k==='urgent'?(m.urgent?'yes':'no'):k==='createdAt'?fmtDT(m.createdAt):m[k]}
+};
+const ioCan=k=>({employees:'hr',leaves:'hr',custody:'hr',advances:'hr',licenses:'hr',targets:'manager',maint:'manager'}[k]||(k==='sales'?(S.role==='manager'||S.role==='branch')&&S.role:null))===S.role;
+function ioBtns(k){
+  if(!ioCan(k))return'';
+  return`<button class="btn btn-ghost rp-btn" data-act="ioExport" data-k="${k}">${t('io_export')}</button>${IO[k].readOnly?'':`<label class="btn btn-ghost rp-btn io-imp">${t('io_import')}<input type="file" class="imp-in" data-k="${k}" accept=".xlsx,.xls,.csv" aria-label="${esc(t('io_import'))}"></label>`}`;
+}
+/* ---- values: export in the current language, import from any of the four ---- */
+const labelsOf=k=>(T[k]||[k]).map(x=>String(x).trim().toLowerCase());
+const normH=v=>String(v??'').replace(/\s+/g,' ').trim().toLowerCase();
+const asciiDigits=v=>String(v).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+const PLACE_KEYS={'@wh':'r_warehouse','@office':'hr_office','@all':'li_allPlaces'};
+function ioOut(def,row,c){
+  const [k,,type]=c;const v=def.get?def.get(row,k):row[k];
+  if(v==null||v==='')return'';
+  if(type==='place'||type==='branch')return placeL(v);
+  if(type==='emp')return empName(v);
+  if(type==='litype')return licTypeL(row);
+  if(type&&typeof type==='object')return type[v]?t(type[v]):v;
+  return v;
+}
+function ioDate(v){
+  if(v instanceof Date&&!isNaN(v))return dayKey(v);
+  if(typeof v==='number'&&window.XLSX){const p=XLSX.SSF.parse_date_code(v);if(p&&p.y)return`${p.y}-${String(p.m).padStart(2,'0')}-${String(p.d).padStart(2,'0')}`;return null}
+  const s=asciiDigits(v).trim();let m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/),y,mo,d;
+  if(m){y=+m[1];mo=+m[2];d=+m[3]}else if((m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/))){d=+m[1];mo=+m[2];y=+m[3]}else return null;
+  const dt=new Date(y,mo-1,d);if(dt.getFullYear()!==y||dt.getMonth()!==mo-1||dt.getDate()!==d)return null;
+  return dayKey(dt);
+}
+function ioIn(c,raw,ctx){
+  const [k,lk,type]=c;const label=t(lk);
+  if(raw==null||String(raw).trim()==='')return{skip:true};
+  const s=typeof raw==='string'?raw.trim():raw;
+  if(type==='num'){const n=typeof s==='number'?s:Number(asciiDigits(s).replace(/[,،\s]/g,'').replace(/[^\d.\-]/g,''));return isFinite(n)&&String(s)!==''?{v:n}:{err:t('io_badNum',{c:label})}}
+  if(type==='date'){const d=ioDate(s);return d?{v:d}:{err:t('io_badDate',{c:label})}}
+  if(type==='month'){const m=asciiDigits(s).trim().match(/^(\d{4})[-\/.](\d{1,2})$/);if(m)return{v:m[1]+'-'+String(+m[2]).padStart(2,'0')};const d=ioDate(s);return d?{v:d.slice(0,7)}:{err:t('io_badDate',{c:label})}}
+  const low=String(s).toLowerCase();
+  if(type==='place'||type==='branch'){
+    const b=S.branches.find(x=>x.toLowerCase()===low);if(b)return{v:b};
+    if(type==='place')for(const pk in PLACE_KEYS)if(pk===low||labelsOf(PLACE_KEYS[pk]).includes(low))return{v:pk};
+    return{err:t('io_noPlace',{v:s})}}
+  if(type==='emp'){const L=S.emps||[];const e=L.find(x=>x.no&&String(x.no)===String(s))||L.find(x=>x.idNo&&String(x.idNo)===String(s))||L.find(x=>x.name===s);return e?{v:e.id}:{err:t('io_noEmp',{v:s})}}
+  if(type==='litype'){const kind=ctx.kind||'license';const opts=LIC_TYPES[kind];
+    const hit=opts.find(o=>o===low||labelsOf((kind==='contract'?'ct_':'li_')+'t_'+o).includes(low));return hit?{v:hit}:{err:t('io_badOpt',{c:label,v:s})}}
+  if(type&&typeof type==='object'){for(const ok in type)if(ok===low||labelsOf(type[ok]).includes(low))return{v:ok};return{err:t('io_badOpt',{c:label,v:s})}}
+  return{v:String(s)};
+}
+async function ioRead(k,file){
+  const def=IO[k];
+  try{await ensureXlsx();if(!window.XLSX)throw 0}catch(e){toast(t('xlsFail'));return}
+  let aoa;
+  try{const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''})}
+  catch(e){toast(t('io_readFail'));return}
+  const hi=aoa.findIndex(r=>r.some(v=>String(v).trim()!==''));
+  const imp={k,file:file.name,ok:[],errors:[],missing:[]};
+  if(hi<0){imp.fatal=t('io_empty');S.imp=imp;render();return}
+  const head=aoa[hi].map(normH);
+  // which file column holds each dataset column (header text in any language, or the field key)
+  const at={};def.cols.forEach(c=>{const names=[c[0].toLowerCase(),...labelsOf(c[1])];const i=head.findIndex(h=>names.includes(h));if(i>=0)at[c[0]]=i});
+  imp.missing=def.cols.filter(c=>c[3]===1&&at[c[0]]==null&&!(k==='sales'&&c[0]==='branch')).map(c=>t(c[1]));
+  if(k==='sales'&&S.role==='manager'&&at.branch==null)imp.missing.push(t('r_branch'));
+  if(k==='employees'&&at.name==null&&at.no==null&&at.idNo==null)imp.missing.push(t('hr_name'));
+  if(imp.missing.length){imp.fatal=t('io_missing',{c:imp.missing.join('، ')});S.imp=imp;render();return}
+  const list=def.list().map(x=>Object.assign({},x));   // copies: nothing changes until the import is confirmed
+  for(let i=hi+1;i<aoa.length;i++){
+    const row=aoa[i];if(!row.some(v=>String(v).trim()!==''))continue;
+    const r={},errs=[];
+    for(const c of def.cols){if(at[c[0]]==null)continue;const x=ioIn(c,row[at[c[0]]],r);
+      if(x.err)errs.push(x.err);else if(!x.skip)r[c[0]]=x.v;else if(c[3]===1)errs.push(t('io_req',{c:t(c[1])}))}
+    if(!errs.length&&def.check){const e=def.check(r);if(e)errs.push(e)}
+    if(errs.length){imp.errors.push({n:i+1,msg:errs.join(' — ')});continue}
+    const old=def.match(r,list);
+    // flag 2 = needed only when the row creates a new record (an update can leave it out)
+    const needNew=old?[]:def.cols.filter(c=>c[3]===2&&r[c[0]]==null);
+    if(needNew.length){imp.errors.push({n:i+1,msg:needNew.map(c=>t('io_req',{c:t(c[1])})).join(' — ')});continue}
+    const data=def.build(r,old);
+    const id=old?old.id:(def.idOf?def.idOf(data):hrId(def.idp));
+    const tm=nowIso();if(def.col&&def.col!=='sales'){data.updatedAt=tm;if(!data.createdAt)data.createdAt=tm}
+    delete data.id;
+    const prev=imp.ok.find(x=>x.id===id);
+    if(prev)prev.data=data;else imp.ok.push({id,data,isNew:!old});
+    if(!old)list.push(Object.assign({},data,{id}));else Object.assign(old,data);
+  }
+  if(!imp.ok.length&&!imp.errors.length)imp.fatal=t('io_empty');
+  S.imp=imp;render();
+}
+function impSheet(){
+  const m=S.imp,def=IO[m.k];if(!def)return'';
+  const nw=m.ok.filter(x=>x.isNew).length,up=m.ok.length-nw;
+  const show=def.cols.slice(0,4);
+  const body=`<div class="hint" style="margin-bottom:10px">📄 ${esc(m.file)}</div>
+  ${m.fatal?`<div class="eos-warn">${esc(m.fatal)}</div>`:`<div class="stats">${kpi(t('io_new'),sar(nw))}${kpi(t('io_upd'),sar(up))}${kpi(t('io_err'),sar(m.errors.length),m.errors.length?'hot':'')}</div>`}
+  ${m.errors.length?`<div class="eos-warn" style="margin-top:10px">${m.errors.slice(0,30).map(e=>`<div><b>${esc(t('io_row',{n:e.n}))}:</b> ${esc(e.msg)}</div>`).join('')}${m.errors.length>30?`<div>…</div>`:''}</div>`:''}
+  ${m.ok.length?`<div class="scroll" style="margin-top:12px"><table class="tbl"><thead><tr><th></th>${show.map(c=>`<th>${esc(t(c[1]))}</th>`).join('')}</tr></thead><tbody>
+    ${m.ok.slice(0,8).map(x=>`<tr><td><span class="tag">${esc(t(x.isNew?'io_new':'io_upd'))}</span></td>${show.map(c=>`<td>${esc(String(ioOut(def,Object.assign({id:x.id},x.data),c)))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>${m.ok.length>8?`<div class="hint">+ ${m.ok.length-8}</div>`:''}`:''}
+  <p class="hint" style="margin-top:12px">${esc(t('io_hint'))}</p>`;
+  const foot=`<button class="btn btn-ghost" data-act="close">${t('io_cancel')}</button><span class="spacer"></span><button class="btn btn-sun" data-act="ioCommit" ${m.ok.length&&!S.busy?'':'disabled'}>${esc(t('io_go',{n:m.ok.length}))}</button>`;
+  return hrSheetWrap(t('io_title',{n:def.name()}),body,foot);
+}
+Object.assign(A,{
+  async ioExport(el){
+    const k=el.dataset.k,def=IO[k];if(!def||!ioCan(k))return;
+    const rows=def.list().map(r=>[...def.cols.map(c=>ioOut(def,r,c)),...(def.extra||[]).map(x=>x[1](r))]);
+    await saveXlsx('maskob-'+k+'-'+dayKey(Date.now())+'.xlsx',[{name:def.name(),headers:[...def.cols.map(c=>t(c[1])),...(def.extra||[]).map(x=>t(x[0]))],rows}]);
+  },
+  ioCommit(){
+    const m=S.imp,def=m&&IO[m.k];if(!def||!m.ok.length)return;const items=[...m.ok];
+    guard(async()=>{
+      for(let i=0;i<items.length;i+=20)await Promise.all(items.slice(i,i+20).map(x=>def.save?def.save(x):X.put(def.col,x.id,x.data)));
+      S.imp=null;
+    },()=>t('io_done',{n:items.length}));
+  }
+});
+document.addEventListener('change',ev=>{
+  const el=ev.target;if(!el.classList||!el.classList.contains('imp-in')||!el.files||!el.files[0])return;
+  const f=el.files[0],k=el.dataset.k;el.value='';
+  if(ioCan(k))ioRead(k,f);
 });
 
 render();
