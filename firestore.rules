@@ -78,6 +78,57 @@ service cloud.firestore {
         && hashFor(request.resource.data.role, request.resource.data.get('branch', '')) == request.resource.data.h;
     }
 
+    function isBranch() { return valid() && sess().role == 'branch'; }
+    function myBranch() { return sess().branch; }
+
+    // daily sales: a branch writes and reads its own days; operations reads and corrects all
+    match /sales/{id} {
+      allow read: if isMgr() || (isBranch() && resource.data.branch == myBranch());
+      allow create: if isMgr() || (isBranch() && request.resource.data.branch == myBranch());
+      allow update: if isMgr() || (isBranch() && resource.data.branch == myBranch() && request.resource.data.branch == myBranch());
+      allow delete: if isMgr();
+    }
+
+    // monthly targets per branch: set by system admin
+    match /targets/{b} {
+      allow read: if isMgr() || isAdmin() || (isBranch() && myBranch() == b);
+      allow write: if isAdmin();
+    }
+
+    // maintenance reports: a branch files its own; operations follows up and closes them
+    match /maintenance/{id} {
+      allow read: if isMgr() || (isBranch() && resource.data.branch == myBranch());
+      allow create: if isBranch() && request.resource.data.branch == myBranch() && request.resource.data.status == 'open';
+      allow update: if isMgr()
+        || (isBranch() && resource.data.branch == myBranch() && request.resource.data.branch == myBranch()
+            && request.resource.data.status == resource.data.status);
+      allow delete: if isMgr();
+
+      // photos (compressed JPEG data, one document each)
+      match /photos/{p} {
+        allow read: if isMgr()
+          || (isBranch() && get(/databases/$(db)/documents/maintenance/$(id)).data.branch == myBranch());
+        allow create: if isBranch() && request.resource.data.branch == myBranch()
+          && get(/databases/$(db)/documents/maintenance/$(id)).data.branch == myBranch()
+          && request.resource.data.data is string && request.resource.data.data.size() < 900000;
+        allow delete: if isMgr();
+      }
+    }
+
+    // daily inspection checklist results
+    match /checks/{id} {
+      allow read: if isMgr() || (isBranch() && resource.data.branch == myBranch());
+      allow create: if isBranch() && request.resource.data.branch == myBranch();
+      allow update: if isBranch() && resource.data.branch == myBranch() && request.resource.data.branch == myBranch();
+      allow delete: if isMgr();
+    }
+
+    // checklist items: every signed-in role reads, system admin edits
+    match /config/checklist {
+      allow read: if valid();
+      allow write: if isAdmin();
+    }
+
     match /orders/{id} {
       allow read: if valid()
         && (sess().role in ['manager', 'warehouse']
