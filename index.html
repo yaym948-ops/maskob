@@ -620,6 +620,9 @@ span.sh-c{cursor:default}
 .logout-btn{border:0;background:var(--sun);color:#fff;border-radius:999px;padding:6px 14px;font:inherit;font-size:13px;font-weight:500;cursor:pointer}
 .logout-btn:hover{filter:brightness(1.05)}
 
+.tag.fm-deduction,.tag.fm-warning{background:var(--late-soft);color:var(--late)}
+.tag.fm-reward{background:var(--sun-soft);color:var(--sun-ink)}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -1174,6 +1177,64 @@ sh_staffHint:['الموظف الموقوف لا يظهر في الجدول ول�
 sh_staffSaved:['حُفظ الموظف','Staff member saved','কর্মী সংরক্ষিত','عملہ محفوظ ہو گیا'],
 sh_hrInbox:['موظفون أضافتهم الفروع ولم يُسجلوا هنا بعد','Staff added by branches, not in HR files yet','শাখা যোগ করেছে, এখনো এখানে নেই','برانچوں نے شامل کیا، ابھی یہاں درج نہیں'],
 sh_hrAdd:['إضافة لملفات الموظفين','Add to employee files','কর্মচারী ফাইলে যোগ','ملازمین کی فائلوں میں شامل کریں'],
+tab_vc:['سندات الصرف','Payment vouchers','পেমেন্ট ভাউচার','ادائیگی واؤچر'],
+vc_add:['سند صرف جديد','New voucher','নতুন ভাউচার','نیا واؤچر'],
+vc_title:['سند صرف','Payment voucher','পেমেন্ট ভাউচার','ادائیگی واؤچر'],
+vc_count:['عدد السندات','Vouchers','ভাউচার সংখ্যা','واؤچرز کی تعداد'],
+vc_total:['إجمالي المصروف','Total paid','মোট প্রদান','کل ادائیگی'],
+vc_none:['لا توجد سندات في هذا الشهر','No vouchers this month','এ মাসে কোনো ভাউচার নেই','اس ماہ کوئی واؤچر نہیں'],
+vc_no:['رقم السند','Voucher no.','ভাউচার নং','واؤچر نمبر'],
+vc_emp:['الموظف (اختياري)','Employee (optional)','কর্মচারী (ঐচ্ছিক)','ملازم (اختیاری)'],
+vc_other_payee:['— ليس موظفاً —','— not an employee —','— কর্মচারী নয় —','— ملازم نہیں —'],
+vc_payee:['اسم المستلم','Payee name','প্রাপকের নাম','وصول کنندہ کا نام'],
+vc_amount:['المبلغ','Amount','পরিমাণ','رقم'],
+vc_cat:['نوع الصرف','Category','ধরন','قسم'],
+vc_method:['طريقة الدفع','Payment method','পরিশোধ পদ্ধতি','ادائیگی کا طریقہ'],
+vc_ref:['رقم الحوالة / الشيك','Transfer / cheque no.','ট্রান্সফার / চেক নং','ٹرانسفر / چیک نمبر'],
+vc_purpose:['وذلك عن (البيان)','Purpose','উদ্দেশ্য','مقصد'],
+vc_savePrint:['حفظ وطباعة','Save & print','সংরক্ষণ ও প্রিন্ট','محفوظ اور پرنٹ'],
+vc_saved:['حُفظ السند','Voucher saved','ভাউচার সংরক্ষিত','واؤچر محفوظ'],
+vc_need:['أدخل اسم المستلم والمبلغ','Enter the payee and amount','প্রাপক ও পরিমাণ লিখুন','وصول کنندہ اور رقم درج کریں'],
+vc_advance:['سلفة','Advance','অগ্রিম','ایڈوانس'],
+vc_reward:['مكافأة','Reward','পুরস্কার','انعام'],
+vc_eos:['مستحقات نهاية خدمة','End-of-service dues','চাকরি শেষের পাওনা','اختتامِ ملازمت کے واجبات'],
+vc_salary:['رواتب ومستحقات','Salary & dues','বেতন ও পাওনা','تنخواہ اور واجبات'],
+vc_allow:['بدلات','Allowances','ভাতা','الاؤنسز'],
+vc_other:['أخرى','Other','অন্যান্য','دیگر'],
+pm_cash:['نقداً','Cash','নগদ','نقد'],
+pm_bank:['تحويل بنكي','Bank transfer','ব্যাংক ট্রান্সফার','بینک ٹرانسفر'],
+pm_cheque:['شيك','Cheque','চেক','چیک'],
+tab_forms:['النماذج','Forms','ফর্ম','فارم'],
+fm_deduction:['خصم','Deduction','কর্তন','کٹوتی'],
+fm_warning:['إنذار','Warning','সতর্কতা','وارننگ'],
+fm_reward:['مكافأة','Reward','পুরস্কার','انعام'],
+fm_new:['نموذج جديد','New form','নতুন ফর্ম','نیا فارم'],
+fm_none:['لا توجد نماذج','No forms','কোনো ফর্ম নেই','کوئی فارم نہیں'],
+fm_level:['درجة الإنذار','Warning level','সতর্কতার স্তর','وارننگ کا درجہ'],
+fl_1:['إنذار أول','First warning','প্রথম সতর্কতা','پہلی وارننگ'],
+fl_2:['إنذار ثانٍ','Second warning','দ্বিতীয় সতর্কতা','دوسری وارننگ'],
+fl_3:['إنذار نهائي','Final warning','চূড়ান্ত সতর্কতা','آخری وارننگ'],
+fm_days:['أيام الخصم','Days deducted','কর্তনের দিন','کٹوتی کے دن'],
+fm_amount:['مبلغ الخصم','Amount deducted','কর্তনের পরিমাণ','کٹوتی کی رقم'],
+fm_rewardAmount:['مبلغ المكافأة','Reward amount','পুরস্কারের পরিমাণ','انعام کی رقم'],
+fm_reason:['المخالفة / السبب','Violation / reason','লঙ্ঘন / কারণ','خلاف ورزی / وجہ'],
+fm_reasonReward:['سبب المكافأة','Reason for the reward','পুরস্কারের কারণ','انعام کی وجہ'],
+fm_send:['إرسال للموارد البشرية','Send to HR','মানব সম্পদে পাঠান','انسانی وسائل کو بھیجیں'],
+fm_sent:['أُرسل النموذج للموارد البشرية','Form sent to HR','ফর্ম মানব সম্পদে পাঠানো হয়েছে','فارم انسانی وسائل کو بھیج دیا گیا'],
+fm_saved:['حُفظ النموذج','Form saved','ফর্ম সংরক্ষিত','فارم محفوظ'],
+fm_need:['اختر الموظف واكتب السبب','Choose the employee and enter the reason','কর্মচারী বেছে কারণ লিখুন','ملازم منتخب کریں اور وجہ لکھیں'],
+fm_needDed:['أدخل أيام الخصم أو المبلغ','Enter the days or amount to deduct','কর্তনের দিন বা পরিমাণ লিখুন','کٹوتی کے دن یا رقم درج کریں'],
+fm_pending:['نماذج من الفروع بانتظار الاعتماد','Branch forms awaiting approval','অনুমোদনের অপেক্ষায় শাখার ফর্ম','منظوری کے منتظر برانچ فارم'],
+fm_approved:['اعتُمد النموذج','Form approved','ফর্ম অনুমোদিত','فارم منظور'],
+fm_print:['طباعة','Print','প্রিন্ট','پرنٹ'],
+fm_toVoucher:['إنشاء سند صرف','Create payment voucher','পেমেন্ট ভাউচার তৈরি','ادائیگی واؤچر بنائیں'],
+tp_print:['طباعة نموذج جاهز','Print a ready document','প্রস্তুত নথি প্রিন্ট','تیار دستاویز پرنٹ کریں'],
+tp_kind:['النموذج','Document','নথি','دستاویز'],
+tp_salary:['تعريف بالراتب','Salary certificate','বেতন সনদ','تنخواہ سرٹیفکیٹ'],
+tp_experience:['شهادة خبرة','Experience certificate','অভিজ্ঞতা সনদ','تجربہ سرٹیفکیٹ'],
+tp_start:['مباشرة عمل','Work commencement','কাজে যোগদান','کام کا آغاز'],
+tp_clear:['إخلاء طرف','Clearance form','ছাড়পত্র','کلیئرنس فارم'],
+tp_hint:['يُعبأ من ملف الموظف ويُطبع بترويسة المنشأة.','Filled from the employee file and printed on the letterhead.','কর্মচারীর ফাইল থেকে পূরণ হয়ে লেটারহেডে প্রিন্ট হয়।','ملازم کی فائل سے بھر کر لیٹر ہیڈ پر پرنٹ ہوتا ہے۔'],
 io_menu:['استيراد وتصدير','Import / export','আমদানি / রপ্তানি','درآمد / برآمد'],
 io_export:['تصدير','Export','রপ্তানি','برآمد'],
 io_import:['استيراد','Import','আমদানি','درآمد'],
@@ -1869,7 +1930,7 @@ function counts(){
 }
 function tabsFor(){
   const c=counts();
-  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')},{k:'lr',l:t('tab_shifts'),b:(S.leaveReqs||[]).filter(r=>r.status==='pending').length},{k:'fc',l:t('tab_fc')}];
+  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')},{k:'lr',l:t('tab_shifts'),b:(S.leaveReqs||[]).filter(r=>r.status==='pending').length},{k:'forms',l:t('tab_forms')},{k:'fc',l:t('tab_fc')}];
   if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales')},{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')}];
   if(S.role==='admin')return[{k:'branches',l:t('tab_settings')},{k:'catalog',l:t('tab_catalog')}];
   if(S.role==='hr')return hrTabs();
@@ -1898,7 +1959,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}">${esc(x.l)}${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -1942,6 +2003,7 @@ function view(){
   if(tb==='report'&&S.role==='manager')return reportView();
   if(S.role==='branch'&&tb==='fc')return branchForecastView();
   if(S.role==='branch'&&tb==='lr')return branchStaffTab(tb);
+  if(S.role==='branch'&&tb==='forms')return branchFormsView();
   if(S.role==='branch')return noticeBanner(v)+branchView(tb,v);
   return staffView(tb,v);
 }
@@ -2518,7 +2580,7 @@ async function overlapsOther(v,key){
 const fieldKey=f=>({appr:'approved',sent:'sent',recv:'received'}[f]);
 function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
-  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
+  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -2603,7 +2665,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.imp=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.imp=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -2778,7 +2840,7 @@ function xLoadDemo(){
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
-  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];S.leaveReqs=S.role==='hr'||S.role==='branch'?mine(MEM('leaveReqs')):[];S.staff=S.role==='hr'||S.role==='branch'?mine(MEM('staff')):[];if(S.role==='hr')hrSyncStaff();S.shifts=S.role==='branch'?mine(MEM('shifts')):[];
+  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];S.leaveReqs=S.role==='hr'||S.role==='branch'?mine(MEM('leaveReqs')):[];S.staff=S.role==='hr'||S.role==='branch'?mine(MEM('staff')):[];if(S.role==='hr')hrSyncStaff();S.shifts=S.role==='branch'?mine(MEM('shifts')):[];S.vouchers=S.role==='hr'?MEM('vouchers'):[];S.forms=S.role==='hr'||S.role==='branch'?mine(MEM('forms')):[];
   {const c=S.role==='hr'?MEM('hrcfg'):null;S.hrCfg=c&&!Array.isArray(c)?c:{}}
 }
 /* live subscriptions per role */
@@ -2795,7 +2857,7 @@ function xStart(){
   if(S.role==='branch'||S.role==='manager'||S.role==='admin')
     u.push(db.doc('config/checklist').onSnapshot(s=>{S.checklist=s.exists&&Array.isArray(s.data().items)?s.data().items:null;render()},onErr));
   if(S.role==='branch'){
-    list('sales',a=>S.sales=a);list('maintenance',a=>S.maint=a);list('checks',a=>S.checks=a);list('leaveReqs',a=>S.leaveReqs=a);list('staff',a=>S.staff=a);list('shifts',a=>S.shifts=a);
+    list('sales',a=>S.sales=a);list('maintenance',a=>S.maint=a);list('checks',a=>S.checks=a);list('leaveReqs',a=>S.leaveReqs=a);list('staff',a=>S.staff=a);list('shifts',a=>S.shifts=a);list('forms',a=>S.forms=a);
     u.push(db.doc('targets/'+S.branch).onSnapshot(s=>{S.targets={[S.branch]:s.exists?s.data():{}};render()},onErr));
   }
   if(S.role==='manager'){
@@ -2807,6 +2869,8 @@ function xStart(){
     u.push(db.collection('employees').onSnapshot(s=>{S.emps=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));S._hrEmpsIn=true;hrSyncStaff();render()},out));
     u.push(db.collection('custody').onSnapshot(s=>{S.custody=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('staff').onSnapshot(s=>{S.staff=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));S._hrStaffIn=true;hrSyncStaff();render()},out));
+    u.push(db.collection('vouchers').onSnapshot(s=>{S.vouchers=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+    u.push(db.collection('forms').onSnapshot(s=>{S.forms=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('leaveReqs').onSnapshot(s=>{S.leaveReqs=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('licenses').onSnapshot(s=>{S.licenses=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('advances').onSnapshot(s=>{S.advances=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
@@ -2816,7 +2880,7 @@ function xStart(){
   if(S.role==='manager')
     u.push(db.collection('targets').onSnapshot(s=>{const t={};s.docs.forEach(d=>t[d.id]=d.data());S.targets=t;render()},onErr));
 }
-function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
+function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
 /* ---------- sales: numbers for a branch and month ---------- */
 function salesStats(branch,mk){
@@ -3095,7 +3159,7 @@ function hrDocAlerts(){
 const leftLabel=n=>n<0?t('hr_daysAgo',{n:-n}):n===0?t('hr_today'):t('hr_daysLeft',{n});
 function hrTabs(){
   const al=hrDocAlerts(),pend=(S.leaves||[]).filter(l=>l.status==='pending').length+(S.leaveReqs||[]).filter(r=>r.status==='pending').length;
-  return[{k:'emps',l:t('tab_emps')},{k:'docs',l:t('tab_docs'),b:al.length,late:al.some(a=>a.left<0)},{k:'leaves',l:t('tab_leaves'),b:pend},{k:'custody',l:t('tab_custody'),b:(S.custody||[]).filter(custOut).length},{k:'advances',l:t('tab_adv'),b:(S.advances||[]).filter(a=>advRemain(a)>0).length},{k:'lic',l:t('tab_lic'),b:(S.licenses||[]).filter(l=>['expired','soon'].includes(licState(l))).length,late:(S.licenses||[]).some(l=>licState(l)==='expired')}];
+  return[{k:'emps',l:t('tab_emps')},{k:'docs',l:t('tab_docs'),b:al.length,late:al.some(a=>a.left<0)},{k:'leaves',l:t('tab_leaves'),b:pend},{k:'custody',l:t('tab_custody'),b:(S.custody||[]).filter(custOut).length},{k:'advances',l:t('tab_adv'),b:(S.advances||[]).filter(a=>advRemain(a)>0).length},{k:'lic',l:t('tab_lic'),b:(S.licenses||[]).filter(l=>['expired','soon'].includes(licState(l))).length,late:(S.licenses||[]).some(l=>licState(l)==='expired')},{k:'vouchers',l:t('tab_vc')},{k:'forms',l:t('tab_forms'),b:(S.forms||[]).filter(f=>f.status==='pending').length}];
 }
 function hrView(tb){
   if(tb==='docs')return hrDocsView();
@@ -3103,6 +3167,8 @@ function hrView(tb){
   if(tb==='custody')return custodyView();
   if(tb==='advances')return advancesView();
   if(tb==='lic')return licensesView();
+  if(tb==='vouchers')return vouchersView();
+  if(tb==='forms')return hrFormsView();
   return hrEmpsView();
 }
 function hrEmpsView(){
@@ -3154,7 +3220,7 @@ function empSheet(){
   const yr=String(new Date().getFullYear());
   const used=isNew?0:(S.leaves||[]).filter(l=>l.emp===e.id&&l.type==='annual'&&l.status==='approved'&&String(l.from).startsWith(yr)).reduce((a,l)=>a+leaveDays(l),0);
   const docs=isNew?'':HR_DOCS.filter(k=>e[k]).map(k=>{const n=dayDiff(dayKey(Date.now()),e[k]);return n<=HR_WARN?`<span class="tag ${n<0?'ret':''}">${esc(t(HR_DOC_L[k]))}: ${esc(leftLabel(n))}</span>`:''}).join('');
-  const body=`${isNew?'':`<div class="row" style="gap:8px;margin-bottom:12px">${docs}<span class="tag">${esc(t('hr_annualUsed'))}: ${esc(t('hr_days',{n:used}))}</span>${(()=>{const cu=(S.custody||[]).filter(c=>c.emp===e.id&&custOut(c)).length,av=(S.advances||[]).filter(a=>a.emp===e.id).reduce((s,a)=>s+advRemain(a),0);return(cu?`<span class="tag">${esc(t('cu_ofEmp',{n:cu}))}</span>`:'')+(av>0?`<span class="tag ret">${esc(t('av_ofEmp',{n:sar2(av)}))}</span>`:'')})()}</div>`}
+  const body=`${isNew?'':`<div class="row" style="gap:8px;margin-bottom:12px">${docs}<span class="tag">${esc(t('hr_annualUsed'))}: ${esc(t('hr_days',{n:used}))}</span>${empFormTags(e)}${(()=>{const cu=(S.custody||[]).filter(c=>c.emp===e.id&&custOut(c)).length,av=(S.advances||[]).filter(a=>a.emp===e.id).reduce((s,a)=>s+advRemain(a),0);return(cu?`<span class="tag">${esc(t('cu_ofEmp',{n:cu}))}</span>`:'')+(av>0?`<span class="tag ret">${esc(t('av_ofEmp',{n:sar2(av)}))}</span>`:'')})()}</div>`}
   <div class="sl-grid hr-grid">
     ${hrIn('name',t('hr_name'))}${hrIn('no',t('hr_no'),'text','dir="ltr"')}
     ${hrSel('branch',t('hr_branch'),hrPlaces().map(p=>[p,placeL(p)]))}${hrIn('job',t('hr_job'))}
@@ -3762,7 +3828,7 @@ const IO={
       ['status','hr_status',{open:'ms_open',progress:'ms_progress',done:'ms_done'}],['createdAt','c_created'],['opsNote','m_reply']],
     get:(m,k)=>k==='urgent'?(m.urgent?'yes':'no'):k==='createdAt'?fmtDT(m.createdAt):m[k]}
 };
-const ioCan=k=>({employees:'hr',leaves:'hr',custody:'hr',advances:'hr',licenses:'hr',targets:'manager',maint:'manager',catalog:'admin'}[k]||(k==='sales'?(S.role==='manager'||S.role==='branch')&&S.role:null))===S.role;
+const ioCan=k=>({employees:'hr',leaves:'hr',custody:'hr',advances:'hr',licenses:'hr',vouchers:'hr',targets:'manager',maint:'manager',catalog:'admin'}[k]||(k==='sales'?(S.role==='manager'||S.role==='branch')&&S.role:null))===S.role;
 /* one drop-down per list: export, import (and any extra item) */
 function ioBtns(k,extra){
   if(!ioCan(k))return'';
@@ -3895,6 +3961,229 @@ document.addEventListener('change',ev=>{
   if(ioCan(k))ioRead(k,f);
 });
 
+/* ================= Payment vouchers, branch forms (deduction / warning / reward) and HR document templates ================= */
+/* vouchers/{id}: {no, date, payee, emp, amount, method, ref, cat, purpose, note, form, createdAt}  — HR only
+   forms/{id}:    {branch, staffId, emp, empName, empNo, type deduction|warning|reward, date, reason, amount, days, level,
+                   status pending|approved|rejected, hrNote, by branch|hr, createdAt, decidedAt} */
+const FORM_TYPES=['deduction','warning','reward'];
+const VC_CATS=['advance','reward','eos','salary','allow','other'];
+const PAY_METHODS=['cash','bank','cheque'];
+/* amount in Arabic words: "فقط ألف ومائتان وخمسون ريالاً لا غير" */
+function tafqeet(x){
+  const U=['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة','عشرة','أحد عشر','اثنا عشر','ثلاثة عشر','أربعة عشر','خمسة عشر','ستة عشر','سبعة عشر','ثمانية عشر','تسعة عشر'];
+  const TN=['','','عشرون','ثلاثون','أربعون','خمسون','ستون','سبعون','ثمانون','تسعون'];
+  const HN=['','مائة','مائتان','ثلاثمائة','أربعمائة','خمسمائة','ستمائة','سبعمائة','ثمانمائة','تسعمائة'];
+  const b1000=n=>{const p=[],h=Math.floor(n/100),r=n%100;if(h)p.push(HN[h]);if(r){if(r<20)p.push(U[r]);else{const u=r%10,tt=Math.floor(r/10);p.push(u?U[u]+' و'+TN[tt]:TN[tt])}}return p.join(' و')};
+  const scale=(n,one,two,few,many)=>n===1?one:n===2?two:n<=10?b1000(n)+' '+few:b1000(n)+' '+many;
+  const words=n=>{if(!n)return'صفر';const p=[];const m=Math.floor(n/1e6),k=Math.floor(n%1e6/1000),r=n%1000;
+    if(m)p.push(scale(m,'مليون','مليونان','ملايين','مليون'));if(k)p.push(scale(k,'ألف','ألفان','آلاف','ألف'));if(r)p.push(b1000(r));return p.join(' و')};
+  const v=Math.round((+x||0)*100),ri=Math.floor(v/100),ha=v%100;
+  return'فقط '+words(ri)+' ريال'+(ha?' و'+words(ha)+' هللة':'')+' لا غير';
+}
+const nextVoucherNo=()=>Math.max(0,...(S.vouchers||[]).map(v=>+v.no||0))+1;
+/* ---------- vouchers (HR) ---------- */
+function vouchersView(){
+  const mk=S.vcMonth||monthKey(Date.now());
+  const list=[...(S.vouchers||[])].filter(v=>String(v.date||'').startsWith(mk)).sort((a,b)=>(+b.no||0)-(+a.no||0));
+  const total=list.reduce((s,v)=>s+(+v.amount||0),0);
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_vc')}</h2><div class="row">${ioBtns('vouchers')}<input class="field" type="month" id="vcMonth" value="${esc(mk)}" style="width:auto"><button class="btn btn-sun" data-act="vcNew">+ ${t('vc_add')}</button></div></div>
+  <div class="stats">${kpi(t('vc_count'),sar(list.length))}${kpi(t('vc_total'),sar2(total)+' '+t('sar'))}</div>
+  <div class="list">${list.length?list.map(v=>`<button class="oc" data-act="vcOpen" data-id="${esc(v.id)}">
+    <span style="min-width:0"><span class="t"><span class="num" dir="ltr">#${esc(v.no)}</span> ${esc(v.payee)} <span class="tag">${esc(t('vc_'+(v.cat||'other')))}</span></span>
+      <span class="s">${esc(dateLabel(v.date))} · ${esc(t('pm_'+(v.method||'cash')))}${v.purpose?' · '+esc(String(v.purpose).slice(0,60)):''}</span></span>
+    <span class="side"><b class="num">${esc(sar2(v.amount))} ${t('sar')}</b></span></button>`).join(''):`<div class="empty">${esc(t('vc_none'))}</div>`}</div>`;
+}
+function voucherSheet(){
+  const isNew=S.openVc==='new';const d=S.hrDraft||{};
+  const emps=(S.emps||[]).filter(e=>e.status!=='left'||e.id===d.emp).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
+  const body=`<div class="sl-grid hr-grid">
+    ${hrIn('no',t('vc_no'),'number','dir="ltr" inputmode="numeric"')}${hrIn('date',t('sl_day'),'date')}
+    ${hrSel('emp',t('vc_emp'),[['',t('vc_other_payee')],...emps.map(e=>[e.id,e.name+(e.no?' #'+e.no:'')])])}${hrIn('payee',t('vc_payee'))}
+    ${hrIn('amount',t('vc_amount')+' ('+t('sar')+')','number')}${hrSel('cat',t('vc_cat'),VC_CATS.map(k=>[k,t('vc_'+k)]))}
+    ${hrSel('method',t('vc_method'),PAY_METHODS.map(k=>[k,t('pm_'+k)]))}${hrIn('ref',t('vc_ref'),'text','dir="ltr"')}
+  </div>
+  <div class="hint" id="vcWords" style="margin-top:8px">${+d.amount>0?esc(tafqeet(num(d.amount))):''}</div>
+  <label style="display:block;margin-top:10px"><span class="hint">${t('vc_purpose')}</span><textarea class="field" id="hr-purpose" rows="2" dir="auto" data-in="hrF" data-f="purpose">${esc(d.purpose||'')}</textarea></label>`;
+  const foot=`${isNew?'':`<button class="btn btn-bad" data-act="vcDel">${S.confirm==='vcDel'?t('li_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-ghost" data-act="vcSave" data-k="1" ${S.busy?'disabled':''}>${t('vc_savePrint')}</button><button class="btn btn-sun" data-act="vcSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
+  return hrSheetWrap(isNew?t('vc_add'):t('vc_title')+' #'+(d.no||''),body,foot);
+}
+/* ---------- printing ---------- */
+const PRINT_CSS=`@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:Tajawal,Arial,sans-serif;color:#13233a;margin:0;font-size:13px;line-height:1.75}
+.bar{height:3px;width:90px;background:#EF8A22;margin:0 0 14px auto}
+table{width:100%;border-collapse:collapse;margin:8px 0 14px}td,th{border:1px solid #c9d5e3;padding:7px 10px;vertical-align:top}th{background:#e6eff9;color:#0758A7;text-align:start}
+.info td:first-child{width:32%;background:#f4f7fb;font-weight:700}
+.big{font-size:16px;font-weight:800;color:#0758A7}.en{direction:ltr;text-align:left;color:#33445c}
+.para{border:1px solid #c9d5e3;border-radius:8px;padding:12px 14px;margin:10px 0}
+.sig{display:flex;gap:16px;margin-top:26px}.sig div{flex:1;border:1px solid #c9d5e3;border-radius:8px;padding:10px 12px;min-height:100px}.sig b{color:#0758A7;display:block}
+.line{border-bottom:1px dashed #8a9ab0;height:34px;margin-bottom:4px}`;
+function printDoc(titleAr,titleEn,meta,body,sigs,win){
+  const co=coInfo();
+  const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${esc(titleAr)}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><style>${PRINT_CSS}</style></head><body>
+${letterhead(co,titleAr,titleEn,meta)}<div class="bar"></div>${body}
+${sigs&&sigs.length?`<div class="sig">${sigs.map(s=>`<div><b>${s[0]}</b>${s[1]?`<div>${esc(s[1])}</div>`:''}<div class="line"></div>التوقيع / Signature</div>`).join('')}</div>`:''}
+${letterfoot(co)}
+<script>window.onload=function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print()},250)})}<\/script></body></html>`;
+  printHtml(html,win);
+}
+const dmy=k=>isDay(k)?k.split('-').reverse().join('/'):'—';
+const nfmt=x=>(+x||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function printVoucher(v,win){
+  const rows=[['صُرف إلى / Paid to',esc(v.payee)],['المبلغ / Amount',`<span class="big">${nfmt(v.amount)} SAR</span>`],['المبلغ كتابة / In words',esc(tafqeet(v.amount))],
+    ['وذلك عن / For',esc(v.purpose||'—')],['نوع الصرف / Category',esc(t('vc_'+(v.cat||'other')))],['طريقة الدفع / Method',esc(t('pm_'+(v.method||'cash')))+(v.ref?' — <span dir="ltr">'+esc(v.ref)+'</span>':'')],['التاريخ / Date',dmy(v.date)]];
+  printDoc('سند صرف','Payment Voucher','No. '+esc(v.no)+' &nbsp;·&nbsp; '+dmy(v.date),`<table class="info">${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>`,
+    [['المستلم / Received by',v.payee],['المحاسب / Accountant',''],['المدير المعتمد / Approved by',coInfo().rep]],win);
+}
+const FT={deduction:['نموذج خصم','Deduction Notice'],warning:['إنذار','Warning Notice'],reward:['مكافأة','Reward']};
+const LVL={1:['إنذار أول','First warning'],2:['إنذار ثانٍ','Second warning'],3:['إنذار نهائي','Final warning']};
+function printForm(f,win){
+  const e=f.emp&&empById(f.emp);
+  const rows=[['الموظف / Employee',esc(f.empName)],['الرقم الوظيفي / Employee no.',esc(f.empNo||(e&&e.no)||'—')],['الفرع / Branch',esc(f.branch?placeL(f.branch):(e?placeL(e.branch):'—'))],
+    ['المسمى / Job',esc((e&&e.job)||'—')],['التاريخ / Date',dmy(f.date)]];
+  if(f.type==='warning')rows.push(['درجة الإنذار / Level',(LVL[f.level]||LVL[1]).join(' / ')]);
+  if(f.type==='deduction'){if(+f.days)rows.push(['مدة الخصم / Days',esc(f.days)+' يوم / days']);if(+f.amount)rows.push(['مبلغ الخصم / Amount',nfmt(f.amount)+' SAR — '+esc(tafqeet(f.amount))])}
+  if(f.type==='reward'&&+f.amount)rows.push(['مبلغ المكافأة / Amount',nfmt(f.amount)+' SAR — '+esc(tafqeet(f.amount))]);
+  rows.push([f.type==='reward'?'سبب المكافأة / Reason':'المخالفة / Violation',esc(f.reason||'—')]);
+  if(f.status==='approved')rows.push(['اعتماد الموارد البشرية / HR approval','معتمد / Approved'+(f.hrNote?' — '+esc(f.hrNote):'')]);
+  const text=f.type==='reward'?'تقديراً لجهود الموظف المذكور أعلاه، تقرر منحه المكافأة الموضحة.':f.type==='warning'?'نلفت انتباهكم إلى المخالفة الموضحة أعلاه، ونأمل عدم تكرارها، وفي حال التكرار ستُتخذ الإجراءات النظامية.':'بناءً على المخالفة الموضحة أعلاه، تقرر الخصم الموضح وفق لائحة تنظيم العمل.';
+  printDoc(FT[f.type][0],FT[f.type][1],dmy(f.date),`<table class="info">${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table><div class="para">${text}</div>`,
+    [['مدير الفرع / Branch manager',''],['الموظف (للعلم) / Employee (acknowledged)',f.empName],['الموارد البشرية / HR','']],win);
+}
+/* ready-made HR documents built from the employee file */
+const TEMPLATES=['salary','experience','start','clear'];
+function printTemplate(k,e,day,win){
+  const co=coInfo(),h=esc,total=payTotal(e);
+  const pl=placeL(e.branch);
+  if(k==='salary')return printDoc('تعريف بالراتب','Salary Certificate',dmy(day),`<div class="para">تشهد ${h(co.name)} بأن السيد/ة <b>${h(e.name)}</b>، الجنسية: ${h(e.nat||'—')}، رقم الهوية/الإقامة: ${h(e.idNo||'—')}، يعمل لديها بوظيفة (${h(e.job||'—')}) في (${h(pl)}) منذ ${dmy(e.hire)}، ويتقاضى راتباً شهرياً إجمالياً قدره <b>${nfmt(total)}</b> ريال سعودي (${h(tafqeet(total))}).
+  <br>وقد أُعطي هذا التعريف بناءً على طلبه دون أدنى مسؤولية على المنشأة.</div>
+  <table><thead><tr><th>البند / Item</th><th style="text-align:center">المبلغ (ريال) / SAR</th></tr></thead><tbody>${[['الراتب الأساسي / Basic',e.salary],['بدل سكن / Housing',e.alHousing],['بدل نقل / Transport',e.alTransport],['بدل طعام / Food',e.alFood],['بدلات أخرى / Other',e.alOther]].filter(r=>+r[1]).map(r=>`<tr><td>${r[0]}</td><td style="text-align:center">${nfmt(r[1])}</td></tr>`).join('')}<tr><td><b>الإجمالي / Total</b></td><td style="text-align:center"><b>${nfmt(total)}</b></td></tr></tbody></table>
+  <div class="para en">This is to certify that Mr./Ms. ${h(e.name)} has been working with ${h(co.nameEn||co.name)} as (${h(e.job||'—')}) since ${dmy(e.hire)}, with a total monthly salary of SAR ${nfmt(total)}. This certificate is issued upon the employee's request without any liability on the company.</div>`,[['الموارد البشرية / HR',co.rep]],win);
+  if(k==='experience')return printDoc('شهادة خبرة','Experience Certificate',dmy(day),`<div class="para">تشهد ${h(co.name)} بأن السيد/ة <b>${h(e.name)}</b>، الجنسية: ${h(e.nat||'—')}، رقم الهوية/الإقامة: ${h(e.idNo||'—')}، قد عمل لديها بوظيفة (${h(e.job||'—')}) خلال الفترة من ${dmy(e.hire)} إلى ${e.status==='left'&&e.endDate?dmy(e.endDate):'تاريخه'}، وكان خلال فترة عمله حسن السيرة والسلوك.
+  <br>وقد أُعطي هذه الشهادة بناءً على طلبه دون أدنى مسؤولية على المنشأة.</div>
+  <div class="para en">This is to certify that Mr./Ms. ${h(e.name)} worked with ${h(co.nameEn||co.name)} as (${h(e.job||'—')}) from ${dmy(e.hire)} to ${e.status==='left'&&e.endDate?dmy(e.endDate):'date'}, and showed good conduct during this period.</div>`,[['الموارد البشرية / HR',co.rep]],win);
+  if(k==='start')return printDoc('مباشرة عمل','Work Commencement',dmy(day),`<table class="info">${[['الموظف / Employee',h(e.name)],['الرقم الوظيفي / Employee no.',h(e.no||'—')],['المسمى / Job',h(e.job||'—')],['مكان العمل / Workplace',h(pl)],['تاريخ المباشرة / Start date',dmy(day)]].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
+  <div class="para">نفيدكم بأن الموظف المذكور أعلاه قد باشر عمله بتاريخ ${dmy(day)}.</div><div class="para en">The above employee started work on ${dmy(day)}.</div>`,[['الموظف / Employee',e.name],['المدير المباشر / Line manager',''],['الموارد البشرية / HR','']],win);
+  // clearance: what the employee still holds or owes
+  const cust=(S.custody||[]).filter(c=>c.emp===e.id&&custOut(c)),adv=(S.advances||[]).filter(a=>a.emp===e.id).reduce((s,a)=>s+advRemain(a),0);
+  const depts=[['الفرع / مكان العمل','Workplace'],['المستودع','Warehouse'],['العهد','Custody items'],['السلف والمالية','Advances & finance'],['الموارد البشرية','HR']];
+  return printDoc('إخلاء طرف','Clearance Form',dmy(day),`<table class="info">${[['الموظف / Employee',h(e.name)],['الرقم الوظيفي / Employee no.',h(e.no||'—')],['المسمى / Job',h(e.job||'—')],['مكان العمل / Workplace',h(pl)],['آخر يوم عمل / Last day',dmy(e.endDate||day)]].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
+  <div class="para"><b>عهد لم تُسترجع / Items not returned:</b> ${cust.length?cust.map(c=>h(c.item)+(c.value?' ('+nfmt(c.value)+')':'')).join('، '):'لا يوجد / None'}<br><b>سلف متبقية / Outstanding advances:</b> ${adv>0?nfmt(adv)+' SAR':'لا يوجد / None'}</div>
+  <table><thead><tr><th>الجهة / Department</th><th>ملاحظات / Notes</th><th>الاسم والتوقيع / Name & signature</th></tr></thead><tbody>${depts.map(d=>`<tr><td>${d[0]} / ${d[1]}</td><td style="height:38px"></td><td></td></tr>`).join('')}</tbody></table>`,[['الموظف / Employee',e.name]],win);
+}
+/* ---------- forms: shared list card ---------- */
+const formPill=st=>lrPill(st);
+function formCard(f,act){
+  const det=f.type==='warning'?(LVL[f.level]||LVL[1])[0]:f.type==='deduction'?[+f.days?t('hr_days',{n:f.days}):'',+f.amount?sar2(f.amount)+' '+t('sar'):''].filter(Boolean).join(' + '):(+f.amount?sar2(f.amount)+' '+t('sar'):'');
+  return`<button class="oc ${f.type==='warning'||f.type==='deduction'?'':'fm-reward'}" data-act="${act}" data-id="${esc(f.id)}">
+    <span style="min-width:0"><span class="t">${esc(f.empName)} <span class="tag fm-${f.type}">${esc(t('fm_'+f.type))}</span>${det?` <span class="hint">${esc(det)}</span>`:''}</span>
+      <span class="s">${S.role==='hr'&&f.branch?esc(placeL(f.branch))+' · ':''}${esc(dateLabel(f.date))}${f.reason?' · '+esc(String(f.reason).slice(0,70)):''}</span></span>
+    <span class="side">${formPill(f.status)}</span></button>`;
+}
+function formFields(d,staffOpts){
+  const ty=d.type||'deduction';
+  return`<div class="kind" style="margin-bottom:12px">${FORM_TYPES.map(k=>`<button aria-pressed="${ty===k}" data-act="fmType" data-k="${k}">${esc(t('fm_'+k))}</button>`).join('')}</div>
+  <div class="sl-grid hr-grid">${hrSel('pick',t('lv_emp'),staffOpts)}${hrIn('date',t('sl_day'),'date')}
+    ${ty==='warning'?hrSel('level',t('fm_level'),[['1',t('fl_1')],['2',t('fl_2')],['3',t('fl_3')]]):''}
+    ${ty==='deduction'?hrIn('days',t('fm_days'),'number')+hrIn('amount',t('fm_amount')+' ('+t('sar')+')','number'):''}
+    ${ty==='reward'?hrIn('amount',t('fm_rewardAmount')+' ('+t('sar')+')','number'):''}</div>
+  <label style="display:block;margin-top:10px"><span class="hint">${t(ty==='reward'?'fm_reasonReward':'fm_reason')}</span><textarea class="field" id="hr-reason" rows="3" dir="auto" data-in="hrF" data-f="reason">${esc(d.reason||'')}</textarea></label>`;
+}
+/* ---------- branch: forms tab ---------- */
+function branchFormsView(){
+  const list=[...(S.forms||[])].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_forms')}</h2><button class="btn btn-sun" data-act="fmNew">+ ${t('fm_new')}</button></div>
+  <div class="list" style="margin-top:10px">${list.length?list.map(f=>formCard(f,'fmOpen')).join(''):`<div class="empty">${esc(t('fm_none'))}</div>`}</div>`;
+}
+function formSheet(){
+  const isNew=S.openForm==='new';const d=S.hrDraft||{};
+  const f=isNew?null:(S.forms||[]).find(x=>x.id===S.openForm);if(!isNew&&!f)return'';
+  if(!isNew){ // view (and HR decision)
+    const hr=S.role==='hr',pending=f.status==='pending';
+    const emps=(S.emps||[]).filter(e=>e.status!=='left'||e.id===d.emp).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
+    const body=`<div class="box">${formCard(f,'').replace(/^<button/,'<div').replace(/<\/button>$/,'</div>')}</div>
+    ${f.reason?`<div class="box"><h4>${t(f.type==='reward'?'fm_reasonReward':'fm_reason')}</h4><div dir="auto" style="white-space:pre-wrap">${esc(f.reason)}</div></div>`:''}
+    ${f.hrNote&&!(hr&&pending)?`<div class="box"><h4>${t('lr_hrNote')}</h4><div dir="auto">${esc(f.hrNote)}</div></div>`:''}
+    ${hr&&pending?`<div class="sl-grid hr-grid">${hrSel('emp',t('lr_linkEmp'),[['',t('hr_pickEmp')],...emps.map(e=>[e.id,e.name+(e.no?' #'+e.no:'')+' — '+placeL(e.branch)])])}</div>
+      <label style="display:block;margin-top:10px"><span class="hint">${t('lr_hrNote')}</span><textarea class="field" id="hr-hrNote" rows="2" dir="auto" data-in="hrF" data-f="hrNote">${esc(d.hrNote||'')}</textarea></label>`:''}`;
+    const foot=hr&&pending?`<button class="btn btn-bad" data-act="fmDecide" data-k="rejected">${t('lv_reject')}</button><span class="spacer"></span><button class="btn btn-sun" data-act="fmDecide" data-k="approved">${t('lv_approve')}</button>`
+      :`${(hr||f.status==='pending')?`<button class="btn btn-bad" data-act="fmDel">${S.confirm==='fmDel'?t('li_delConfirm'):t('del')}</button>`:''}<span class="spacer"></span>${hr&&f.type==='reward'&&f.status==='approved'&&+f.amount&&!f.voucher?`<button class="btn btn-ghost" data-act="fmVoucher">${t('fm_toVoucher')}</button>`:''}${f.status!=='rejected'?`<button class="btn btn-sun" data-act="fmPrint">${t('fm_print')}</button>`:''}`;
+    return hrSheetWrap(t('fm_'+f.type)+': '+f.empName,body,foot);
+  }
+  const opts=S.role==='hr'?[['',t('hr_pickEmp')],...(S.emps||[]).filter(e=>e.status!=='left').sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar')).map(e=>['e:'+e.id,e.name+(e.no?' #'+e.no:'')+' — '+placeL(e.branch)])]
+    :[['',t('hr_pickEmp')],...activeStaff().map(st=>['s:'+st.id,st.name+(st.no?' #'+st.no:'')])];
+  const foot=`<span class="spacer"></span><button class="btn btn-sun" data-act="fmSend" ${S.busy?'disabled':''}>${t(S.role==='hr'?'waSave':'fm_send')}</button>`;
+  return hrSheetWrap(t('fm_new'),formFields(d,opts)+(S.role==='branch'&&!activeStaff().length?`<p class="hint">${esc(t('sh_noStaff'))}</p>`:''),foot);
+}
+/* ---------- HR: forms tab ---------- */
+function hrFormsView(){
+  const f=S.fmFilter||'all';
+  const all=[...(S.forms||[])].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+  const pend=all.filter(x=>x.status==='pending');
+  const list=all.filter(x=>x.status!=='pending'&&(f==='all'||x.type===f));
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_forms')}</h2><div class="row"><button class="btn btn-ghost rp-btn" data-act="tpNew">${t('tp_print')}</button><button class="btn btn-sun" data-act="fmNew">+ ${t('fm_new')}</button></div></div>
+  ${pend.length?`<div class="rp-sec lr-hr"><h3>${t('fm_pending')} <span class="badge num">${pend.length}</span></h3><div class="list" style="margin-top:10px">${pend.map(x=>formCard(x,'fmOpen')).join('')}</div></div>`:''}
+  <div class="filters">${[['all','f_all'],...FORM_TYPES.map(k=>[k,'fm_'+k])].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="fmFilter" data-k="${k}">${t(l)}</button>`).join('')}</div>
+  <div class="list">${list.length?list.map(x=>formCard(x,'fmOpen')).join(''):`<div class="empty">${esc(t('fm_none'))}</div>`}</div>`;
+}
+function templateSheet(){
+  const d=S.hrDraft||{};
+  const emps=(S.emps||[]).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
+  const body=`<div class="sl-grid hr-grid">${hrSel('tpl',t('tp_kind'),TEMPLATES.map(k=>[k,t('tp_'+k)]))}${hrSel('emp',t('lv_emp'),[['',t('hr_pickEmp')],...emps.map(e=>[e.id,e.name+(e.no?' #'+e.no:'')+(e.status==='left'?' ('+t('es_left')+')':'')])])}${hrIn('date',t('sl_day'),'date')}</div>
+  <p class="hint" style="margin-top:8px">${esc(t('tp_hint'))}</p>`;
+  return hrSheetWrap(t('tp_print'),body,`<span class="spacer"></span><button class="btn btn-sun" data-act="tpPrint">${t('fm_print')}</button>`);
+}
+const empFormTags=e=>{const F=(S.forms||[]).filter(f=>f.emp===e.id&&f.status==='approved');if(!F.length)return'';
+  const w=F.filter(f=>f.type==='warning').length,dd=F.filter(f=>f.type==='deduction').length,r=F.filter(f=>f.type==='reward').length;
+  return(w?`<span class="tag ret">${esc(t('fm_warning'))}: ${w}</span>`:'')+(dd?`<span class="tag ret">${esc(t('fm_deduction'))}: ${dd}</span>`:'')+(r?`<span class="tag">${esc(t('fm_reward'))}: ${r}</span>`:'')};
+Object.assign(A,{
+  vcNew(el){S.openVc='new';S.confirm=null;S.hrDraft={no:nextVoucherNo(),date:dayKey(Date.now()),emp:'',payee:'',amount:'',cat:'other',method:'cash',ref:'',purpose:''};render()},
+  vcOpen(el){const v=(S.vouchers||[]).find(x=>x.id===el.dataset.id);if(!v)return;S.openVc=v.id;S.confirm=null;S.hrDraft=Object.assign({},v);render()},
+  vcSave(el){const d=S.hrDraft||{};const amount=num(d.amount);const payee=String(d.payee||'').trim()||(d.emp?empName(d.emp):'');
+    if(!payee||!(amount>0)){toast(t('vc_need'));return}
+    const id=S.openVc==='new'?hrId('V'):S.openVc;const old=(S.vouchers||[]).find(x=>x.id===id)||{};const tm=nowIso();
+    const data={no:Math.round(num(d.no))||nextVoucherNo(),date:isDay(d.date)?d.date:dayKey(Date.now()),emp:d.emp||'',payee,amount,cat:VC_CATS.includes(d.cat)?d.cat:'other',method:PAY_METHODS.includes(d.method)?d.method:'cash',
+      ref:String(d.ref||'').trim(),purpose:String(d.purpose||'').trim(),form:old.form||d.form||'',createdAt:old.createdAt||tm,updatedAt:tm};
+    const win=el&&el.dataset.k?window.open('','_blank'):null;if(win)printVoucher(data,win);
+    guard(async()=>{await X.put('vouchers',id,data);if(data.form)await X.upd('forms',data.form,{voucher:id}).catch(()=>{});S.openVc=null;S.hrDraft=null},()=>t('vc_saved'))},
+  vcDel(){const id=S.openVc;if(!id||id==='new')return;if(S.confirm!=='vcDel'){S.confirm='vcDel';render();return}
+    guard(async()=>{await X.del('vouchers',id);S.openVc=null;S.confirm=null},()=>t('li_deleted'))},
+  fmNew(){S.openForm='new';S.confirm=null;S.hrDraft={type:'deduction',pick:'',date:dayKey(Date.now()),level:'1',days:'',amount:'',reason:''};render()},
+  fmType(el){S.hrDraft.type=el.dataset.k;render()},
+  fmFilter(el){S.fmFilter=el.dataset.k;render()},
+  fmOpen(el){const f=(S.forms||[]).find(x=>x.id===el.dataset.id);if(!f)return;S.openForm=f.id;S.confirm=null;
+    const m=S.role==='hr'&&f.status==='pending'?(f.emp?empById(f.emp):lrMatch(f)):null;S.hrDraft={emp:m?m.id:(f.emp||''),hrNote:''};render()},
+  fmSend(){
+    const d=S.hrDraft||{};const ty=FORM_TYPES.includes(d.type)?d.type:'deduction';
+    const pick=String(d.pick||'');let who=null,branch=S.branch||'',staffId='',emp='';
+    if(pick.startsWith('s:')){who=(S.staff||[]).find(x=>x.id===pick.slice(2));if(who){staffId=who.id;emp=who.emp||''}}
+    if(pick.startsWith('e:')){who=empById(pick.slice(2));if(who){emp=who.id;branch=S.branches.includes(who.branch)?who.branch:''}}
+    if(!who||!String(d.reason||'').trim()){toast(t('fm_need'));return}
+    if(ty==='deduction'&&!(num(d.days)>0)&&!(num(d.amount)>0)){toast(t('fm_needDed'));return}
+    const tm=nowIso(),hr=S.role==='hr';
+    const data={branch,staffId,emp,empName:who.name,empNo:String(who.no||''),type:ty,date:isDay(d.date)?d.date:dayKey(Date.now()),reason:String(d.reason).trim(),
+      amount:ty!=='warning'&&num(d.amount)>0?num(d.amount):null,days:ty==='deduction'&&num(d.days)>0?num(d.days):null,level:ty==='warning'?String(d.level||'1'):null,
+      status:hr?'approved':'pending',by:hr?'hr':'branch',createdAt:tm};
+    if(hr)data.decidedAt=tm;
+    guard(async()=>{await X.put('forms',hrId('F'),data);S.openForm=null;S.hrDraft=null},()=>t(hr?'fm_saved':'fm_sent'));
+  },
+  fmDecide(el){const f=(S.forms||[]).find(x=>x.id===S.openForm);if(!f)return;const d=S.hrDraft||{};const st=el.dataset.k;
+    if(st==='approved'&&!d.emp){toast(t('lr_pickFirst'));return}
+    guard(async()=>{await X.upd('forms',f.id,{status:st,emp:d.emp||f.emp||'',hrNote:String(d.hrNote||'').trim(),decidedAt:nowIso()});S.openForm=null;S.hrDraft=null},()=>t(st==='approved'?'fm_approved':'lr_rejected'))},
+  fmDel(){const id=S.openForm;if(!id)return;if(S.confirm!=='fmDel'){S.confirm='fmDel';render();return}
+    guard(async()=>{await X.del('forms',id);S.openForm=null;S.confirm=null},()=>t('li_deleted'))},
+  fmPrint(){const f=(S.forms||[]).find(x=>x.id===S.openForm);if(!f)return;printForm(f,window.open('','_blank'))},
+  fmVoucher(){const f=(S.forms||[]).find(x=>x.id===S.openForm);if(!f)return;
+    S.openForm=null;S.openVc='new';S.confirm=null;S.hrDraft={no:nextVoucherNo(),date:dayKey(Date.now()),emp:f.emp||'',payee:f.empName,amount:f.amount,cat:'reward',method:'cash',ref:'',purpose:t('fm_reward')+': '+(f.reason||''),form:f.id};render()},
+  tpNew(){S.openTpl=true;S.hrDraft={tpl:'salary',emp:'',date:dayKey(Date.now())};render()},
+  tpPrint(){const d=S.hrDraft||{};const e=empById(d.emp);if(!e){toast(t('lr_pickFirst'));return}printTemplate(d.tpl||'salary',e,isDay(d.date)?d.date:dayKey(Date.now()),window.open('','_blank'))}
+});
+document.addEventListener('input',ev=>{const el=ev.target;if(!(el.dataset&&el.dataset.in==='hrF'))return;
+  if(S.openVc&&el.dataset.f==='amount'){const o=document.getElementById('vcWords');if(o)o.textContent=num(el.value)>0?tafqeet(num(el.value)):''}
+  if(S.openVc&&el.dataset.f==='emp'&&el.value){const e=empById(el.value);const p=document.getElementById('hr-payee');if(e&&p&&!p.value){p.value=e.name;S.hrDraft.payee=e.name}}});
+/* voucher export (defined here: it needs VC_CATS / PAY_METHODS above) */
+IO.vouchers={name:()=>t('tab_vc'),readOnly:true,list:()=>[...(S.vouchers||[])].sort((a,b)=>(+a.no||0)-(+b.no||0)),
+    cols:[['no','vc_no','num'],['date','sl_day','date'],['payee','vc_payee'],['amount','vc_amount','num'],['cat','vc_cat',Object.fromEntries(VC_CATS.map(k=>[k,'vc_'+k]))],['method','vc_method',Object.fromEntries(PAY_METHODS.map(k=>[k,'pm_'+k]))],['ref','vc_ref'],['purpose','vc_purpose']]};
+document.addEventListener('change',ev=>{const el=ev.target;if(el.id==='vcMonth'&&/^[0-9]{4}-[0-9]{2}$/.test(el.value)){S.vcMonth=el.value;render()}});
+
 /* ================= Branch staff and weekly shift schedule ================= */
 /* staff/{id}: {branch, name, no, job, phone, nat, active}  — the branch's own list (no salaries)
    shifts/{branch}_{week}: {branch, week (Sunday, YYYY-MM-DD), cells:{staffId:{0..6:code}}, times:{m,e,n}} */
@@ -3963,6 +4252,7 @@ let hrSyncT=null;
 function hrSyncStaff(){
   if(S.role!=='hr'||(S.fb&&!(S._hrEmpsIn&&S._hrStaffIn)))return;
   clearTimeout(hrSyncT);hrSyncT=setTimeout(async()=>{
+    if(S.role!=='hr')return;            // signed out meanwhile: the next HR session syncs
     const E=S.emps||[],ST=S.staff||[],jobs=[];
     E.forEach(e=>{const id='emp_'+e.id,cur=ST.find(x=>x.id===id),want=S.branches.includes(e.branch)?empMirror(e):null;
       if(want&&(!cur||MIRROR_KEYS.some(k=>String(cur[k]??'')!==String(want[k]??''))))jobs.push(()=>X.put('staff',id,Object.assign(want,{updatedAt:nowIso()})));

@@ -130,7 +130,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     match /config/companyLogo {
-      allow read: if isAdmin() || isRole('hr');
+      allow read: if valid();
       allow write: if isAdmin() && request.resource.data.data is string && request.resource.data.data.size() < 600000;
       allow delete: if isAdmin();
     }
@@ -183,6 +183,18 @@ service cloud.firestore {
       allow create: if isBranch() && request.resource.data.branch == myBranch();
       allow update: if isBranch() && resource.data.branch == myBranch() && request.resource.data.branch == myBranch();
       allow delete: if isMgr();
+    }
+
+    // payment vouchers: HR only
+    match /vouchers/{id} {
+      allow read, write: if isRole('hr');
+    }
+    // deduction / warning / reward forms: a branch files for its staff, HR approves (or issues its own)
+    match /forms/{id} {
+      allow read: if isRole('hr') || (isBranch() && resource.data.branch == myBranch());
+      allow create: if isRole('hr') || (isBranch() && request.resource.data.branch == myBranch() && request.resource.data.status == 'pending' && request.resource.data.by == 'branch');
+      allow update: if isRole('hr');
+      allow delete: if isRole('hr') || (isBranch() && resource.data.branch == myBranch() && resource.data.status == 'pending');
     }
 
     // leave requests: a branch files and can withdraw its own pending ones; HR decides
