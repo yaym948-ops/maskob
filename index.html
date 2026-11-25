@@ -1152,7 +1152,9 @@ sh_off:['راحة','Off','বিশ্রাম','آرام'],
 sh_L:['إجازة','Leave','ছুটি','چھٹی'],
 sh_noPrev:['لا يوجد جدول في الأسبوع السابق','No schedule last week','গত সপ্তাহে সূচি নেই','پچھلے ہفتے کوئی شیڈول نہیں'],
 sh_copied:['نُسخ جدول الأسبوع السابق','Last week copied','গত সপ্তাহ কপি হয়েছে','پچھلا ہفتہ کاپی ہو گیا'],
-sh_staffHint:['الموظف الموقوف لا يظهر في الجدول ولا في طلبات الإجازة. الموظفون الجدد يظهرون للموارد البشرية لإضافتهم لملفاتها.','A switched-off staff member is hidden from the schedule and leave requests. New staff appear to HR so it can add them to its files.','বন্ধ কর্মী সূচি ও ছুটিতে দেখাবে না। নতুন কর্মী মানব সম্পদে দেখাবে।','بند عملہ شیڈول اور چھٹیوں میں نہیں دکھے گا۔ نیا عملہ انسانی وسائل کو دکھے گا۔'],
+sh_fromHR:['من الموارد البشرية','From HR','মানব সম্পদ থেকে','انسانی وسائل سے'],
+sh_fromHRHint:['هذا الموظف مسجل في الموارد البشرية، وتعديل بياناته من هناك.','This person is registered by HR; their details are edited there.','এই কর্মী মানব সম্পদে নিবন্ধিত; তথ্য সেখানে সম্পাদনা হয়।','یہ ملازم انسانی وسائل میں درج ہے؛ تفصیلات وہیں بدلی جاتی ہیں۔'],
+sh_staffHint:['الموظف الموقوف لا يظهر في الجدول ولا في طلبات الإجازة. من تضيفهم هنا يبقون في قائمة الفرع فقط، والموظفون المسجلون في الموارد البشرية يظهرون هنا تلقائياً.','A switched-off person is hidden from the schedule and leave requests. People you add here stay in the branch list only; staff registered by HR appear here automatically.','বন্ধ কর্মী সূচি ও ছুটিতে দেখাবে না। এখানে যোগ করা কর্মী শুধু শাখায় থাকবে; মানব সম্পদে নিবন্ধিতরা নিজে থেকে দেখাবে।','بند عملہ شیڈول اور چھٹیوں میں نہیں دکھے گا۔ یہاں شامل کردہ صرف برانچ میں رہیں گے؛ انسانی وسائل والے خود یہاں دکھیں گے۔'],
 sh_staffSaved:['حُفظ الموظف','Staff member saved','কর্মী সংরক্ষিত','عملہ محفوظ ہو گیا'],
 sh_hrInbox:['موظفون أضافتهم الفروع ولم يُسجلوا هنا بعد','Staff added by branches, not in HR files yet','শাখা যোগ করেছে, এখনো এখানে নেই','برانچوں نے شامل کیا، ابھی یہاں درج نہیں'],
 sh_hrAdd:['إضافة لملفات الموظفين','Add to employee files','কর্মচারী ফাইলে যোগ','ملازمین کی فائلوں میں شامل کریں'],
@@ -2758,7 +2760,7 @@ function xLoadDemo(){
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
-  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];S.leaveReqs=S.role==='hr'||S.role==='branch'?mine(MEM('leaveReqs')):[];S.staff=S.role==='hr'||S.role==='branch'?mine(MEM('staff')):[];S.shifts=S.role==='branch'?mine(MEM('shifts')):[];
+  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];S.leaveReqs=S.role==='hr'||S.role==='branch'?mine(MEM('leaveReqs')):[];S.staff=S.role==='hr'||S.role==='branch'?mine(MEM('staff')):[];if(S.role==='hr')hrSyncStaff();S.shifts=S.role==='branch'?mine(MEM('shifts')):[];
   {const c=S.role==='hr'?MEM('hrcfg'):null;S.hrCfg=c&&!Array.isArray(c)?c:{}}
 }
 /* live subscriptions per role */
@@ -2784,9 +2786,9 @@ function xStart(){
   }
   if(S.role==='hr'){
     const out=e=>{if(e&&e.code==='permission-denied')Store.fbSignOut()};   // code changed: sign out
-    u.push(db.collection('employees').onSnapshot(s=>{S.emps=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+    u.push(db.collection('employees').onSnapshot(s=>{S.emps=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));S._hrEmpsIn=true;hrSyncStaff();render()},out));
     u.push(db.collection('custody').onSnapshot(s=>{S.custody=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
-    u.push(db.collection('staff').onSnapshot(s=>{S.staff=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+    u.push(db.collection('staff').onSnapshot(s=>{S.staff=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));S._hrStaffIn=true;hrSyncStaff();render()},out));
     u.push(db.collection('leaveReqs').onSnapshot(s=>{S.leaveReqs=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('licenses').onSnapshot(s=>{S.licenses=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('advances').onSnapshot(s=>{S.advances=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
@@ -2796,7 +2798,7 @@ function xStart(){
   if(S.role==='manager')
     u.push(db.collection('targets').onSnapshot(s=>{const t={};s.docs.forEach(d=>t[d.id]=d.data());S.targets=t;render()},onErr));
 }
-function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
+function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
 /* ---------- sales: numbers for a branch and month ---------- */
 function salesStats(branch,mk){
@@ -3094,7 +3096,6 @@ function hrEmpsView(){
   const list=all.filter(e=>(show==='all'||(show==='left')===(e.status==='left'))&&(!place||e.branch===place)&&(!q||[e.name,e.no,e.idNo,e.phone,e.job].some(x=>String(x||'').toLowerCase().includes(q))));
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_emps')}</h2><div class="row">${ioBtns('employees',`<button class="io-item" role="menuitem" data-act="hrXls">⬇ ${t('io_exportAll')}</button>`)}<button class="btn btn-sun" data-act="hrNew">+ ${t('hr_add')}</button></div></div>
   <div class="stats">${kpi(t('hr_working'),sar(act.length))}${kpi(t('hr_onLeave'),sar(act.filter(onLeaveToday).length))}${kpi(t('hr_expiring'),sar(al.length),al.length?'hot':'')}${kpi(t('hr_payroll'),sar(act.reduce((a,e)=>a+payTotal(e),0))+' '+t('sar'))}</div>
-  ${hrStaffInbox()}
   <div class="row hr-filter"><input class="field" id="hrQ" data-in="hrQ" placeholder="${esc(t('hr_search'))}" value="${esc(S.hrQ||'')}" style="flex:2;min-width:180px">
     <select class="field" id="hrPlace" style="flex:1;min-width:140px"><option value="">${esc(t('hr_allPlaces'))}</option>${hrPlaces().map(p=>`<option value="${esc(p)}" ${place===p?'selected':''}>${esc(placeL(p))} (${act.filter(e=>e.branch===p).length})</option>`).join('')}</select></div>
   <div class="filters">${[['active','es_active'],['left','es_left'],['all','f_all']].map(([k,l])=>`<button class="chip" aria-pressed="${show===k}" data-act="hrShow" data-k="${k}">${t(l)} (${k==='all'?all.length:all.filter(e=>(k==='left')===(e.status==='left')).length})</button>`).join('')}</div>
@@ -3883,7 +3884,8 @@ const SHIFT_CODES=['m','e','n','off'];
 const SHIFT_TIMES={m:'06:00-14:00',e:'14:00-22:00',n:'22:00-06:00'};
 const weekStart=k=>{const d=fromKey(k);d.setDate(d.getDate()-d.getDay());return dayKey(d)};
 const addDays=(k,n)=>{const d=fromKey(k);d.setDate(d.getDate()+n);return dayKey(d)};
-const activeStaff=()=>(S.staff||[]).filter(x=>x.active!==false).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
+const activeStaff=()=>{const L=(S.staff||[]).filter(x=>x.active!==false),hr=L.filter(x=>x.fromHR);
+  return L.filter(x=>x.fromHR||!hr.some(h=>(x.no&&h.no&&String(h.no)===String(x.no))||h.name===x.name)).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'))};
 /* approved leave from HR for a staff member on a day */
 const onLeaveDay=(st,day)=>(S.leaveReqs||[]).some(r=>r.status==='approved'&&(r.staffId===st.id||(!r.staffId&&r.empName===st.name))&&r.from<=day&&r.to>=day);
 function branchStaffTab(tb){
@@ -3919,10 +3921,11 @@ function branchStaffList(){
   <div class="list" style="margin-top:10px">${all.length?all.map(st=>`<button class="oc ${st.active===false?'cat-off':''}" data-act="stOpen" data-id="${esc(st.id)}">
     <span style="min-width:0"><span class="t">${esc(st.name)} ${st.no?`<span class="hint num" dir="ltr">#${esc(st.no)}</span>`:''}</span>
       <span class="s">${[st.job,st.nat,st.phone].filter(Boolean).map(esc).join(' · ')}</span></span>
-    <span class="side">${st.active===false?`<span class="pill ms-open">${t('cat_off')}</span>`:''}</span></button>`).join(''):`<div class="empty">${esc(t('sh_noStaff'))}</div>`}</div>`;
+    <span class="side">${st.fromHR?`<span class="tag">${t('sh_fromHR')}</span>`:''}${st.active===false?`<span class="pill ms-open">${t('cat_off')}</span>`:''}</span></button>`).join(''):`<div class="empty">${esc(t('sh_noStaff'))}</div>`}</div>`;
 }
 function staffSheet(){
   const isNew=S.openStaff==='new';const d=S.hrDraft||{};
+  if(d.fromHR)return hrSheetWrap(d.name||'',`<div class="box">${[[t('hr_no'),d.no],[t('hr_job'),d.job],[t('hr_nat'),d.nat],[t('hr_phone'),d.phone]].filter(x=>x[1]).map(x=>`<div><span class="hint">${esc(x[0])}:</span> ${esc(x[1])}</div>`).join('')}</div><p class="hint">${esc(t('sh_fromHRHint'))}</p>`,'<span class="spacer"></span>');
   const body=`<div class="sl-grid hr-grid">${hrIn('name',t('hr_name'))}${hrIn('no',t('hr_no'),'text','dir="ltr"')}${hrIn('job',t('hr_job'))}${hrIn('nat',t('hr_nat'))}${hrIn('phone',t('hr_phone'),'tel')}</div>
   <div class="kind" style="margin-top:12px">${[['on','es_active'],['off','cat_off']].map(([k,l])=>`<button aria-pressed="${(d.active===false?'off':'on')===k}" data-act="stActive" data-k="${k}">${esc(t(l))}</button>`).join('')}</div>
   <p class="hint">${esc(t('sh_staffHint'))}</p>`;
@@ -3934,6 +3937,21 @@ function shSaveSoon(){
   clearTimeout(shTimer);const d=S.shDraft;if(!d)return;
   shTimer=setTimeout(()=>{const wk=d.id.slice(S.branch.length+1);
     X.put('shifts',d.id,{branch:S.branch,week:wk,cells:d.cells,times:d.times,updatedAt:nowIso()}).catch(()=>toast(t('saveFail')))},700);
+}
+/* HR employees appear in their branch's staff list: HR keeps a copy in staff/emp_<id> (name, number, job only — no salary) */
+const MIRROR_KEYS=['branch','name','no','job','nat','phone','active'];
+function empMirror(e){return{branch:e.branch,name:e.name||'',no:String(e.no||''),job:e.job||'',nat:e.nat||'',phone:e.phone||'',active:e.status!=='left',fromHR:true,emp:e.id}}
+let hrSyncT=null;
+function hrSyncStaff(){
+  if(S.role!=='hr'||(S.fb&&!(S._hrEmpsIn&&S._hrStaffIn)))return;
+  clearTimeout(hrSyncT);hrSyncT=setTimeout(async()=>{
+    const E=S.emps||[],ST=S.staff||[],jobs=[];
+    E.forEach(e=>{const id='emp_'+e.id,cur=ST.find(x=>x.id===id),want=S.branches.includes(e.branch)?empMirror(e):null;
+      if(want&&(!cur||MIRROR_KEYS.some(k=>String(cur[k]??'')!==String(want[k]??''))))jobs.push(()=>X.put('staff',id,Object.assign(want,{updatedAt:nowIso()})));
+      else if(!want&&cur)jobs.push(()=>X.del('staff',id))});
+    ST.filter(x=>x.fromHR&&!E.some(e=>'emp_'+e.id===x.id)).forEach(x=>jobs.push(()=>X.del('staff',x.id)));
+    for(const j of jobs){try{await j()}catch(e){}}
+  },1200);
 }
 /* HR: staff added by branches that are not in the HR employee files yet */
 function hrStaffInbox(){
@@ -4001,7 +4019,8 @@ function hrLeaveRequests(){
       <span class="s">${esc(r.branch)} · ${esc(dateLabel(r.from))} ← ${esc(dateLabel(r.to))} · ${esc(t('hr_days',{n:lrDays(r)}))} · ${esc(when(r.createdAt))}</span></span>
     <span class="side">${lrPill('pending')}</span></button>`).join('')}</div></div>`;
 }
-const lrMatch=r=>{const L=(S.emps||[]).filter(e=>e.status!=='left');
+const lrMatch=r=>{const st=(S.staff||[]).find(x=>x.id===r.staffId);if(st&&st.emp&&empById(st.emp))return empById(st.emp);
+  const L=(S.emps||[]).filter(e=>e.status!=='left');
   return(r.empNo&&L.find(e=>String(e.no||'')===String(r.empNo)))||L.find(e=>e.name===r.empName&&e.branch===r.branch)||L.find(e=>e.name===r.empName)||null};
 function lrSheet(){
   const r=(S.leaveReqs||[]).find(x=>x.id===S.openLr);if(!r)return'';
