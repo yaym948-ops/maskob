@@ -185,6 +185,10 @@ service cloud.firestore {
       allow delete: if isMgr();
     }
 
+    // monthly payroll sheets: HR only
+    match /payroll/{id} {
+      allow read, write: if isRole('hr');
+    }
     // payment vouchers: HR only
     match /vouchers/{id} {
       allow read, write: if isRole('hr');
