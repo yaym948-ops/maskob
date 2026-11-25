@@ -565,6 +565,11 @@ textarea,input,select,button{font-family:inherit}
 .eos-warn{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--late-soft);color:var(--late)}
 .eos-chk{display:flex;align-items:center;gap:8px;margin-top:8px;font-weight:500}.eos-chk input{width:18px;height:18px;accent-color:var(--sun)}
 
+.pill.li-valid{background:var(--navy);color:var(--card)}
+.pill.li-soon{background:var(--sun-soft);color:var(--sun-ink)}
+.pill.li-expired{background:var(--late-soft);color:var(--late)}
+.pill.li-none{background:var(--lav-soft);color:var(--navy)}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -1003,6 +1008,56 @@ eos_reinstate:['إعادة للعمل','Reinstate','পুনর্বহাল'
 eos_reinstateConfirm:['تأكيد الإعادة للعمل','Confirm reinstate','নিশ্চিত করুন','تصدیق کریں'],
 eos_reinstated:['أُعيد الموظف للعمل','Employee reinstated','কর্মচারী পুনর্বহাল','ملازم بحال ہو گیا'],
 cs_deducted:['خُصمت في المخالصة','Deducted in settlement','নিষ্পত্তিতে কাটা','تصفیے میں کٹوتی'],
+tab_lic:['التراخيص والعقود','Licenses & contracts','লাইসেন্স ও চুক্তি','لائسنس اور معاہدے'],
+li_addLicense:['إضافة ترخيص','Add license','লাইসেন্স যোগ করুন','لائسنس شامل کریں'],
+li_addContract:['إضافة عقد','Add contract','চুক্তি যোগ করুন','معاہدہ شامل کریں'],
+li_licenses:['التراخيص','Licenses','লাইসেন্স','لائسنس'],
+li_contracts:['العقود','Contracts','চুক্তি','معاہدے'],
+li_license:['ترخيص','License','লাইসেন্স','لائسنس'],
+li_contract:['عقد','Contract','চুক্তি','معاہدہ'],
+li_soon:['تنتهي قريباً','Expiring soon','শীঘ্রই শেষ হবে','جلد ختم'],
+li_expired:['منتهية','Expired','মেয়াদোত্তীর্ণ','ختم شدہ'],
+li_needAction:['تحتاج تجديد','Need renewal','নবায়ন প্রয়োজন','تجدید درکار'],
+li_noExpiry:['بدون تاريخ انتهاء','No expiry date','মেয়াদের তারিখ নেই','میعاد کی تاریخ نہیں'],
+li_none:['لا توجد تراخيص أو عقود','No licenses or contracts','কোনো লাইসেন্স বা চুক্তি নেই','کوئی لائسنس یا معاہدہ نہیں'],
+ls2_valid:['سارية','Valid','বৈধ','کارآمد'],
+ls2_soon:['تنتهي قريباً','Expiring soon','শীঘ্রই শেষ','جلد ختم'],
+ls2_expired:['منتهية','Expired','মেয়াদোত্তীর্ণ','ختم شدہ'],
+ls2_none:['بدون انتهاء','No expiry','মেয়াদ নেই','میعاد نہیں'],
+li_type:['النوع','Type','ধরন','قسم'],
+li_title:['الاسم / الوصف','Name / description','নাম / বিবরণ','نام / تفصیل'],
+li_num:['رقم الترخيص','License no.','লাইসেন্স নং','لائسنس نمبر'],
+li_cnum:['رقم العقد','Contract no.','চুক্তি নং','معاہدہ نمبر'],
+li_allPlaces:['عام (كل المنشأة)','Company-wide','পুরো প্রতিষ্ঠান','پورا ادارہ'],
+li_issuer:['جهة الإصدار','Issued by','প্রদানকারী','جاری کنندہ'],
+li_party:['الطرف الآخر','Other party','অন্য পক্ষ','دوسرا فریق'],
+li_amount:['قيمة العقد','Contract value','চুক্তির মূল্য','معاہدے کی قیمت'],
+li_issued:['تاريخ الإصدار','Issue date','প্রদানের তারিখ','اجرا کی تاریخ'],
+li_addFile:['إرفاق صورة','Attach photo','ছবি সংযুক্ত করুন','تصویر منسلک کریں'],
+li_replaceFile:['تغيير الصورة','Replace photo','ছবি বদলান','تصویر بدلیں'],
+li_history:['المدد السابقة','Previous terms','পূর্বের মেয়াদ','سابقہ مدتیں'],
+li_renew:['تجديد','Renew','নবায়ন','تجدید'],
+li_renewHint:['نُقلت التواريخ لسنة جديدة، راجعها ثم احفظ','Dates moved to a new year; check them and save','তারিখ নতুন বছরে সরানো হয়েছে; দেখে সংরক্ষণ করুন','تاریخیں نئے سال پر منتقل؛ جانچ کر محفوظ کریں'],
+li_need:['اكتب الاسم أو اختر النوع','Enter a name or choose a type','নাম লিখুন বা ধরন বেছে নিন','نام لکھیں یا قسم منتخب کریں'],
+li_saved:['حُفظ','Saved','সংরক্ষিত','محفوظ ہو گیا'],
+li_deleted:['حُذف','Deleted','মুছে ফেলা হয়েছে','حذف ہو گیا'],
+li_delConfirm:['تأكيد الحذف','Confirm delete','মুছে ফেলা নিশ্চিত করুন','حذف کی تصدیق کریں'],
+li_t_municipal:['رخصة بلدية','Municipal license','পৌর লাইসেন্স','بلدیہ لائسنس'],
+li_t_civil:['ترخيص الدفاع المدني','Civil defense permit','সিভিল ডিফেন্স অনুমতি','سول ڈیفنس پرمٹ'],
+li_t_cr:['السجل التجاري','Commercial registration','বাণিজ্যিক নিবন্ধন','کمرشل رجسٹریشن'],
+li_t_chamber:['الغرفة التجارية','Chamber of commerce','চেম্বার অব কমার্স','چیمبر آف کامرس'],
+li_t_zakat:['شهادة الزكاة والضريبة','Zakat & tax certificate','যাকাত ও কর সনদ','زکوٰۃ و ٹیکس سرٹیفکیٹ'],
+li_t_gosi:['شهادة التأمينات','GOSI certificate','GOSI সনদ','GOSI سرٹیفکیٹ'],
+li_t_health:['الرخصة الصحية','Health license','স্বাস্থ্য লাইসেন্স','ہیلتھ لائسنس'],
+li_t_sign:['رخصة اللوحة','Signboard permit','সাইনবোর্ড অনুমতি','سائن بورڈ پرمٹ'],
+li_t_other:['أخرى','Other','অন্যান্য','دیگر'],
+ct_t_lease:['عقد إيجار','Lease','ভাড়া চুক্তি','کرایہ نامہ'],
+ct_t_maintenance:['عقد صيانة','Maintenance','রক্ষণাবেক্ষণ চুক্তি','دیکھ بھال کا معاہدہ'],
+ct_t_supply:['عقد توريد','Supply','সরবরাহ চুক্তি','سپلائی معاہدہ'],
+ct_t_cleaning:['عقد نظافة','Cleaning','পরিচ্ছন্নতা চুক্তি','صفائی کا معاہدہ'],
+ct_t_insurance:['عقد تأمين','Insurance','বীমা চুক্তি','انشورنس معاہدہ'],
+ct_t_service:['عقد خدمات','Services','সেবা চুক্তি','خدمات کا معاہدہ'],
+ct_t_other:['أخرى','Other','অন্যান্য','دیگر'],
 lv_add:['تسجيل إجازة','Add leave','ছুটি যোগ করুন','چھٹی درج کریں'],
 lv_emp:['الموظف','Employee','কর্মচারী','ملازم'],
 lv_type:['نوع الإجازة','Leave type','ছুটির ধরন','چھٹی کی قسم'],
@@ -1675,7 +1730,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}">${esc(x.l)}${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -2272,7 +2327,7 @@ async function overlapsOther(v,key){
 const fieldKey=f=>({appr:'approved',sent:'sent',recv:'received'}[f]);
 function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
-  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
+  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -2356,7 +2411,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -2492,6 +2547,18 @@ const X={
     if(S.fb)return queue('config/hr',()=>db.doc('config/hr').set(data,{merge:true}));
     MEMSET('hrcfg',data);xLoadDemo();render();
   },
+  async liFilePut(id,data){
+    if(S.fb)return db.doc('licenses/'+id+'/files/f0').set({data});
+    (S._demoLic||(S._demoLic={}))[id]=data;
+  },
+  async liFileGet(id){
+    if(S.fb){const d=await db.doc('licenses/'+id+'/files/f0').get();return d.exists?d.data().data:null}
+    return(S._demoLic||{})[id]||null;
+  },
+  async liFileDel(id){
+    if(S.fb)return db.doc('licenses/'+id+'/files/f0').delete().catch(()=>{});
+    if(S._demoLic)delete S._demoLic[id];
+  },
   async del(col,id){
     if(S.fb)return queue(col+'/'+id,()=>db.doc(col+'/'+id).delete());
     MEMSET(col,MEM(col).filter(x=>x.id!==id));xLoadDemo();render();
@@ -2505,7 +2572,7 @@ function xLoadDemo(){
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
-  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];
+  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];
   {const c=S.role==='hr'?MEM('hrcfg'):null;S.hrCfg=c&&!Array.isArray(c)?c:{}}
 }
 /* live subscriptions per role */
@@ -2528,6 +2595,7 @@ function xStart(){
     const out=e=>{if(e&&e.code==='permission-denied')Store.fbSignOut()};   // code changed: sign out
     u.push(db.collection('employees').onSnapshot(s=>{S.emps=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('custody').onSnapshot(s=>{S.custody=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+    u.push(db.collection('licenses').onSnapshot(s=>{S.licenses=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.collection('advances').onSnapshot(s=>{S.advances=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
     u.push(db.doc('config/hr').onSnapshot(s=>{S.hrCfg=s.exists?s.data():{};render()},()=>{}));
     u.push(db.collection('leaves').onSnapshot(s=>{S.leaves=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
@@ -2535,7 +2603,7 @@ function xStart(){
   if(S.role==='manager')
     u.push(db.collection('targets').onSnapshot(s=>{const t={};s.docs.forEach(d=>t[d.id]=d.data());S.targets=t;render()},onErr));
 }
-function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
+function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
 /* ---------- sales: numbers for a branch and month ---------- */
 function salesStats(branch,mk){
@@ -2796,7 +2864,7 @@ const HR_DOCS=['idExp','healthExp','contractEnd'];
 const HR_DOC_L={idExp:'hr_idExp',healthExp:'hr_health',contractEnd:'hr_contract'};
 const LEAVE_TYPES=['annual','sick','emergency','unpaid'];
 const hrPlaces=()=>[...S.branches,'@wh','@office'];
-const placeL=p=>p==='@wh'?t('r_warehouse'):p==='@office'?t('hr_office'):(p||'—');
+const placeL=p=>p==='@all'?t('li_allPlaces'):p==='@wh'?t('r_warehouse'):p==='@office'?t('hr_office'):(p||'—');
 const dayDiff=(a,b)=>Math.round((fromKey(b)-fromKey(a))/864e5);     // b - a in days
 const leaveDays=l=>l.from&&l.to?dayDiff(l.from,l.to)+1:0;
 const empById=id=>(S.emps||[]).find(e=>e.id===id);
@@ -2814,13 +2882,14 @@ function hrDocAlerts(){
 const leftLabel=n=>n<0?t('hr_daysAgo',{n:-n}):n===0?t('hr_today'):t('hr_daysLeft',{n});
 function hrTabs(){
   const al=hrDocAlerts(),pend=(S.leaves||[]).filter(l=>l.status==='pending').length;
-  return[{k:'emps',l:t('tab_emps')},{k:'docs',l:t('tab_docs'),b:al.length,late:al.some(a=>a.left<0)},{k:'leaves',l:t('tab_leaves'),b:pend},{k:'custody',l:t('tab_custody'),b:(S.custody||[]).filter(custOut).length},{k:'advances',l:t('tab_adv'),b:(S.advances||[]).filter(a=>advRemain(a)>0).length}];
+  return[{k:'emps',l:t('tab_emps')},{k:'docs',l:t('tab_docs'),b:al.length,late:al.some(a=>a.left<0)},{k:'leaves',l:t('tab_leaves'),b:pend},{k:'custody',l:t('tab_custody'),b:(S.custody||[]).filter(custOut).length},{k:'advances',l:t('tab_adv'),b:(S.advances||[]).filter(a=>advRemain(a)>0).length},{k:'lic',l:t('tab_lic'),b:(S.licenses||[]).filter(l=>['expired','soon'].includes(licState(l))).length,late:(S.licenses||[]).some(l=>licState(l)==='expired')}];
 }
 function hrView(tb){
   if(tb==='docs')return hrDocsView();
   if(tb==='leaves')return hrLeavesView();
   if(tb==='custody')return custodyView();
   if(tb==='advances')return advancesView();
+  if(tb==='lic')return licensesView();
   return hrEmpsView();
 }
 function hrEmpsView(){
@@ -3268,6 +3337,76 @@ document.addEventListener('change',ev=>{
   const e=empById(S.openEos),o=document.getElementById('eosSum');if(e&&o)o.innerHTML=eosSummary(eosCalc(e,S.eosDraft));
 });
 
+/* ---------- company licenses and contracts (التراخيص والعقود) ---------- */
+const LIC_TYPES={license:['municipal','civil','cr','chamber','zakat','gosi','health','sign','other'],contract:['lease','maintenance','supply','cleaning','insurance','service','other']};
+const licLeft=l=>isDay(l.expiry)?dayDiff(dayKey(Date.now()),l.expiry):null;
+const licState=l=>{const n=licLeft(l);return n==null?'none':n<0?'expired':n<=HR_WARN?'soon':'valid'};
+const licTypeL=l=>t((l.kind==='contract'?'ct_':'li_')+'t_'+(l.type||'other'));
+function licensesView(){
+  const f=S.liFilter||'all';
+  const all=[...(S.licenses||[])].sort((a,b)=>String(a.expiry||'9999').localeCompare(String(b.expiry||'9999')));
+  const list=f==='soon'?all.filter(l=>['expired','soon'].includes(licState(l))):f==='all'?all:all.filter(l=>l.kind===f);
+  const n=k=>all.filter(l=>licState(l)===k).length;
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_lic')}</h2><div class="row"><button class="btn btn-ghost rp-btn" data-act="liNew" data-k="contract">+ ${t('li_addContract')}</button><button class="btn btn-sun" data-act="liNew" data-k="license">+ ${t('li_addLicense')}</button></div></div>
+  <div class="stats">${kpi(t('li_licenses'),sar(all.filter(l=>l.kind!=='contract').length))}${kpi(t('li_contracts'),sar(all.filter(l=>l.kind==='contract').length))}${kpi(t('li_soon'),sar(n('soon')),n('soon')?'hot':'')}${kpi(t('li_expired'),sar(n('expired')),n('expired')?'hot':'')}</div>
+  <div class="filters">${[['all','f_all'],['license','li_licenses'],['contract','li_contracts'],['soon','li_needAction']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="liFilter" data-k="${k}">${t(l)}</button>`).join('')}</div>
+  <div class="list">${list.length?list.map(l=>{const st=licState(l),left=licLeft(l);return`<button class="oc ${st==='expired'?'late':''}" data-act="liOpen" data-id="${esc(l.id)}">
+    <span style="min-width:0"><span class="t">${esc(l.title||licTypeL(l))} ${l.title?`<span class="tag">${esc(licTypeL(l))}</span>`:''}${l.hasFile?' <span class="hint">📎</span>':''}</span>
+      <span class="s">${esc(placeL(l.place))}${l.party?' · '+esc(l.party):''}${l.number?' · <span dir="ltr">'+esc(l.number)+'</span>':''}</span>
+      <span class="s">${l.expiry?esc(t('hr_expiry'))+': '+esc(dateLabel(l.expiry))+' — '+esc(leftLabel(left)):esc(t('li_noExpiry'))}</span></span>
+    <span class="side"><span class="pill li-${st}">${esc(t('ls2_'+st))}</span></span></button>`}).join(''):`<div class="empty">${esc(t('li_none'))}</div>`}</div>`;
+}
+function licenseSheet(){
+  const isNew=S.openLic==='new',l=isNew?null:(S.licenses||[]).find(x=>x.id===S.openLic);if(!isNew&&!l)return'';
+  const d=S.hrDraft||{};const kind=d.kind==='contract'?'contract':'license';
+  const file=S.liFile;const shown=file&&file.data?file.data:(l&&S.liFiles&&S.liFiles[l.id]);
+  const body=`<div class="kind" style="margin-bottom:12px">${['license','contract'].map(k=>`<button aria-pressed="${kind===k}" data-act="liKind" data-k="${k}">${esc(t(k==='license'?'li_license':'li_contract'))}</button>`).join('')}</div>
+  <div class="sl-grid hr-grid">
+    ${hrSel('type',t('li_type'),LIC_TYPES[kind].map(k=>[k,t((kind==='contract'?'ct_':'li_')+'t_'+k)]))}${hrIn('title',t('li_title'))}
+    ${hrIn('number',t(kind==='contract'?'li_cnum':'li_num'),'text','dir="ltr"')}${hrSel('place',t('hr_branch'),[['@all',t('li_allPlaces')],...hrPlaces().map(p=>[p,placeL(p)])])}
+    ${hrIn('party',t(kind==='contract'?'li_party':'li_issuer'))}${kind==='contract'?hrIn('amount',t('li_amount')+' ('+t('sar')+')','number'):''}
+    ${hrIn('start',t(kind==='contract'?'ct_start':'li_issued'),'date')}${hrIn('expiry',t('hr_expiry'),'date')}
+  </div>
+  <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>
+  <div class="m-photos" style="margin-top:10px">${shown?`<a class="m-thumb" href="${shown}" target="_blank" rel="noopener"><img src="${shown}" alt=""></a>`:(l&&l.hasFile&&!file?`<span class="hint">${t('checking')}</span>`:'')}
+    <label class="m-add"><input type="file" id="liFile" accept="image/*" ${S.mBusy?'disabled':''}><span>${S.mBusy?esc(t('checking')):'📎 '+esc(t(shown||(l&&l.hasFile)?'li_replaceFile':'li_addFile'))}</span></label></div>
+  ${l&&(l.history||[]).length?`<h4 class="hr-sub">${t('li_history')}</h4><div class="hint">${l.history.map(h=>esc(dateLabel(h.start||''))+' ← '+esc(dateLabel(h.expiry||''))).join('<br>')}</div>`:''}`;
+  const foot=`${isNew?'':`<button class="btn btn-bad" data-act="liDel">${S.confirm==='liDel'?t('li_delConfirm'):t('del')}</button><button class="btn btn-ghost" data-act="liRenew">${t('li_renew')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="liSave" ${S.busy||S.mBusy?'disabled':''}>${t('waSave')}</button>`;
+  return hrSheetWrap(isNew?t(kind==='contract'?'li_addContract':'li_addLicense'):(l.title||licTypeL(l)),body,foot);
+}
+Object.assign(A,{
+  liNew(el){S.openLic='new';S.confirm=null;S.liFile=null;const kind=el.dataset.k==='contract'?'contract':'license';S.hrDraft={kind,type:LIC_TYPES[kind][0],place:'@all'};render()},
+  liOpen(el){const l=(S.licenses||[]).find(x=>x.id===el.dataset.id);if(!l)return;S.openLic=l.id;S.confirm=null;S.liFile=null;S.hrDraft=Object.assign({},l);render();
+    if(l.hasFile&&!(S.liFiles&&S.liFiles[l.id]))X.liFileGet(l.id).then(f=>{(S.liFiles||(S.liFiles={}))[l.id]=f;render()}).catch(()=>{})},
+  liKind(el){S.hrDraft=S.hrDraft||{};const k=el.dataset.k;if(S.hrDraft.kind!==k){S.hrDraft.kind=k;S.hrDraft.type=LIC_TYPES[k][0]}render()},
+  liFilter(el){S.liFilter=el.dataset.k;render()},
+  liRenew(){const d=S.hrDraft;if(!d)return;
+    if(isDay(d.expiry)){const s=fromKey(d.expiry);s.setDate(s.getDate()+1);const ns=dayKey(s);
+      d._renewFrom={start:d.start||'',expiry:d.expiry};d.start=ns;d.expiry=addYear(ns)}
+    toast(t('li_renewHint'));render()},
+  liSave(){
+    const d=S.hrDraft||{};const kind=d.kind==='contract'?'contract':'license';
+    if(!String(d.title||'').trim()&&!d.type){toast(t('li_need'));return}
+    if(isDay(d.start)&&isDay(d.expiry)&&d.expiry<d.start){toast(t('lv_badDates'));return}
+    const id=S.openLic==='new'?hrId('LC'):S.openLic;const old=(S.licenses||[]).find(x=>x.id===id)||{};const tm=nowIso();
+    const data={kind,type:LIC_TYPES[kind].includes(d.type)?d.type:'other',title:String(d.title||'').trim(),number:String(d.number||'').trim(),place:d.place||'@all',
+      party:String(d.party||'').trim(),amount:kind==='contract'&&d.amount!==''&&d.amount!=null?num(d.amount):null,start:isDay(d.start)?d.start:'',expiry:isDay(d.expiry)?d.expiry:'',
+      note:String(d.note||'').trim(),hasFile:!!(old.hasFile||(S.liFile&&S.liFile.data)),history:old.history||[],updatedAt:tm,createdAt:old.createdAt||tm};
+    if(d._renewFrom&&(d._renewFrom.expiry!==data.expiry))data.history=[...data.history,Object.assign({},d._renewFrom,{at:tm})];
+    const f=S.liFile&&S.liFile.data;
+    guard(async()=>{await X.put('licenses',id,data);if(f){await X.liFilePut(id,f);(S.liFiles||(S.liFiles={}))[id]=f}
+      S.openLic=null;S.hrDraft=null;S.liFile=null},()=>t('li_saved'));
+  },
+  liDel(){const id=S.openLic;if(!id||id==='new')return;if(S.confirm!=='liDel'){S.confirm='liDel';render();return}
+    guard(async()=>{await X.liFileDel(id);await X.del('licenses',id);S.openLic=null;S.confirm=null},()=>t('li_deleted'))}
+});
+document.addEventListener('change',async ev=>{
+  const el=ev.target;if(el.id!=='liFile'||!el.files||!el.files[0])return;
+  S.mBusy=true;render();
+  try{S.liFile={data:await compressImage(el.files[0])}}catch(e){toast(t('m_photoFail'))}
+  S.mBusy=false;render();
+});
+
 const hrId=p=>p+'-'+dayKey(Date.now()).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,7).toUpperCase();
 Object.assign(A,{
   hrNew(){S.openEmp='new';S.confirm=null;S.hrDraft={branch:S.hrPlace||S.branches[0]||'@office',status:'active'};render()},
@@ -3289,7 +3428,9 @@ Object.assign(A,{
       {name:t('tab_custody'),headers:[t('lv_emp'),t('cu_item'),t('cu_serial'),t('cu_value'),t('cu_given'),t('hr_status'),t('cu_returnedAt'),t('hr_note')],
         rows:(S.custody||[]).map(c=>[empName(c.emp),c.item,c.serial||'',c.value??'',c.given||'',t('cs_'+(c.status||'out')),c.returnedAt||'',c.note||''])},
       {name:t('tab_adv'),headers:[t('lv_emp'),t('av_date'),t('av_amount'),t('av_monthly'),t('av_paid'),t('av_remain'),t('hr_status'),t('hr_note')],
-        rows:(S.advances||[]).map(a=>[empName(a.emp),a.date||'',+a.amount||0,a.monthly??'',advPaid(a),advRemain(a),t(advRemain(a)>0?'as_open':'as_closed'),a.note||''])}]);
+        rows:(S.advances||[]).map(a=>[empName(a.emp),a.date||'',+a.amount||0,a.monthly??'',advPaid(a),advRemain(a),t(advRemain(a)>0?'as_open':'as_closed'),a.note||''])},
+      {name:t('tab_lic'),headers:[t('li_type'),t('li_title'),t('li_num'),t('hr_branch'),t('li_party'),t('li_amount'),t('li_issued'),t('hr_expiry'),t('hr_status'),t('hr_note')],
+        rows:(S.licenses||[]).map(l=>[t(l.kind==='contract'?'li_contract':'li_license')+' — '+licTypeL(l),l.title||'',l.number||'',placeL(l.place),l.party||'',l.amount??'',l.start||'',l.expiry||'',t('ls2_'+licState(l)),l.note||''])}]);
   },
   hrContract(){
     const win0=null;const d=S.hrDraft||{};if(!String(d.name||'').trim()){toast(t('hr_needName'));return}

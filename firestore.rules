@@ -144,6 +144,14 @@ service cloud.firestore {
     match /advances/{id} {
       allow read, write: if isRole('hr');
     }
+    // company licenses and contracts, with one attached photo each
+    match /licenses/{id} {
+      allow read, write: if isRole('hr');
+      match /files/{f} {
+        allow read, delete: if isRole('hr');
+        allow create, update: if isRole('hr') && request.resource.data.data is string && request.resource.data.data.size() < 900000;
+      }
+    }
     match /leaves/{id} {
       allow read, write: if isRole('hr');
     }
