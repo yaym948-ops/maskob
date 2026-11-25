@@ -1789,7 +1789,7 @@ function counts(){
 }
 function tabsFor(){
   const c=counts();
-  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')}];
+  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')},{k:'fc',l:t('tab_fc')}];
   if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales')},{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')}];
   if(S.role==='admin')return[{k:'branches',l:t('tab_settings')},{k:'catalog',l:t('tab_catalog')}];
   if(S.role==='hr')return hrTabs();
@@ -1858,6 +1858,7 @@ function view(){
   if(S.role==='admin')return tb==='catalog'?catalogView():branchesView();
   if(S.role==='hr')return hrView(tb);
   if(tb==='report'&&S.role==='manager')return reportView();
+  if(S.role==='branch'&&tb==='fc')return branchForecastView();
   if(S.role==='branch')return noticeBanner(v)+branchView(tb,v);
   return staffView(tb,v);
 }
@@ -2023,10 +2024,10 @@ function exportReport(day){
   saveXlsx(`maskob-daily-report-${day}.xlsx`,sheets);
 }
 function exportForecast(){
-  const ready=S.branches.map(b=>[b,forecastBranch(b)]).filter(x=>x[1].ready);
+  const ready=(S.role==='branch'?[S.branch]:S.branches).map(b=>[b,forecastBranch(b)]).filter(x=>x[1].ready);
   const agg={};ready.forEach(([b,f])=>f.items.forEach(x=>{const a=agg[x.id]||(agg[x.id]={sum:0,br:0});a.sum+=x.daily*7;a.br++}));
   const ids=Object.keys(agg).sort((x,y)=>(ITEM_POS[x]??1e9)-(ITEM_POS[y]??1e9)).filter(id=>roundQty(id,agg[id].sum)>0);
-  const sheets=[{name:t('c_7d'),headers:[t('c_item'),t('c_unit'),t('c_7d'),t('c_branches')],rows:ids.map(id=>{const i=lineInfo({id});return[i.name,i.u,roundQty(id,agg[id].sum),agg[id].br]})}];
+  const sheets=S.role==='branch'?[]:[{name:t('c_7d'),headers:[t('c_item'),t('c_unit'),t('c_7d'),t('c_branches')],rows:ids.map(id=>{const i=lineInfo({id});return[i.name,i.u,roundQty(id,agg[id].sum),agg[id].br]})}];   // a branch exports only its own sheet
   ready.forEach(([b,f])=>sheets.push({name:b,headers:[t('c_item'),t('c_unit'),t('c_fc'),t('c_last'),t('c_trend'),t('c_conf')],rows:f.items.map(x=>{const i=lineInfo({id:x.id});return[i.name,i.u,x.f,x.last,t('tr_'+x.trend),t('cf_'+x.conf)]})}));
   saveXlsx(`maskob-forecast-${stamp()}.xlsx`,sheets);
 }
@@ -2087,6 +2088,15 @@ function reportView(){
   ${any?`<div class="rp-sec"><h3>${t('rpByBranch')}</h3>${brTable}</div>`:''}
   ${topTable?`<div class="rp-sec"><h3>${t('rpTop')}</h3>${topTable}</div>`:''}
   <div class="rp-sec"><h3>${t('rpOrders')}</h3><div class="list" style="margin-top:10px">${R.dayOrders.length?R.dayOrders.map(orderCard).join(''):`<div class="empty">${t('rpEmpty')}</div>`}</div></div>`;
+}
+/* forecast for the signed-in branch only */
+function branchForecastView(){
+  const f=forecastBranch(S.branch);
+  const head=`<div class="row" style="justify-content:space-between"><h2>${t('tab_fc')}</h2>${f.ready&&f.items.length?`<div class="row"><button class="btn btn-ghost rp-btn" data-act="xlsForecast">${t('xlsExport')}</button><button class="btn btn-sun" data-act="useFcGo">${t('fcUse')}</button></div>`:''}</div>`;
+  if(!f.ready)return head+fcCard(f);
+  if(!f.items.length)return head+`<div class="empty" style="margin-top:14px">${esc(t('fcNone'))}</div>`;
+  return head+`<p class="hint" style="margin-top:8px">${esc(t('fcCycle',{n:fmt(f.cycle),d:whenDay(f.last),x:whenDay(f.next)}))}</p>
+   <div class="scroll" style="margin-top:10px"><table class="tbl"><thead><tr><th>${t('c_item')}</th><th style="text-align:center">${t('c_fc')}</th><th style="text-align:center">${t('c_last')}</th><th>${t('c_trend')}</th><th>${t('c_conf')}</th></tr></thead><tbody>${f.items.map(x=>{const i=lineInfo({id:x.id});return`<tr><td><b>${esc(i.name)}</b><div class="hint">${esc(i.u)}</div></td><td class="n"><b>${fmt(x.f)}</b></td><td class="n">${fmt(x.last)}</td><td class="tr-${x.trend}">${t('tr_'+x.trend)}</td><td class="cf-${x.conf}">${t('cf_'+x.conf)}</td></tr>`}).join('')}</tbody></table></div>`;
 }
 function forecastView(){
   const all=S.branches.map(b=>[b,forecastBranch(b)]);
@@ -2504,6 +2514,7 @@ const A={
     const fail=()=>{S.rpText=txt;render();const ta=document.getElementById('rpText');if(ta){ta.focus();ta.select()}};
     try{navigator.clipboard.writeText(txt).then(()=>{S.rpText=null;render();toast(t('rpCopied'))},fail)}catch(e){fail()}
   },
+  useFcGo(){A.useFc();S.tab='new';LS.set('mk.tab','new');render();window.scrollTo(0,0)},
   useFc(){const fc=forecastBranch(S.branch);if(!fc.ready)return;let n=0;
     fc.items.forEach(x=>{if(ITEM[x.id]&&!(S.draft.lines[x.id]>0)){S.draft.lines[x.id]=x.f;n++}});
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
