@@ -124,6 +124,12 @@ service cloud.firestore {
       allow delete: if isMgr();
     }
 
+    // item catalog for orders: every signed-in role reads, system admin edits
+    match /config/catalog {
+      allow read: if valid();
+      allow write: if isAdmin();
+    }
+
     // checklist items: every signed-in role reads, system admin edits
     match /config/checklist {
       allow read: if valid();

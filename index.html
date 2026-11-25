@@ -573,6 +573,8 @@ textarea,input,select,button{font-family:inherit}
 .io-imp{position:relative;overflow:hidden}
 .io-imp input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
 
+.oc.cat-off{opacity:.6}
+
 /* long lists: skip drawing what is off screen */
 .grid{content-visibility:auto;contain-intrinsic-size:auto 560px}
 .list>.oc{content-visibility:auto;contain-intrinsic-size:auto 88px}
@@ -1087,6 +1089,31 @@ io_kind:['ترخيص / عقد','License / contract','লাইসেন্স / 
 io_yes:['نعم','Yes','হ্যাঁ','ہاں'],
 io_no:['لا','No','না','نہیں'],
 io_cancel:['إلغاء','Cancel','বাতিল','منسوخ'],
+tab_catalog:['الأصناف','Items','পণ্য','اشیاء'],
+cat_add:['إضافة صنف','Add item','পণ্য যোগ করুন','چیز شامل کریں'],
+cat_active:['أصناف متاحة','Active items','সক্রিয় পণ্য','فعال اشیاء'],
+cat_offN:['أصناف موقوفة','Switched-off items','বন্ধ পণ্য','بند اشیاء'],
+cat_cats:['الأقسام','Categories','বিভাগ','زمرے'],
+cat_builtin:['هذه القائمة الأصلية من ملف الطلبات. أي تعديل أو استيراد يحفظها في قاعدة البيانات ويظهر للفروع فوراً.','This is the original list from the order file. Any edit or import saves it to the database and branches see it at once.','এটি অর্ডার ফাইলের মূল তালিকা। যেকোনো সম্পাদনা বা আমদানি এটি ডাটাবেসে সংরক্ষণ করবে এবং শাখাগুলো সঙ্গে সঙ্গে দেখবে।','یہ آرڈر فائل کی اصل فہرست ہے۔ کوئی بھی تبدیلی یا درآمد اسے ڈیٹا بیس میں محفوظ کرے گی اور برانچیں فوراً دیکھیں گی۔'],
+cat_search:['بحث باسم الصنف أو الرمز','Search item name or SKU','পণ্যের নাম বা SKU খুঁজুন','نام یا SKU تلاش کریں'],
+cat_allCats:['كل الأقسام','All categories','সব বিভাগ','تمام زمرے'],
+cat_parShort:['الحد','Par','সীমা','حد'],
+cat_off:['موقوف','Off','বন্ধ','بند'],
+cat_on:['متاح للطلب','Available','অর্ডারযোগ্য','دستیاب'],
+cat_status:['الحالة','Status','অবস্থা','حیثیت'],
+cat_ar:['الاسم بالعربية','Arabic name','আরবি নাম','عربی نام'],
+cat_en:['الاسم بالإنجليزية','English name','ইংরেজি নাম','انگریزی نام'],
+cat_bn:['الاسم بالبنغالية','Bengali name','বাংলা নাম','بنگالی نام'],
+cat_ur:['الاسم بالأوردو','Urdu name','উর্দু নাম','اردو نام'],
+cat_cat:['القسم','Category','বিভাগ','زمرہ'],
+cat_unit:['الوحدة','Unit','একক','اکائی'],
+cat_par:['الحد المعتاد للطلب','Usual order level (par)','সাধারণ অর্ডার স্তর','معمول کی آرڈر حد'],
+cat_sku:['رمز الصنف (SKU)','SKU','SKU','SKU'],
+cat_code:['الكود','Code','কোড','کوڈ'],
+cat_langHint:['إذا تُرك الاسم البنغالي أو الأوردو فارغاً يظهر الاسم الإنجليزي أو العربي.','Empty Bengali or Urdu names fall back to English or Arabic.','বাংলা বা উর্দু নাম খালি থাকলে ইংরেজি বা আরবি নাম দেখাবে।','بنگالی یا اردو نام خالی ہو تو انگریزی یا عربی نام دکھے گا۔'],
+cat_offHint:['الصنف الموقوف لا يظهر للفروع عند الطلب، ويبقى اسمه في الطلبات السابقة.','A switched-off item is hidden from new orders and keeps its name in past orders.','বন্ধ পণ্য নতুন অর্ডারে দেখায় না, পুরোনো অর্ডারে নাম থাকে।','بند چیز نئے آرڈرز میں نہیں دکھتی، پرانے آرڈرز میں نام رہتا ہے۔'],
+cat_need:['اكتب الاسم بالعربية','Enter the Arabic name','আরবি নাম লিখুন','عربی نام لکھیں'],
+cat_saved:['حُفظ الصنف','Item saved','পণ্য সংরক্ষিত','چیز محفوظ ہو گئی'],
 lv_add:['تسجيل إجازة','Add leave','ছুটি যোগ করুন','چھٹی درج کریں'],
 lv_emp:['الموظف','Employee','কর্মচারী','ملازم'],
 lv_type:['نوع الإجازة','Leave type','ছুটির ধরন','چھٹی کی قسم'],
@@ -1732,7 +1759,7 @@ function tabsFor(){
   const c=counts();
   if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')}];
   if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'sched',l:t('tab_sched'),b:c.sched,late:c.schedLate},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales')},{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')},{k:'forecast',l:t('tab_fc')}];
-  if(S.role==='admin')return[{k:'branches',l:t('tab_settings')}];
+  if(S.role==='admin')return[{k:'branches',l:t('tab_settings')},{k:'catalog',l:t('tab_catalog')}];
   if(S.role==='hr')return hrTabs();
   if(S.role==='warehouse')return[{k:'prep',l:t('tab_prep'),b:c.prep,late:c.prepLate},{k:'sched',l:t('tab_sched'),b:c.sched,late:c.schedLate},{k:'incoming',l:t('tab_incoming'),b:c.incoming,late:c.incomingLate},{k:'done',l:t('tab_log')}];
   return[];
@@ -1759,7 +1786,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}">${esc(x.l)}${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -1796,7 +1823,7 @@ function pinPad(){
 function view(){
   if(!S.loaded)return`<p class="hint">${t('loadingOrders')}</p>`;
   const tb=S.tab,v=visible();
-  if(S.role==='admin')return branchesView();
+  if(S.role==='admin')return tb==='catalog'?catalogView():branchesView();
   if(S.role==='hr')return hrView(tb);
   if(tb==='forecast'&&S.role==='manager')return forecastView();
   if(tb==='report'&&S.role==='manager')return reportView();
@@ -2096,7 +2123,7 @@ function branchesView(){
 /* new order */
 /* most requested first: how many of this branch's orders included each item (then total quantity) */
 function popularity(){
-  const key=S.orders.length+'|'+S.orders.map(o=>o.updatedAt||o.createdAt).join(',').length+'|'+(S.branch||'');
+  const key=S.orders.length+'|'+S.orders.map(o=>o.updatedAt||o.createdAt).join(',').length+'|'+(S.branch||'')+'|'+(S._catV||0);   // catalog version: edits rebuild the list
   if(S._popKey===key)return S._pop;
   const m={};
   S.orders.forEach(o=>{
@@ -2356,7 +2383,7 @@ async function overlapsOther(v,key){
 const fieldKey=f=>({appr:'approved',sent:'sent',recv:'received'}[f]);
 function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
-  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
+  tab(el){S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -2440,7 +2467,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.imp=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.imp=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -2588,6 +2615,10 @@ const X={
     if(S.fb)return db.doc('licenses/'+id+'/files/f0').delete().catch(()=>{});
     if(S._demoLic)delete S._demoLic[id];
   },
+  async catalog(items){
+    if(S.fb)return queue('config/catalog',()=>db.doc('config/catalog').set({items,at:nowIso()}));
+    MEMSET('catalog',items);xLoadDemo();render();
+  },
   async del(col,id){
     if(S.fb)return queue(col+'/'+id,()=>db.doc(col+'/'+id).delete());
     MEMSET(col,MEM(col).filter(x=>x.id!==id));xLoadDemo();render();
@@ -2598,6 +2629,7 @@ const X={
   }
 };
 function xLoadDemo(){
+  S.catalog=MEM('catalog');applyCatalog();
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
@@ -2608,6 +2640,7 @@ function xLoadDemo(){
 function xStart(){
   xStop();const u=S._xUnsub=[];
   const onErr=()=>{};
+  u.push(db.doc('config/catalog').onSnapshot(s=>{S.catalog=s.exists&&Array.isArray(s.data().items)?s.data().items:null;applyCatalog();render()},onErr));
   const list=(col,set)=>{let q=db.collection(col);if(S.role==='branch')q=q.where('branch','==',S.branch);
     u.push(q.onSnapshot(s=>{set(s.docs.map(d=>Object.assign({},d.data(),{id:d.id})));render()},onErr))};
   if(S.role==='branch'||S.role==='manager'||S.role==='admin')
@@ -3564,12 +3597,21 @@ const IO={
     match:(r,L)=>L.find(x=>x.branch===r.branch&&x.month===r.month),
     build:(r,o)=>Object.assign({},o||{},r),
     save:x=>X.target(x.data.branch,x.data.month,{sales:+x.data.sales||0,invoices:Math.round(+x.data.invoices||0)})},
+  catalog:{name:()=>t('tab_catalog'),list:()=>catList().map(x=>Object.assign({},x)),
+    cols:[['id','cat_code'],['cat','cat_cat','cat'],['ar','cat_ar','text',2],['en','cat_en'],['bn','cat_bn'],['ur','cat_ur'],['uk','cat_unit','unit'],['par','cat_par','num'],['sku','cat_sku'],['state','cat_status',{on:'cat_on',off:'cat_off'}]],
+    get:(it,k)=>k==='state'?(it.off?'off':'on'):it[k],
+    match:(r,L)=>r.id?L.find(x=>x.id===r.id):L.find(x=>x.ar===r.ar&&(!r.uk||x.uk===r.uk)),
+    idOf:d=>(d.cat||'other')+'-n'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    build:(r,o)=>{const d=Object.assign({cat:'other',uk:'PC'},o||{},r);if(r.state)d.off=r.state==='off';delete d.state;return cleanItem(d)},
+    commit:async items=>{const list=catList().map(x=>Object.assign({},x));
+      items.forEach(x=>{const it=cleanItem(Object.assign({},x.data,{id:x.id}));const i=list.findIndex(y=>y.id===x.id);if(i>=0)list[i]=it;else list.push(it)});
+      await X.catalog(list.map(cleanItem))}},
   maint:{name:()=>t('tab_maint'),readOnly:true,list:()=>[...(S.maint||[])].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))),
     cols:[['branch','r_branch','branch'],['cat','m_cat',Object.fromEntries(MAINT_CATS.map(c=>[c,'mc_'+c]))],['desc','m_desc'],['urgent','m_urgent',yesNo],
       ['status','hr_status',{open:'ms_open',progress:'ms_progress',done:'ms_done'}],['createdAt','c_created'],['opsNote','m_reply']],
     get:(m,k)=>k==='urgent'?(m.urgent?'yes':'no'):k==='createdAt'?fmtDT(m.createdAt):m[k]}
 };
-const ioCan=k=>({employees:'hr',leaves:'hr',custody:'hr',advances:'hr',licenses:'hr',targets:'manager',maint:'manager'}[k]||(k==='sales'?(S.role==='manager'||S.role==='branch')&&S.role:null))===S.role;
+const ioCan=k=>({employees:'hr',leaves:'hr',custody:'hr',advances:'hr',licenses:'hr',targets:'manager',maint:'manager',catalog:'admin'}[k]||(k==='sales'?(S.role==='manager'||S.role==='branch')&&S.role:null))===S.role;
 function ioBtns(k){
   if(!ioCan(k))return'';
   return`<button class="btn btn-ghost rp-btn" data-act="ioExport" data-k="${k}">${t('io_export')}</button>${IO[k].readOnly?'':`<label class="btn btn-ghost rp-btn io-imp">${t('io_import')}<input type="file" class="imp-in" data-k="${k}" accept=".xlsx,.xls,.csv" aria-label="${esc(t('io_import'))}"></label>`}`;
@@ -3585,6 +3627,8 @@ function ioOut(def,row,c){
   if(type==='place'||type==='branch')return placeL(v);
   if(type==='emp')return empName(v);
   if(type==='litype')return licTypeL(row);
+  if(type==='cat')return CAT[v]?catName(CAT[v]):v;
+  if(type==='unit')return unitL(v);
   if(type&&typeof type==='object')return type[v]?t(type[v]):v;
   return v;
 }
@@ -3609,6 +3653,8 @@ function ioIn(c,raw,ctx){
     if(type==='place')for(const pk in PLACE_KEYS)if(pk===low||labelsOf(PLACE_KEYS[pk]).includes(low))return{v:pk};
     return{err:t('io_noPlace',{v:s})}}
   if(type==='emp'){const L=S.emps||[];const e=L.find(x=>x.no&&String(x.no)===String(s))||L.find(x=>x.idNo&&String(x.idNo)===String(s))||L.find(x=>x.name===s);return e?{v:e.id}:{err:t('io_noEmp',{v:s})}}
+  if(type==='cat'){const c=CATS.find(c=>c.k===low||c.n.some(n=>String(n).toLowerCase()===low));return c?{v:c.k}:{err:t('io_badOpt',{c:label,v:s})}}
+  if(type==='unit'){const u=Object.keys(UNITS).find(k=>k.toLowerCase()===low||UNITS[k].some(n=>String(n).toLowerCase()===low));return{v:u||String(s)}}
   if(type==='litype'){const kind=ctx.kind||'license';const opts=LIC_TYPES[kind];
     const hit=opts.find(o=>o===low||labelsOf((kind==='contract'?'ct_':'li_')+'t_'+o).includes(low));return hit?{v:hit}:{err:t('io_badOpt',{c:label,v:s})}}
   if(type&&typeof type==='object'){for(const ok in type)if(ok===low||labelsOf(type[ok]).includes(low))return{v:ok};return{err:t('io_badOpt',{c:label,v:s})}}
@@ -3675,7 +3721,7 @@ Object.assign(A,{
   ioCommit(){
     const m=S.imp,def=m&&IO[m.k];if(!def||!m.ok.length)return;const items=[...m.ok];
     guard(async()=>{
-      for(let i=0;i<items.length;i+=20)await Promise.all(items.slice(i,i+20).map(x=>def.save?def.save(x):X.put(def.col,x.id,x.data)));
+      if(def.commit)await def.commit(items);else for(let i=0;i<items.length;i+=20)await Promise.all(items.slice(i,i+20).map(x=>def.save?def.save(x):X.put(def.col,x.id,x.data)));
       S.imp=null;
     },()=>t('io_done',{n:items.length}));
   }
@@ -3685,6 +3731,65 @@ document.addEventListener('change',ev=>{
   const f=el.files[0],k=el.dataset.k;el.value='';
   if(ioCan(k))ioRead(k,f);
 });
+
+/* ================= Item catalog: editable by the system admin, stored in config/catalog ================= */
+/* The built-in list (from the original Excel file) is used until the admin saves a catalog.
+   Items are never deleted, only switched off, so old orders keep their names. */
+const BUILTIN_ITEMS=ITEMS.map(x=>{const o=Object.assign({},x);return o});
+const catList=()=>(Array.isArray(S.catalog)&&S.catalog.length?S.catalog:BUILTIN_ITEMS);
+function applyCatalog(){
+  const src=catList();
+  ITEMS.length=0;for(const k in ITEM)delete ITEM[k];for(const k in ITEM_POS)delete ITEM_POS[k];
+  CATS.forEach(c=>c.list=[]);
+  src.forEach(x=>{const it=Object.assign({},x);if(!CAT[it.cat])it.cat='other';it.bn=it.bn||it.en||it.ar;it.ur=it.ur||it.ar;it.en=it.en||it.ar;
+    ITEM[it.id]=it;if(!it.off){ITEMS.push(it);CAT[it.cat].list.push(it)}});
+  ITEMS.forEach((it,i)=>ITEM_POS[it.id]=i);
+  S._catV=(S._catV||0)+1;
+}
+const cleanItem=x=>{const o={id:x.id,cat:CAT[x.cat]?x.cat:'other',ar:String(x.ar||'').trim(),en:String(x.en||'').trim(),bn:String(x.bn||'').trim(),ur:String(x.ur||'').trim(),
+  uk:String(x.uk||'PC').trim()||'PC',par:x.par===''||x.par==null||isNaN(+x.par)?null:+x.par,sku:String(x.sku||'').trim()};if(x.off)o.off=true;return o};
+function catalogView(){
+  const q=String(S.catQ||'').trim().toLowerCase(),cf=S.catCat||'';
+  const all=catList();
+  const list=all.filter(it=>(!cf||it.cat===cf)&&(!q||[it.ar,it.en,it.bn,it.ur,it.sku].some(v=>String(v||'').toLowerCase().includes(q))));
+  const groups=CATS.map(c=>({c,items:list.filter(it=>(CAT[it.cat]?it.cat:'other')===c.k)})).filter(g=>g.items.length);
+  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_catalog')}</h2><div class="row">${ioBtns('catalog')}<button class="btn btn-sun" data-act="catNew">+ ${t('cat_add')}</button></div></div>
+  <div class="stats">${kpi(t('cat_active'),sar(all.filter(x=>!x.off).length))}${kpi(t('cat_offN'),sar(all.filter(x=>x.off).length))}${kpi(t('cat_cats'),sar(CATS.length))}</div>
+  ${Array.isArray(S.catalog)&&S.catalog.length?'':`<p class="hint">${esc(t('cat_builtin'))}</p>`}
+  <div class="row hr-filter"><input class="field" id="catQ" data-in="catQ" placeholder="${esc(t('cat_search'))}" value="${esc(S.catQ||'')}" style="flex:2;min-width:180px">
+    <select class="field" id="catCat" style="flex:1;min-width:140px"><option value="">${esc(t('cat_allCats'))}</option>${CATS.map(c=>`<option value="${c.k}" ${cf===c.k?'selected':''}>${esc(catName(c))}</option>`).join('')}</select></div>
+  ${groups.length?groups.map(g=>`<div class="rp-sec"><h3>${esc(catName(g.c))} <span class="hint num">(${g.items.length})</span></h3><div class="list" style="margin-top:8px">${g.items.map(it=>`<button class="oc ${it.off?'cat-off':''}" data-act="catOpen" data-id="${esc(it.id)}">
+    <span style="min-width:0"><span class="t">${esc(it[LANG]||it.ar)}</span><span class="s">${esc(LANG==='en'?it.ar:(it.en||''))}${it.sku?' · <span dir="ltr">'+esc(it.sku)+'</span>':''}</span></span>
+    <span class="side"><span class="tag">${esc(unitL(it.uk))}</span>${it.par!=null?`<span class="hint num">${esc(t('cat_parShort'))} ${esc(fmt(it.par))}</span>`:''}${it.off?`<span class="pill ms-open">${t('cat_off')}</span>`:''}</span></button>`).join('')}</div></div>`).join(''):`<div class="empty">${esc(t('hr_noMatch'))}</div>`}`;
+}
+function catSheet(){
+  const isNew=S.openCat==='new';const d=S.hrDraft||{};
+  const body=`<div class="sl-grid hr-grid">
+    ${hrIn('ar',t('cat_ar'))}${hrIn('en',t('cat_en'),'text','dir="ltr"')}
+    ${hrIn('bn',t('cat_bn'))}${hrIn('ur',t('cat_ur'))}
+    ${hrSel('cat',t('cat_cat'),CATS.map(c=>[c.k,catName(c)]))}${hrSel('uk',t('cat_unit'),[...new Set([...Object.keys(UNITS).filter(k=>k!=='BOX'),d.uk].filter(Boolean))].map(k=>[k,unitL(k)]))}
+    ${hrIn('par',t('cat_par'),'number')}${hrIn('sku',t('cat_sku'),'text','dir="ltr"')}
+  </div>
+  <p class="hint" style="margin-top:6px">${esc(t('cat_langHint'))}</p>
+  <div class="kind" style="margin-top:10px">${[['on','cat_on'],['off','cat_off']].map(([k,l])=>`<button aria-pressed="${(d.off?'off':'on')===k}" data-act="catState" data-k="${k}">${esc(t(l))}</button>`).join('')}</div>
+  ${!isNew&&d.off?`<p class="hint">${esc(t('cat_offHint'))}</p>`:''}`;
+  const foot=`<span class="spacer"></span><button class="btn btn-sun" data-act="catSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
+  return hrSheetWrap(isNew?t('cat_add'):(d.ar||''),body,foot);
+}
+Object.assign(A,{
+  catNew(){S.openCat='new';S.hrDraft={cat:S.catCat||CATS[0].k,uk:'PC',ar:'',en:'',bn:'',ur:'',par:'',sku:''};render()},
+  catOpen(el){const it=catList().find(x=>x.id===el.dataset.id);if(!it)return;S.openCat=it.id;S.hrDraft=Object.assign({},it,{par:it.par==null?'':it.par});render()},
+  catState(el){S.hrDraft.off=el.dataset.k==='off';render()},
+  catSave(){
+    const d=S.hrDraft||{};if(!String(d.ar||'').trim()){toast(t('cat_need'));return}
+    const id=S.openCat==='new'?(d.cat||'other')+'-n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5):S.openCat;
+    const list=catList().map(x=>Object.assign({},x));const item=cleanItem(Object.assign({},d,{id,par:d.par===''?null:num(d.par)}));
+    const i=list.findIndex(x=>x.id===id);if(i>=0)list[i]=item;else list.push(item);
+    guard(async()=>{await X.catalog(list.map(cleanItem));S.openCat=null;S.hrDraft=null},()=>t('cat_saved'));
+  }
+});
+document.addEventListener('input',ev=>{const el=ev.target;if(el.dataset&&el.dataset.in==='catQ'){S.catQ=el.value;clearTimeout(S._catT);S._catT=setTimeout(render,160)}});
+document.addEventListener('change',ev=>{const el=ev.target;if(el.id==='catCat'){S.catCat=el.value;render()}});
 
 render();
 Store.init();
