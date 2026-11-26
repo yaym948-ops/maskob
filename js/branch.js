@@ -15,10 +15,12 @@ const MEM=k=>{const m=S._mem||(S._mem={});if(!(k in m))m[k]=LS.get('mk.demo.'+k,
 const MEMSET=(k,v)=>{S._mem[k]=v;LS.set('mk.demo.'+k,v)};
 const X={
   async put(col,id,data){
+    window.logAct&&logAct('add',col,id);
     if(S.fb)return queue(col+'/'+id,()=>db.doc(col+'/'+id).set(data));
     MEMSET(col,MEM(col).filter(x=>x.id!==id).concat([Object.assign({},data,{id})]));xLoadDemo();render();
   },
   async upd(col,id,data){
+    window.logAct&&logAct('upd',col,id);
     if(S.fb)return queue(col+'/'+id,()=>db.doc(col+'/'+id).update(data));
     MEMSET(col,MEM(col).map(x=>x.id===id?Object.assign({},x,data):x));xLoadDemo();render();
   },
@@ -64,6 +66,7 @@ const X={
     MEMSET('catalog',items);xLoadDemo();render();
   },
   async del(col,id){
+    window.logAct&&logAct('del',col,id);
     if(S.fb)return queue(col+'/'+id,()=>db.doc(col+'/'+id).delete());
     MEMSET(col,MEM(col).filter(x=>x.id!==id));xLoadDemo();render();
   },
@@ -75,6 +78,7 @@ const X={
 function xLoadDemo(){
   {const c=MEM('company');S.company=c&&!Array.isArray(c)?c:{};const l=MEM('companyLogo');S.coLogo=typeof l==='string'&&l?l:null}
   S.catalog=MEM('catalog');applyCatalog();
+  S.users=MEM('users');S.log=S.role==='admin'?MEM('log'):[];
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
@@ -86,6 +90,10 @@ function xStart(){
   xStop();const u=S._xUnsub=[];
   const onErr=()=>{};
   u.push(db.doc('config/company').onSnapshot(s=>{S.company=s.exists?s.data():{};render()},onErr));
+  if(S.role==='admin'){
+    u.push(db.collection('users').onSnapshot(s=>{S.users=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},onErr));
+    u.push(db.collection('log').orderBy('at','desc').limit(300).onSnapshot(s=>{S.log=s.docs.map(d=>d.data());render()},onErr));
+  }
   if(S.role==='admin'||S.role==='hr'){
     u.push(db.doc('config/companyLogo').onSnapshot(s=>{S.coLogo=s.exists?s.data().data:null;render()},onErr));
   }

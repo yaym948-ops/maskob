@@ -19,6 +19,29 @@ test('no two top-level functions share a name (a later one would silently replac
   }
 });
 
+test('every file the page and its styles point to exists (logo, icons, scripts)', () => {
+  const fs = require('fs'), path = require('path'), { ROOT } = require('./load');
+  const missing = [];
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  for (const m of html.matchAll(/(?:src|href)="([^"#:]+?)(?:\?[^"]*)?"/g)) if (!fs.existsSync(path.join(ROOT, m[1]))) missing.push('index.html → ' + m[1]);
+  for (const f of fs.readdirSync(path.join(ROOT, 'css'))) {
+    const css = fs.readFileSync(path.join(ROOT, 'css', f), 'utf8');
+    for (const m of css.matchAll(/url\(\s*['"]?([^'")]+?)['"]?\s*\)/g)) {
+      if (/^(data:|https?:|#)/.test(m[1])) continue;
+      if (!fs.existsSync(path.join(ROOT, 'css', m[1]))) missing.push('css/' + f + ' → ' + m[1]);
+    }
+  }
+  assert.deepEqual(missing, [], 'missing files: ' + missing.join(', '));
+});
+
+test('older files keep working if a browser still has the previous page (no hard dependency on newer files)', () => {
+  // functions that live in a file added later must be called through a guard in older files
+  const fs = require('fs'), path = require('path'), { ROOT } = require('./load');
+  const core = fs.readFileSync(path.join(ROOT, 'js/core.js'), 'utf8') + fs.readFileSync(path.join(ROOT, 'js/branch.js'), 'utf8');
+  const unguarded = (core.match(/(^|[^.\w&])logAct\(/gm) || []).length;
+  assert.equal(unguarded, 0, 'logAct must be called as window.logAct&&logAct(...)');
+});
+
 /* ---------- the app starts and its pieces fit together ---------- */
 let w;
 test.after(() => { if (w) w.close(); });   // stop the app's timers so the run can finish
@@ -98,4 +121,54 @@ test('codes, HR employee, end of service and payroll', async () => {
   assert.equal(await EF.get(id, files[0]), big);
   await EF.del(id, files[0]);
   assert.equal((await EF.list(id)).length, 0);
+});
+
+test('social insurance deduction in payroll', async () => {
+  const e = { id: 'G1', name: 'سعود', salary: 6000, alHousing: 1500, gosi: true, branch: '@office', status: 'active', hire: '2020-01-01' };
+  assert.equal(w.eval('gosiMonthly')(e), 731.25);                                  // 9.75% of 7,500
+  assert.equal(w.eval('gosiMonthly')(Object.assign({}, e, { gosiRate: 10 })), 750);
+  assert.equal(w.eval('gosiMonthly')(Object.assign({}, e, { salary: 50000 })), 4387.5); // capped at 45,000
+  assert.equal(w.eval('gosiMonthly')(Object.assign({}, e, { gosi: false })), 0);
+  w.eval('S').emps.push(e);
+  const row = w.eval('payrollCalc')('2026-11').rows.find((r) => r.id === 'G1');
+  assert.equal(row.gosi, 731.25);
+  assert.equal(row.net, 7500 - 731.25);
+});
+
+test('personal accounts: sign in with your own code, name shown, switched-off account is refused', async () => {
+  const d = driver(w);
+  await d.signIn('2468');                                   // system admin (shared code)
+  assert.equal(w.eval('S.role'), 'admin');
+  d.click('[data-act="tab"][data-k="users"]');
+  d.click('[data-act="usNew"]'); await sleep(20);
+  d.setVal('hr-name', 'سارة'); d.setVal('hr-role', 'hr'); d.setVal('hr-pin', '7777');
+  d.click('[data-act="usSave"]'); await sleep(400);
+  const users = w.eval('S.users');
+  assert.equal(users.length, 1);
+  assert.equal(users[0].role, 'hr');
+  // the same code can't be given to a second person
+  d.click('[data-act="usNew"]'); await sleep(20);
+  d.setVal('hr-name', 'نسخة'); d.setVal('hr-role', 'warehouse'); d.setVal('hr-pin', '7777');
+  d.click('[data-act="usSave"]'); await sleep(300);
+  assert.equal(w.eval('S.users').length, 1, 'duplicate code refused');
+  d.click('[data-act="close"]');
+
+  await d.signIn('7777');
+  assert.equal(w.eval('S.role'), 'hr');
+  assert.equal(w.eval('S.userName'), 'سارة');
+  assert.match(w.document.querySelector('.who').textContent, /سارة/);
+  // actions are logged with the person's name
+  d.click('[data-act="tab"][data-k="emps"]');
+  d.click('[data-act="hrNew"]'); await sleep(20);
+  d.setVal('hr-name', 'موظف للسجل'); d.click('[data-act="hrSave"]'); await sleep(300);
+  const log = w.eval('MEM("log")');
+  assert.ok(log.some((e) => e.name === 'سارة' && e.col === 'employees' && e.op === 'add'), 'action logged with the name');
+
+  // switch the account off: the next check signs her out and her code no longer works
+  await d.signIn('2468');
+  d.click('[data-act="tab"][data-k="users"]');
+  d.click('[data-act="usOpen"]'); await sleep(20);
+  d.click('[data-act="usActive"][data-k="off"]'); d.click('[data-act="usSave"]'); await sleep(400);
+  await d.signIn('7777');
+  assert.notEqual(w.eval('S.role'), 'hr', 'switched-off account cannot sign in');
 });

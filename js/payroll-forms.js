@@ -49,9 +49,10 @@ function payrollCalc(mk){
     const hpd=+(e.contract&&e.contract.hours)||8,otHours=r2p(num(m.otHours));
     const otRate=r2p(payTotal(e)/30/hpd+0.5*(+e.salary||0)/30/hpd),ot=r2p(otHours*otRate);
     const gross=r2p(basic+allow);
-    const net=r2p(gross+reward+ot+add-formDed-unpaid-adv-ded);
+    const gosi=r2p(gosiMonthly(e,f));
+    const net=r2p(gross+reward+ot+add-formDed-unpaid-adv-gosi-ded);
     return{id:e.id,name:e.name,no:e.no||'',branch:e.branch,bank:e.bank||'',iban:e.iban||'',days,basic,allow,gross,reward,otHours,otRate,ot,add,formDed,unpaidDays,unpaid,adv,
-      advIds:advList.map(a=>[a.id,r2p(Math.min(+a.monthly,advRemain(a)))]),ded,note:m.note||'',net};
+      advIds:advList.map(a=>[a.id,r2p(Math.min(+a.monthly,advRemain(a)))]),gosi,ded,note:m.note||'',net};
   }).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
   return{doc,mk,start,end,rows};
 }
@@ -67,14 +68,14 @@ function payrollView(){
   <div class="row" style="margin:6px 0 4px;gap:10px;flex-wrap:wrap"><span class="pill ${ok?'ms-done':'ms-progress'}">${t(ok?'pr_approved':'pr_draft')}</span>${ok&&P.doc.approvedAt?`<span class="hint">${esc(when(P.doc.approvedAt))}</span>`:''}
     <select class="field" id="prPlace" style="width:auto;min-width:160px"><option value="">${esc(t('hr_allPlaces'))}</option>${hrPlaces().map(p=>`<option value="${esc(p)}" ${place===p?'selected':''}>${esc(placeL(p))}</option>`).join('')}</select></div>
   <p class="hint">${esc(t(ok?'pr_hintLocked':'pr_hint'))}</p>${ok?'':`<p class="hint">${esc(t('pr_otHint'))}</p>`}
-  <div class="stats">${kpi(t('tab_emps'),sar(rows.length))}${kpi(t('pr_gross'),sar(prSum(rows,'gross'))+' '+t('sar'))}${kpi(t('pr_deds'),sar(prSum(rows,'formDed')+prSum(rows,'unpaid')+prSum(rows,'adv')+prSum(rows,'ded'))+' '+t('sar'))}${kpi(t('pr_net'),sar(prSum(rows,'net'))+' '+t('sar'),'hot')}</div>
-  ${rows.length?`<div class="scroll"><table class="tbl pr-tbl"><thead><tr><th>${t('lv_emp')}</th><th>${t('pr_days')}</th><th>${t('hr_salary')}</th><th>${t('al_title')}</th><th>${t('fm_reward')}</th><th>${t('pr_ot')}<div class="hint">${t('pr_h')}</div></th><th>${t('pr_add')}</th><th>${t('pr_formDed')}</th><th>${t('pr_unpaid')}</th><th>${t('tab_adv')}</th><th>${t('pr_ded')}</th><th>${t('pr_net')}</th><th></th></tr></thead><tbody>
+  <div class="stats">${kpi(t('tab_emps'),sar(rows.length))}${kpi(t('pr_gross'),sar(prSum(rows,'gross'))+' '+t('sar'))}${kpi(t('pr_deds'),sar(prSum(rows,'formDed')+prSum(rows,'unpaid')+prSum(rows,'adv')+prSum(rows,'gosi')+prSum(rows,'ded'))+' '+t('sar'))}${kpi(t('pr_net'),sar(prSum(rows,'net'))+' '+t('sar'),'hot')}</div>
+  ${rows.length?`<div class="scroll"><table class="tbl pr-tbl"><thead><tr><th>${t('lv_emp')}</th><th>${t('pr_days')}</th><th>${t('hr_salary')}</th><th>${t('al_title')}</th><th>${t('fm_reward')}</th><th>${t('pr_ot')}<div class="hint">${t('pr_h')}</div></th><th>${t('pr_add')}</th><th>${t('pr_formDed')}</th><th>${t('pr_unpaid')}</th><th>${t('tab_adv')}</th><th>${t('pr_gosi')}</th><th>${t('pr_ded')}</th><th>${t('pr_net')}</th><th></th></tr></thead><tbody>
   ${rows.map(r=>`<tr><td><b>${esc(r.name)}</b><div class="hint">${r.no?'#'+esc(r.no)+' · ':''}${esc(placeL(r.branch))}</div></td><td class="n">${r.days}</td><td class="n">${esc(sar2(r.basic))}</td><td class="n">${esc(sar2(r.allow))}</td><td class="n">${r.reward?esc(sar2(r.reward)):'—'}</td><td class="pr-ot">${ok?(r.otHours?esc(sar2(r.otHours))+' '+t('pr_h'):'—'):`<input class="field num pr-in" id="pr-${esc(r.id)}-otHours" inputmode="decimal" dir="ltr" data-in="prAdj" data-e="${esc(r.id)}" data-f="otHours" value="${r.otHours?esc(r.otHours):''}" placeholder="0">`}${r.ot?`<div class="ot-amt num">${esc(sar2(r.ot))} ${t('sar')}</div>`:''}</td>${cell(r,'add')}
-    <td class="n ${r.formDed?'mis':''}">${r.formDed?esc(sar2(r.formDed)):'—'}</td><td class="n ${r.unpaid?'mis':''}">${r.unpaid?esc(sar2(r.unpaid)):'—'}</td><td class="n ${r.adv?'mis':''}">${r.adv?esc(sar2(r.adv)):'—'}</td>${cell(r,'ded')}
+    <td class="n ${r.formDed?'mis':''}">${r.formDed?esc(sar2(r.formDed)):'—'}</td><td class="n ${r.unpaid?'mis':''}">${r.unpaid?esc(sar2(r.unpaid)):'—'}</td><td class="n ${r.adv?'mis':''}">${r.adv?esc(sar2(r.adv)):'—'}</td><td class="n ${r.gosi?'mis':''}">${r.gosi?esc(sar2(r.gosi)):'—'}</td>${cell(r,'ded')}
     <td class="n"><b>${esc(sar2(r.net))}</b></td><td><button class="btn btn-ghost pr-slip" data-act="prSlip" data-e="${esc(r.id)}" title="${esc(t('pr_slip'))}">🧾</button></td></tr>`).join('')}
-  <tr class="sh-sum"><td>${t('pr_total')}</td><td></td>${['basic','allow','reward','ot','add','formDed','unpaid','adv','ded','net'].map(k=>`<td class="n">${esc(sar2(prSum(rows,k)))}</td>`).join('')}<td></td></tr></tbody></table></div>`:`<div class="empty">${esc(t('hr_none'))}</div>`}`;
+  <tr class="sh-sum"><td>${t('pr_total')}</td><td></td>${['basic','allow','reward','ot','add','formDed','unpaid','adv','gosi','ded','net'].map(k=>`<td class="n">${esc(sar2(prSum(rows,k)))}</td>`).join('')}<td></td></tr></tbody></table></div>`:`<div class="empty">${esc(t('hr_none'))}</div>`}`;
 }
-const PR_COLS=[['pr_days','days'],['hr_salary','basic'],['al_title','allow'],['pr_gross','gross'],['fm_reward','reward'],['pr_otH','otHours'],['pr_ot','ot'],['pr_add','add'],['pr_formDed','formDed'],['pr_unpaid','unpaid'],['tab_adv','adv'],['pr_ded','ded'],['pr_net','net']];
+const PR_COLS=[['pr_days','days'],['hr_salary','basic'],['al_title','allow'],['pr_gross','gross'],['fm_reward','reward'],['pr_otH','otHours'],['pr_ot','ot'],['pr_add','add'],['pr_formDed','formDed'],['pr_unpaid','unpaid'],['tab_adv','adv'],['pr_gosi','gosi'],['pr_ded','ded'],['pr_net','net']];
 function printPayroll(P,rows,win){
   const h=esc,mn=monthName(P.mk);
   const body=`<style>@page{size:A4 landscape;margin:10mm}table{font-size:10.5px}td,th{padding:4px 6px}</style>
@@ -87,7 +88,7 @@ function printPayroll(P,rows,win){
 function printPayslip(P,r,win){
   const e=empById(r.id)||{};
   const earn=[['الراتب الأساسي / Basic',r.basic],['البدلات / Allowances',r.allow],['مكافآت / Rewards',r.reward],['عمل إضافي / Overtime'+(r.otHours?' ('+r.otHours+' '+'ساعة / h)':''),r.ot],['إضافات / Additions',r.add]].filter(x=>+x[1]);
-  const deds=[['خصومات النماذج / Deductions',r.formDed],['إجازة بدون راتب / Unpaid leave'+(r.unpaidDays?' ('+r.unpaidDays+')':''),r.unpaid],['قسط السلفة / Advance',r.adv],['خصم آخر / Other',r.ded]].filter(x=>+x[1]);
+  const deds=[['خصومات النماذج / Deductions',r.formDed],['إجازة بدون راتب / Unpaid leave'+(r.unpaidDays?' ('+r.unpaidDays+')':''),r.unpaid],['قسط السلفة / Advance',r.adv],['التأمينات الاجتماعية / GOSI',r.gosi],['خصم آخر / Other',r.ded]].filter(x=>+x[1]);
   const tb=(title,list)=>`<table><thead><tr><th>${title}</th><th style="text-align:center;width:30%">SAR</th></tr></thead><tbody>${list.length?list.map(x=>`<tr><td>${x[0]}</td><td style="text-align:center">${nfmt(x[1])}</td></tr>`).join(''):'<tr><td colspan="2">—</td></tr>'}</tbody></table>`;
   const body=`<table class="info">${[['الموظف / Employee',esc(r.name)],['الرقم الوظيفي / No.',esc(r.no||'—')],['المسمى / Job',esc(e.job||'—')],['مكان العمل / Workplace',esc(placeL(r.branch))],['الشهر / Month',esc(monthName(P.mk))],['أيام العمل / Days',r.days],
     ...(r.iban?[['البنك / Bank',esc(r.bank||'—')+' — <span dir="ltr">'+esc(ibanFmt(r.iban))+'</span>']]:[])].map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td></tr>`).join('')}</table>

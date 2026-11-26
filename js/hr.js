@@ -101,6 +101,10 @@ function empSheet(){
   <h4 class="hr-sub">${t('al_title')}</h4>
   <div class="sl-grid hr-grid">${ALLOWANCES.map(k=>hrIn(k,t(AL_L[k])+' ('+t('sar')+')','number')).join('')}</div>
   <div class="hr-total">${t('hr_totalPay')}: <b class="num" id="hrTotal">${esc(sar2(payTotal(d)))}</b> ${t('sar')}</div>
+  <h4 class="hr-sub">${t('gs_title')}</h4>
+  <div class="sl-grid hr-grid">${hrSel('gosi',t('gs_on'),[['',t('gs_no')],['yes',t('gs_yes')]])}${d.gosi==='yes'||d.gosi===true?hrIn('gosiRate',t('gs_rate'),'number','dir="ltr" inputmode="decimal" placeholder="9.75"'):''}</div>
+  ${d.gosi==='yes'||d.gosi===true?`<div class="hint" id="gosiAmt">${esc(t('gs_monthly'))}: <b class="num">${esc(sar2(gosiMonthly(d)))}</b> ${t('sar')}</div>`:''}
+  <p class="hint">${esc(t('gs_hint'))}</p>
   <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>
   ${isNew?`<p class="hint" style="margin-top:10px">${esc(t('ef_saveFirst'))}</p>`:empFilesSection(S.openEmp)}`;
   const foot=`${isNew?'':`<button class="btn btn-bad" data-act="hrDel">${S.confirm==='hrDel'?t('hr_delConfirm'):t('del')}</button>`}${isNew?'':`<button class="btn btn-ghost" data-act="hrEos">${e.status==='left'&&e.settlement?t('eos_view'):t('eos_title')}</button>`}<span class="spacer"></span><button class="btn btn-navy" data-act="hrContract" ${S.busy?'disabled':''}>${t('ct_make')}</button><button class="btn btn-sun" data-act="hrSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
@@ -123,6 +127,10 @@ function leaveSheet(){
 }
 /* ---------- allowances and pay ---------- */
 const ALLOWANCES=['alHousing','alTransport','alFood','alOther'];
+/* social insurance: employee share on basic + housing, capped at SAR 45,000 */
+const GOSI_CAP=45000,GOSI_RATE=9.75;
+const gosiMonthly=(e,f)=>{if(!(e.gosi===true||e.gosi==='yes'))return 0;const base=Math.min(GOSI_CAP,(+num(e.salary)||0)+(+num(e.alHousing)||0));
+  const rate=e.gosiRate===''||e.gosiRate==null?GOSI_RATE:+num(e.gosiRate);return Math.round(base*(f==null?1:f)*rate)/100};
 const AL_L={alHousing:'al_housing',alTransport:'al_transport',alFood:'al_food',alOther:'al_other'};
 const payTotal=e=>(+e.salary||0)+ALLOWANCES.reduce((a,k)=>a+(+e[k]||0),0);
 const isDay=v=>/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(v||'');
@@ -136,6 +144,7 @@ function empData(d,id){
   data.iban=normIban(d.iban);
   ['idExp','healthExp','contractEnd','hire'].forEach(k=>data[k]=isDay(d[k])?d[k]:'');
   ['salary',...ALLOWANCES].forEach(k=>data[k]=d[k]===''||d[k]==null?null:num(d[k]));
+  data.gosi=d.gosi==='yes'||d.gosi===true;data.gosiRate=d.gosiRate===''||d.gosiRate==null?null:num(d.gosiRate);
   const old=empById(id)||{};data.createdAt=old.createdAt||tm;if(old.contract)data.contract=old.contract;
   return data;
 }
@@ -563,7 +572,7 @@ document.addEventListener('change',async ev=>{
 const hrId=p=>p+'-'+dayKey(Date.now()).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,7).toUpperCase();
 Object.assign(A,{
   hrNew(){S.openEmp='new';S.confirm=null;S.hrDraft={branch:S.hrPlace||S.branches[0]||'@office',status:'active'};render()},
-  hrOpen(el){const e=empById(el.dataset.id);if(!e)return;S.openEmp=e.id;S.confirm=null;S.hrDraft=Object.assign({},e);render();efLoad(e.id)},
+  hrOpen(el){const e=empById(el.dataset.id);if(!e)return;S.openEmp=e.id;S.confirm=null;S.hrDraft=Object.assign({},e,{gosi:e.gosi?'yes':''});render();efLoad(e.id)},
   hrSave(){
     const d=S.hrDraft||{};const name=String(d.name||'').trim();if(!name){toast(t('hr_needName'));return}
     if(d.iban&&!ibanOk(d.iban)){toast(t('bk_bad'));return}
@@ -638,3 +647,8 @@ document.addEventListener('change',ev=>{
   if(el.id==='hrPlace'){S.hrPlace=el.value;render();return}
 });
 
+
+/* insurance box in the employee file: show the rate when switched on, keep the monthly amount current */
+document.addEventListener('input',ev=>{const el=ev.target;if(!(S.openEmp&&el.dataset&&el.dataset.in==='hrF'))return;
+  if(el.dataset.f==='gosi'){render();return}
+  if(['salary','alHousing','gosiRate'].includes(el.dataset.f)){const o=document.querySelector('#gosiAmt b');if(o)o.textContent=sar2(gosiMonthly(S.hrDraft))}});

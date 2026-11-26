@@ -1,7 +1,7 @@
 /* Maskob — styles (moved out of index.html) */
 /* Layout: a flat Maskob-blue header band with the wordmark, then one working column. Two brand colours only: blue for structure, orange for action and attention. No illustrations. */
 :root{
-  --brand:#0758a7; --brand-orange:#ef8a22; --logo:url(maskob-wordmark.png);
+  --brand:#0758a7; --brand-orange:#ef8a22; --logo:url(../maskob-wordmark.png);
   --navy:#0758a7; --navy-ink:#04427f; --sun:#ef8a22; --sun-ink:#b8640f; --lav:#3f80c4;
   --bg:#f4f7fb; --card:#ffffff; --fg:#0b2545; --muted:#56708f; --line:#dce5f0; --soft:#edf3fa;
   --sun-soft:#fdf1e3; --lav-soft:#e6eff9; --sand-soft:#fdf1e3;

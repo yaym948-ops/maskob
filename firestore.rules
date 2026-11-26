@@ -12,6 +12,8 @@ rules_version = '2';
 //   warehouse — prepares approved orders, receives returns.
 //   branch    — its own orders only.
 //   hr        — human resources: employees and leave records only.
+//
+// Sign-in: either a shared department code (config/pins) or a personal account (users/{id}).
 service cloud.firestore {
   match /databases/{db}/documents {
 
@@ -24,9 +26,22 @@ service cloud.firestore {
     function hashFor(role, branch) {
       return role == 'branch' ? pins().br[branch] : pins()[role];
     }
+    // personal accounts: users/{id} holds the code hash, role and branch; a session that names
+    // an account is valid only while that account exists, is active and still matches
+    function userPath(u) { return /databases/$(db)/documents/users/$(u); }
+    function accountOk(d) {
+      return exists(userPath(d.user))
+        && get(userPath(d.user)).data.h == d.h
+        && get(userPath(d.user)).data.active == true
+        && get(userPath(d.user)).data.role == d.role
+        && (d.role != 'branch' || get(userPath(d.user)).data.branch == d.get('branch', ''));
+    }
+    // a session (or a session being created) is backed either by an account or by a shared code
+    function codeMatches(d) {
+      return ('user' in d) ? accountOk(d) : hashFor(d.role, d.get('branch', '')) == d.h;
+    }
     function valid() {
-      return signedIn() && exists(sessPath()) && exists(pinsPath())
-        && hashFor(sess().role, sess().branch) == sess().h;
+      return signedIn() && exists(sessPath()) && exists(pinsPath()) && codeMatches(sess());
     }
     function isRole(r) { return valid() && sess().role == r; }
     function isAdmin() { return isRole('admin'); }
@@ -76,7 +91,20 @@ service cloud.firestore {
       allow create, update: if signedIn() && request.auth.uid == uid
         && exists(pinsPath())
         && request.resource.data.role in ['admin', 'manager', 'warehouse', 'branch', 'hr']
-        && hashFor(request.resource.data.role, request.resource.data.get('branch', '')) == request.resource.data.h;
+        && codeMatches(request.resource.data);
+    }
+
+    // personal accounts: managed by the system admin only (the code hash never leaves this collection
+    // except through codes/{hash}, which can only be fetched by someone who knows the code)
+    match /users/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // activity log: every signed-in person adds entries about their own actions; only the system admin reads
+    match /log/{id} {
+      allow create: if valid() && request.resource.data.uid == request.auth.uid;
+      allow read: if isAdmin();
+      allow update, delete: if false;
     }
 
     function isBranch() { return valid() && sess().role == 'branch'; }
