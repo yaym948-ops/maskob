@@ -244,7 +244,7 @@ function pinEntries(){
 const hashForKey=key=>{const h=key.startsWith('branch:')?(S.pins.br||{})[key.slice(7)]:S.pins[key];return h&&!String(h).startsWith('off:')?h:undefined};
 S.auth=LS.get('mk.auth',null);
 /* full-access accounts (role 'owner') look at the app as one department or branch at a time */
-function applyOwnerView(){const v=LS.get('mk.ownerView',{role:'manager'})||{role:'manager'};S.realRole='owner';S.role=v.role||'manager';S.branch=v.role==='branch'?(v.branch||S.branches[0]||null):S.branch}
+function applyOwnerView(){const v=LS.get('mk.ownerView',{role:'dash'})||{role:'dash'};S.realRole='owner';S.role=v.role||'dash';S.branch=v.role==='branch'?(v.branch||S.branches[0]||null):S.branch}
 if(S.role==='owner')applyOwnerView();
 function setAuth(a){S.auth=a;LS.set('mk.auth',a)}
 const saveDraft=()=>LS.set('mk.draft',S.draft);
@@ -522,10 +522,11 @@ function counts(){
 function tabsFor(){
   const c=counts();
   if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')},{k:'lr',l:t('tab_shifts'),b:(S.leaveReqs||[]).filter(r=>r.status==='pending').length},{k:'forms',l:t('tab_forms')},{k:'fc',l:t('tab_fc')}];
-  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales')},{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')}];
+  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales')},{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')},{k:'stock',l:t('tab_stock'),b:typeof stockLow==='function'?stockLow().length:0}];
   if(S.role==='admin')return[{k:'branches',l:t('tab_settings')},{k:'users',l:t('tab_users')},{k:'actlog',l:t('tab_log2')},{k:'catalog',l:t('tab_catalog')}];
   if(S.role==='hr')return hrTabs();
-  if(S.role==='warehouse')return[{k:'prep',l:t('tab_prep'),b:c.prep,late:c.prepLate},{k:'sched',l:t('tab_sched'),b:c.sched,late:c.schedLate},{k:'incoming',l:t('tab_incoming'),b:c.incoming,late:c.incomingLate},{k:'done',l:t('tab_log')}];
+  if(S.role==='warehouse')return[{k:'prep',l:t('tab_prep'),b:c.prep,late:c.prepLate},{k:'sched',l:t('tab_sched'),b:c.sched,late:c.schedLate},{k:'incoming',l:t('tab_incoming'),b:c.incoming,late:c.incomingLate},{k:'done',l:t('tab_log')},{k:'stock',l:t('tab_stock'),b:typeof stockLow==='function'?stockLow().length:0,late:typeof stockLow==='function'?stockLow().some(it=>stockState(it.id)==='out'):false}];
+  if(S.role==='dash')return[{k:'dash',l:t('tab_dash')}];
   return[];
 }
 
@@ -540,7 +541,7 @@ const NAV_IC={plus:'M12 5v14M5 12h14',inbox:'M4 13h4l2 3h4l2-3h4M4 13l2-8h12l2 8
   id:'M3 5h18v14H3zM7 15.5c.6-2 4.4-2 5 0M9.5 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM15 10h3M15 14h3',key:'M15 3a6 6 0 0 0-5.2 9L3 18.8V21h3v-2h2v-2h2l1.2-1.2A6 6 0 1 0 15 3zM16.5 7.5h.01',
   cash:'M3 7h18v10H3zM12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM6 10v4M18 10v4',shield:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4',
   receipt:'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4',dot:'M12 12h.01'};
-const NAV_OF={users:'users',actlog:'archive',new:'plus',tasks:'inbox',orders:'list',sales:'chart',maint:'wrench',checks:'check',lr:'cal',forms:'file',fc:'trend',pending:'clock',report:'file',all:'list',
+const NAV_OF={stock:'box',dash:'chart',users:'users',actlog:'archive',new:'plus',tasks:'inbox',orders:'list',sales:'chart',maint:'wrench',checks:'check',lr:'cal',forms:'file',fc:'trend',pending:'clock',report:'file',all:'list',
   salesAll:'chart',maintAll:'wrench',prep:'box',sched:'cal',incoming:'truck',done:'archive',branches:'sliders',catalog:'tag',emps:'users',docs:'id',leaves:'cal',custody:'key',
   advances:'cash',lic:'shield',vouchers:'receipt',payroll:'cash'};
 const navIcon=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${NAV_IC[NAV_OF[k]]||NAV_IC.dot}"/></svg>`;
@@ -569,7 +570,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}"><span class="tab-ico">${navIcon(x.k)}</span><span class="tab-l">${esc(x.l)}</span>${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openUser&&window.userSheet?userSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openStockRecv&&window.stockRecvSheet?stockRecvSheet():S.openStock&&window.stockItemSheet?stockItemSheet():S.openUser&&window.userSheet?userSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -585,7 +586,7 @@ function renderWho(authed){
   const lo=document.getElementById('logoutBox');
   if(!authed){el.innerHTML='';lo.innerHTML='';return}
   if(S.realRole==='owner'){const cur=S.role==='branch'?'branch:'+S.branch:S.role;
-    el.innerHTML=`<div class="who ow"><span>${S.userName?`<b>${esc(S.userName)}</b>`:esc(roleL('owner'))}</span><select class="ow-sel" id="ownerView" aria-label="${esc(t('ow_view'))}">${['manager','warehouse','hr','admin'].map(r=>`<option value="${r}" ${cur===r?'selected':''}>${esc(roleL(r))}</option>`).join('')}${S.branches.map(b=>`<option value="branch:${esc(b)}" ${cur==='branch:'+b?'selected':''}>${esc(roleL('branch'))}: ${esc(b)}</option>`).join('')}</select></div>`}
+    el.innerHTML=`<div class="who ow"><span>${S.userName?`<b>${esc(S.userName)}</b>`:esc(roleL('owner'))}</span><select class="ow-sel" id="ownerView" aria-label="${esc(t('ow_view'))}">${['dash','manager','warehouse','hr','admin'].map(r=>`<option value="${r}" ${cur===r?'selected':''}>${esc(roleL(r))}</option>`).join('')}${S.branches.map(b=>`<option value="branch:${esc(b)}" ${cur==='branch:'+b?'selected':''}>${esc(roleL('branch'))}: ${esc(b)}</option>`).join('')}</select></div>`}
   else el.innerHTML=`<div class="who"><span>${S.userName?`<b>${esc(S.userName)}</b> · `:''}${esc(roleL(S.role))}${S.role==='branch'?`: <b>${esc(S.branch||'')}</b>`:''}</span></div>`;
   lo.innerHTML=`<button class="logout-btn" data-act="logout">${esc(t('logout'))}</button>`;
 }
@@ -610,6 +611,8 @@ function pinPad(){
 function view(){
   if(!S.loaded)return`<p class="hint">${t('loadingOrders')}</p>`;
   const tb=S.tab,v=visible();
+  if(S.role==='dash'&&window.dashboardView)return dashboardView();
+  if(tb==='stock'&&(S.role==='warehouse'||S.role==='manager')&&window.stockView)return stockView();
   if(S.role==='admin')return tb==='catalog'?catalogView():tb==='users'&&window.usersView?usersView():tb==='actlog'&&window.logView?logView():branchesView();
   if(S.role==='hr')return hrView(tb);
   if(tb==='report'&&S.role==='manager')return reportView();
@@ -726,9 +729,9 @@ function xlsLetterhead(title){
   const contact=[co.addr,co.addrEn,co.phone,co.email,co.web].filter(Boolean).join('   ·   ');
   return[co.name+(co.nameEn?'  —  '+co.nameEn:''),ids,contact,(title||'')+'   —   '+dayKey(Date.now()).split('-').reverse().join('/')].filter(Boolean);
 }
-function makeSheet({headers,rows,name}){
-  const lh=xlsLetterhead(name),top=lh.length+1;          // letterhead lines, then one empty row, then the table
-  const ws=XLSX.utils.aoa_to_sheet([...lh.map(x=>[x]),[],headers,...rows]);
+function makeSheet({headers,rows,name,plain}){
+  const lh=plain?[]:xlsLetterhead(name),top=plain?0:lh.length+1;   // letterhead lines, then one empty row, then the table
+  const ws=XLSX.utils.aoa_to_sheet(plain?[headers,...rows]:[...lh.map(x=>[x]),[],headers,...rows]);
   const last=headers.length-1;               // merge only across the table's own columns
   if(last>0)ws['!merges']=lh.map((_,r)=>({s:{r,c:0},e:{r,c:last}}));
   ws['!cols']=headers.map((h,c)=>({wch:Math.min(45,Math.max(8,String(h).length+2,...rows.map(r=>String(r[c]??'').length+2)))}));
@@ -1200,7 +1203,7 @@ function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
   menuOpen(){S.menuOpen=true;render()},
   menuClose(){S.menuOpen=false;render()},
-  tab(el){S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
+  tab(el){S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=S.openStockRecv=S.openStock=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.userId=null;S.userName=null;S.role=null;S.realRole=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -1285,7 +1288,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.imp=null;S.openUser=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.imp=null;S.openStockRecv=null;S.openStock=null;S.openUser=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -1326,12 +1329,16 @@ const A={
     clearTimeout(progTimer);const tm=nowIso();
     const lines=o.lines.map(l=>{const x=w.lines[l.id];return Object.assign({},l,{checked:x.checked,sent:x.checked?x.sent:0})});
     const f={status:'shipped',lines,shippedAt:tm,updatedAt:tm,shipNote:w.note.trim()};if(S.me)f.shippedBy=S.me;
-    guard(async()=>{await Store.patch(o.id,f);S.open=null;S.confirm=null},()=>t('t_shipped'));},
+    guard(async()=>{await Store.patch(o.id,f);
+      if(o.kind!=='return'&&window.stockApply)await stockApply(lines.filter(l=>+l.sent>0).map(l=>[l.id,-(+l.sent)]),'issue',(o.num||o.id)+' — '+o.branch).catch(()=>{});
+      S.open=null;S.confirm=null},()=>t('t_shipped'));},
   receive(){const c=curWork();if(!c)return;const{o,w}=c;const tm=nowIso();
     const lines=o.lines.map(l=>{const x=w.lines[l.id];const n=Object.assign({},l,{received:x.received});if(x.note.trim())n.rnote=x.note.trim();else delete n.rnote;return n});
     const diffs=lines.filter(l=>l.received!==(l.sent??0)).length;
     const f={status:'received',lines,receivedAt:tm,updatedAt:tm,receiveNote:w.note.trim(),diffs};if(S.me)f.receivedBy=S.me;
-    guard(async()=>{await Store.patch(o.id,f);S.open=null},()=>diffs?t('t_recvDiff',{n:diffs}):t('t_recv'));},
+    guard(async()=>{await Store.patch(o.id,f);
+      if(o.kind==='return'&&window.stockApply)await stockApply(lines.filter(l=>+l.received>0).map(l=>[l.id,+l.received]),'return',(o.num||o.id)+' — '+o.branch).catch(()=>{});
+      S.open=null},()=>diffs?t('t_recvDiff',{n:diffs}):t('t_recv'));},
   addBranch(){const n=S.newBranch.trim();if(!n||S.branches.includes(n))return;const list=[...S.branches,n];S.newBranch='';guard(()=>Store.saveBranches(list),()=>t('branchAdded'))},
   delBranch(el){const i=+el.dataset.i;const name=S.branches[i];const list=S.branches.filter((_,j)=>j!==i);
     guard(async()=>{await Store.saveBranches(list);const br=S.pins.br||{};if(name in br){const oldH=br[name];const nb=Object.assign({},br);delete nb[name];const p=Object.assign({},S.pins,{br:nb});await Store.savePins(p);S.pins=p;

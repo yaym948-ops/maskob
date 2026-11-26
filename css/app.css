@@ -655,3 +655,15 @@ span.sh-c{cursor:default}
 /* full-access account: department / branch picker in the header */
 .who.ow{gap:8px;padding-inline:12px 6px}
 .ow-sel{appearance:auto;border:0;border-radius:999px;background:#fff;color:var(--navy);font:inherit;font-size:13px;font-weight:700;padding:3px 8px;max-width:170px}
+
+/* stock */
+.st-tbl th,.st-tbl td{text-align:center}.st-tbl td:first-child,.st-tbl th:first-child{text-align:start}
+.st-tbl tr.st-low td{background:var(--sun-soft)}.st-tbl tr.st-out td{background:var(--late-soft)}.st-tbl tr.st-out td b{color:var(--late)}
+.st-line{gap:8px;margin:6px 0;flex-wrap:wrap}
+/* dashboard */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:10px}
+.dash-card{display:flex;flex-direction:column;gap:4px;text-align:start;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);cursor:pointer;font:inherit;color:var(--fg)}
+.dash-card:hover{border-color:var(--navy)}
+.dash-card b{font-size:24px;color:var(--navy);font-weight:800}.dash-card b small{font-size:13px;font-weight:500}
+.dash-card .dash-t{font-size:13px;color:var(--muted);font-weight:500}.dash-card .dash-s{font-size:12.5px;color:var(--muted)}
+.dash-card.hot{border-color:color-mix(in srgb,var(--late) 45%,var(--line));background:color-mix(in srgb,var(--late-soft) 55%,var(--card))}.dash-card.hot b{color:var(--late)}

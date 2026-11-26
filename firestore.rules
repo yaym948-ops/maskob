@@ -228,6 +228,17 @@ service cloud.firestore {
     match /payroll/{id} {
       allow read, write: if isRole('hr');
     }
+    // warehouse stock: the warehouse keeps it, operations can look
+    match /stock/{item} {
+      allow read: if isRole('warehouse') || isMgr();
+      allow write: if isRole('warehouse');
+    }
+    match /stockMoves/{id} {
+      allow read: if isRole('warehouse') || isMgr();
+      allow create: if isRole('warehouse');
+      allow update, delete: if false;
+    }
+
     // payment vouchers: HR only
     match /vouchers/{id} {
       allow read, write: if isRole('hr');

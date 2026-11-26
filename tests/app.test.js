@@ -182,9 +182,9 @@ test('general manager (full access) works as any department or branch from one a
   d.click('[data-act="usSave"]'); await sleep(400);
   await d.signIn('9191');
   assert.equal(w.eval('S.realRole'), 'owner');
-  assert.equal(w.eval('S.role'), 'manager', 'starts in operations');
+  assert.equal(w.eval('S.role'), 'dash', 'starts on the dashboard');
   const pick = async (v) => { d.setVal('ownerView', v); await sleep(200); };
-  for (const v of ['warehouse', 'hr', 'admin', 'branch:القطيف', 'manager']) {
+  for (const v of ['warehouse', 'hr', 'admin', 'branch:القطيف', 'manager', 'dash']) {
     await pick(v);
     const want = v.startsWith('branch:') ? 'branch' : v;
     assert.equal(w.eval('S.role'), want, 'view ' + v);
@@ -202,4 +202,55 @@ test('general manager (full access) works as any department or branch from one a
   assert.ok(log.some((e) => e.name === 'المدير' && e.role === 'owner'), 'logged as the general manager');
   w.eval('checkAuth()');
   assert.equal(w.eval('S.realRole'), 'owner', 'not signed out by the session check');
+});
+
+test('warehouse stock: receive, ship to a branch, count; dashboard; WPS file', async () => {
+  const d = driver(w);
+  // warehouse code (shared) for the test
+  await d.signIn('2468');
+  d.setVal('pin-warehouse', '5757'); w.document.getElementById('pin-warehouse').parentElement.querySelector('[data-act="savePin"]').click(); await sleep(500);
+  d.setVal('pin-br-0', '3333'); w.document.getElementById('pin-br-0').parentElement.querySelector('[data-act="savePin"]').click(); await sleep(500);
+  await d.signIn('5757');
+  assert.equal(w.eval('S.role'), 'warehouse');
+  d.click('[data-act="tab"][data-k="stock"]');
+  // receive two items from a supplier
+  d.click('[data-act="stRecv"]'); await sleep(20);
+  d.setVal('hr-supplier', 'مورد الشاي'); d.setVal('stl-item-0', 'tea-1'); d.setVal('stl-qty-0', '40');
+  d.click('[data-act="stLineAdd"]'); await sleep(20);
+  d.setVal('stl-item-1', 'dairy-2'); d.setVal('stl-qty-1', '12');
+  d.click('[data-act="stRecvSave"]'); await sleep(300);
+  assert.equal(w.eval('stockQty("tea-1")'), 40);
+  assert.equal(w.eval('stockQty("dairy-2")'), 12);
+  // minimum level and low-stock alert
+  d.click('[data-act="stOpen"][data-id="dairy-2"]'); await sleep(20);
+  d.setVal('hr-min', '15'); d.click('[data-act="stSave"]'); await sleep(300);
+  assert.equal(w.eval('stockState("dairy-2")'), 'low');
+  assert.ok(w.eval('stockLow().length') >= 1);
+  // a count corrects the balance and is recorded as a movement
+  d.click('[data-act="stOpen"][data-id="tea-1"]'); await sleep(20);
+  d.setVal('hr-counted', '38'); d.click('[data-act="stSave"]'); await sleep(300);
+  assert.equal(w.eval('stockQty("tea-1")'), 38);
+  assert.ok(w.eval('S.stockMoves').some((m) => m.item === 'tea-1' && m.type === 'adjust' && m.delta === -2));
+  // shipping an order takes the sent quantity out
+  await w.eval('Store').save({ id: 'ST-O1', num: 'ST-O1', kind: 'supply', branch: 'القطيف', status: 'approved', createdAt: new Date().toISOString(), lines: [{ id: 'tea-1', qty: 5, approved: 5 }] });
+  d.click('[data-act="tab"][data-k="prep"]'); await sleep(20);
+  d.click('.oc[data-id="ST-O1"]'); await sleep(20);
+  for (const b of w.document.querySelectorAll('[data-act="check"]')) b.click();
+  d.click('[data-act="ship"]'); await sleep(400);
+  assert.equal(w.eval('stockQty("tea-1")'), 33, 'shipping 5 leaves 33');
+
+  // WPS: only approved payroll, rows need IBAN + ID
+  const P = { mk: '2026-11', doc: { status: 'approved' }, rows: [
+    { id: 'W1', name: 'أ', no: '1', basic: 3000, allow: 750, reward: 0, ot: 0, add: 0, formDed: 0, unpaid: 0, adv: 0, gosi: 0, ded: 0, net: 3750, iban: 'SA0380000000608010167519' },
+    { id: 'W2', name: 'ب', no: '2', basic: 2000, allow: 0, net: 2000 } ] };
+  w.eval('S').emps.push({ id: 'W1', name: 'أ', idNo: '2345678901', iban: 'SA0380000000608010167519', bank: 'الراجحي', salary: 3000, alHousing: 750 }, { id: 'W2', name: 'ب', salary: 2000 });
+  const res = w.eval('wpsRows')(P);
+  assert.equal(res.ok.length, 1);
+  assert.deepEqual(Array.from(res.ok[0]).slice(3, 12), ['2345678901', 'SA0380000000608010167519', '80', 'الراجحي', 3000, 750, 0, 0, 3750]);
+  assert.equal(res.skipped.length, 1);
+
+  // dashboard opens for a general manager
+  await d.signIn('9191');
+  d.setVal('ownerView', 'dash'); await sleep(200);
+  assert.ok(w.document.querySelectorAll('.dash-card').length >= 8, 'dashboard cards shown');
 });

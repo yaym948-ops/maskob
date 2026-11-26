@@ -78,12 +78,14 @@ const X={
 function xLoadDemo(){
   {const c=MEM('company');S.company=c&&!Array.isArray(c)?c:{};const l=MEM('companyLogo');S.coLogo=typeof l==='string'&&l?l:null}
   S.catalog=MEM('catalog');applyCatalog();
+  {const st=MEM('stock');S.stock=st&&!Array.isArray(st)?st:{};S.stockMoves=MEM('stockMoves')}
   S.users=MEM('users');S.log=S.role==='admin'?MEM('log'):[];
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
   S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];S.leaveReqs=S.role==='hr'||S.role==='branch'?mine(MEM('leaveReqs')):[];S.staff=S.role==='hr'||S.role==='branch'?mine(MEM('staff')):[];if(S.role==='hr')hrSyncStaff();S.shifts=S.role==='branch'?mine(MEM('shifts')):[];S.vouchers=S.role==='hr'?MEM('vouchers'):[];S.payroll=S.role==='hr'?MEM('payroll'):[];S.forms=S.role==='hr'||S.role==='branch'?mine(MEM('forms')):[];
   {const c=S.role==='hr'?MEM('hrcfg'):null;S.hrCfg=c&&!Array.isArray(c)?c:{}}
+  if(S.role==='dash'){S.emps=MEM('employees');S.leaveReqs=MEM('leaveReqs');S.forms=MEM('forms');S.licenses=MEM('licenses');S.leaves=MEM('leaves')}
 }
 /* live subscriptions per role */
 function xStart(){
@@ -126,8 +128,19 @@ function xStart(){
   }
   if(S.role==='manager')
     u.push(db.collection('targets').onSnapshot(s=>{const t={};s.docs.forEach(d=>t[d.id]=d.data());S.targets=t;render()},onErr));
+  // warehouse stock (warehouse edits, operations and the dashboard look)
+  if(['warehouse','manager','dash'].includes(S.role)){
+    u.push(db.collection('stock').onSnapshot(s=>{const m={};s.docs.forEach(d=>m[d.id]=d.data());S.stock=m;render()},onErr));
+    u.push(db.collection('stockMoves').orderBy('at','desc').limit(200).onSnapshot(s=>{S.stockMoves=s.docs.map(d=>d.data());render()},onErr));
+  }
+  // the general manager's dashboard needs a little of everything
+  if(S.role==='dash'){
+    list('sales',a=>S.sales=a);list('maintenance',a=>S.maint=a);
+    u.push(db.collection('targets').onSnapshot(s=>{const t={};s.docs.forEach(d=>t[d.id]=d.data());S.targets=t;render()},onErr));
+    for(const [col,key] of [['employees','emps'],['leaveReqs','leaveReqs'],['forms','forms'],['licenses','licenses']])list(col,a=>S[key]=a);
+  }
 }
-function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
+function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.stock={};S.stockMoves=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
 /* ---------- sales: numbers for a branch and month ---------- */
 function salesStats(branch,mk){

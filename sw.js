@@ -3,7 +3,7 @@
 //   offline, so every deploy is picked up on the next open.
 // - Versioned libraries, fonts and images: cache first (they never change at the same URL).
 // - Firebase traffic (Firestore, Auth, token refresh) is never intercepted.
-const VERSION = 'maskob-v3';
+const VERSION = 'maskob-v4';
 const CDN_HOSTS = new Set(['cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'fonts.gstatic.com', 'fonts.googleapis.com']);
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -18,7 +18,11 @@ self.addEventListener('activate', (event) => {
 async function networkFirst(request) {
   const cache = await caches.open(VERSION);
   try {
-    const res = await fetch(request);
+    // always ask the server (an old copy in the browser's own cache must not win over a new deploy)
+    const fresh = request.mode === 'navigate'
+      ? new Request(request.url, { cache: 'no-cache', credentials: 'same-origin' })
+      : new Request(request, { cache: 'no-cache' });
+    const res = await fetch(fresh);
     if (res.ok) cache.put(request, res.clone());
     return res;
   } catch (err) {
