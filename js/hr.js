@@ -102,7 +102,8 @@ function empSheet(){
   <div class="sl-grid hr-grid">${ALLOWANCES.map(k=>hrIn(k,t(AL_L[k])+' ('+t('sar')+')','number')).join('')}</div>
   <div class="hr-total">${t('hr_totalPay')}: <b class="num" id="hrTotal">${esc(sar2(payTotal(d)))}</b> ${t('sar')}</div>
   <h4 class="hr-sub">${t('gs_title')}</h4>
-  <div class="sl-grid hr-grid">${hrSel('gosi',t('gs_on'),[['',t('gs_no')],['yes',t('gs_yes')]])}${d.gosi==='yes'||d.gosi===true?hrIn('gosiRate',t('gs_rate'),'number','dir="ltr" inputmode="decimal" placeholder="9.75"'):''}</div>
+  <div class="sl-grid hr-grid">${hrSel('gosi',t('gs_on'),[['',t('gs_no')],['yes',t('gs_yes')]])}${d.gosi==='yes'||d.gosi===true?hrIn('gosiRate',t('gs_rate'),'number','dir="ltr" inputmode="decimal" placeholder="9.75"'):''}${hrIn('gosiEmp',t('gs_emp'),'number','dir="ltr" inputmode="decimal" placeholder="'+(d.gosi==='yes'||d.gosi===true?'11.75':'2')+'"')}</div>
+  <p class="hint">${esc(t('gs_empHint'))}</p>
   ${d.gosi==='yes'||d.gosi===true?`<div class="hint" id="gosiAmt">${esc(t('gs_monthly'))}: <b class="num">${esc(sar2(gosiMonthly(d)))}</b> ${t('sar')}</div>`:''}
   <p class="hint">${esc(t('gs_hint'))}</p>
   <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>
@@ -144,7 +145,7 @@ function empData(d,id){
   data.iban=normIban(d.iban);
   ['idExp','healthExp','contractEnd','hire'].forEach(k=>data[k]=isDay(d[k])?d[k]:'');
   ['salary',...ALLOWANCES].forEach(k=>data[k]=d[k]===''||d[k]==null?null:num(d[k]));
-  data.gosi=d.gosi==='yes'||d.gosi===true;data.gosiRate=d.gosiRate===''||d.gosiRate==null?null:num(d.gosiRate);
+  data.gosi=d.gosi==='yes'||d.gosi===true;data.gosiRate=d.gosiRate===''||d.gosiRate==null?null:num(d.gosiRate);data.gosiEmp=d.gosiEmp===''||d.gosiEmp==null?null:num(d.gosiEmp);
   const old=empById(id)||{};data.createdAt=old.createdAt||tm;if(old.contract)data.contract=old.contract;
   return data;
 }

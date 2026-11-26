@@ -56,6 +56,7 @@ function stockRecvSheet(){
   const body=`<div class="sl-grid hr-grid">${hrIn('supplier',t('st_supplier'))}${hrIn('invoice',t('st_invoice'),'text','dir="ltr"')}</div>
   <div class="st-lines">${(d.lines||[]).map((l,i)=>`<div class="row st-line"><select class="field" id="stl-item-${i}" data-in="stLine" data-i="${i}" data-f="item" style="flex:3;min-width:180px">${opts.map(([v,lab])=>`<option value="${esc(v)}" ${l.item===v?'selected':''}>${esc(lab)}</option>`).join('')}</select>
     <input class="field num" id="stl-qty-${i}" data-in="stLine" data-i="${i}" data-f="qty" inputmode="decimal" dir="ltr" placeholder="${esc(t('st_qty'))}" value="${esc(l.qty||'')}" style="flex:1;min-width:90px">
+    <input class="field num" id="stl-cost-${i}" data-in="stLine" data-i="${i}" data-f="cost" inputmode="decimal" dir="ltr" placeholder="${esc(t('st_unitCost'))}" value="${esc(l.cost||'')}" style="flex:1;min-width:110px">
     <button class="x" data-act="stLineDel" data-i="${i}" aria-label="${esc(t('del'))}">×</button></div>`).join('')}</div>
   <button class="btn btn-ghost rp-btn" data-act="stLineAdd">+ ${t('st_addLine')}</button>
   <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>`;
@@ -73,13 +74,18 @@ function stockItemSheet(){
 }
 Object.assign(A,{
   stFilter(el){S.stFilter=el.dataset.k;render()},
-  stRecv(){S.openStockRecv=true;S.hrDraft={supplier:'',invoice:'',note:'',lines:[{item:'',qty:''}]};render()},
+  stRecv(){S.openStockRecv=true;S.hrDraft={supplier:'',invoice:'',note:'',lines:[{item:'',qty:'',cost:''}]};render()},
   stLineAdd(){S.hrDraft.lines.push({item:'',qty:''});render()},
   stLineDel(el){S.hrDraft.lines.splice(+el.dataset.i,1);if(!S.hrDraft.lines.length)S.hrDraft.lines.push({item:'',qty:''});render()},
   stRecvSave(){const d=S.hrDraft||{};const lines=(d.lines||[]).filter(l=>l.item&&num(l.qty)>0);
     if(!lines.length){toast(t('st_needLines'));return}
     const ref=[String(d.supplier||'').trim(),String(d.invoice||'').trim()].filter(Boolean).join(' — ');
-    guard(async()=>{await stockApply(lines.map(l=>[l.item,num(l.qty)]),'receive',ref,d.note);S.openStockRecv=null;S.hrDraft=null},()=>t('st_received',{n:lines.length}))},
+    guard(async()=>{
+      // new weighted-average unit cost for lines that carry a cost (before the balance changes)
+      const m={};lines.forEach(l=>{const c=num(l.cost);if(!(c>0)||typeof itemCost!=='function')return;const q=num(l.qty),q0=Math.max(0,stockQty(l.item)),c0=itemCost(l.item);
+        m[l.item]=r2p(c0>0&&q0>0?(q0*c0+q*c)/(q0+q):c)});
+      if(Object.keys(m).length&&typeof saveCosts==='function')await saveCosts(m);
+      await stockApply(lines.map(l=>[l.item,num(l.qty)]),'receive',ref,d.note);S.openStockRecv=null;S.hrDraft=null},()=>t('st_received',{n:lines.length}))},
   stOpen(el){S.openStock=el.dataset.id;const s=stockOf(el.dataset.id);S.hrDraft={counted:'',min:s.min??''};render()},
   stSave(){const id=S.openStock;const d=S.hrDraft||{};const s=stockOf(id);
     guard(async()=>{

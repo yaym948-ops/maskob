@@ -4,15 +4,20 @@
 
    expenses/{id}:    {date, place, cat, amount, vat, payee, method, ref, note, createdAt}
    supInvoices/{id}: {supplier, number, date, due, amount, vat, payments:[{date,amount,method,ref,voucher}], note, status open|paid} */
-const EXP_CATS=['rent','utilities','telecom','maintenance','purchases','transport','marketing','gov','bank','other'];
+const EXP_CATS=['rent','utilities','telecom','maintenance','purchases','delivery','transport','marketing','gov','iqama','medical','bank','other'];
+const INC_CATS=['catering','rebate','other'];
+const expLabel=e=>t((e.kind==='income'?'ic_':'ec_')+(e.cat||'other'));
 const finTabs=()=>{const due=(S.supInv||[]).filter(i=>supRemain(i)>0&&i.due&&i.due<=dayKey(Date.now())).length;
-  return[{k:'fsum',l:t('tab_fsum')},{k:'expenses',l:t('tab_exp')},{k:'supinv',l:t('tab_supinv'),b:due,late:due>0},{k:'payroll',l:t('tab_pr')},{k:'vouchers',l:t('tab_vc')},{k:'advances',l:t('tab_adv')}]};
+  return[{k:'fsum',l:t('tab_fsum')},{k:'expenses',l:t('tab_exp')},{k:'supinv',l:t('tab_supinv'),b:due,late:due>0},{k:'payroll',l:t('tab_pr')},{k:'vouchers',l:t('tab_vc')},{k:'advances',l:t('tab_adv')},{k:'pnl',l:t('tab_pnl')},{k:'costs',l:t('tab_costs')},{k:'assets',l:t('tab_assets')}]};
 function financeView(tb){
   if(tb==='expenses')return expensesView();
   if(tb==='supinv')return supInvView();
   if(tb==='payroll')return payrollView();
   if(tb==='vouchers')return vouchersView();
   if(tb==='advances')return advancesView();
+  if(tb==='pnl')return pnlView();
+  if(tb==='costs')return costsView();
+  if(tb==='assets')return assetsView();
   return financeSummaryView();
 }
 const supPaid=i=>(i.payments||[]).reduce((s,p)=>s+(+p.amount||0),0);
@@ -25,7 +30,7 @@ function financeCalc(mk){
   const places=[...S.branches,'@wh','@office'];
   const byPlace={};places.forEach(p=>byPlace[p]={sales:0,exp:0,pay:0});
   (S.sales||[]).filter(r=>inMonth(r.date,mk)).forEach(r=>{if(byPlace[r.branch])byPlace[r.branch].sales+=+r.sales||0});
-  const exps=(S.expenses||[]).filter(e=>inMonth(e.date,mk));
+  const exps=(S.expenses||[]).filter(e=>inMonth(e.date,mk)&&e.kind!=='income');
   exps.forEach(e=>{const p=byPlace[e.place]?e.place:'@office';byPlace[p].exp+=+e.amount||0});
   P.rows.forEach(r=>{const p=byPlace[r.branch]?r.branch:'@office';byPlace[p].pay+=(r.gross||0)+(r.reward||0)+(r.ot||0)+(r.add||0)});
   const byCat={};exps.forEach(e=>byCat[e.cat||'other']=(byCat[e.cat||'other']||0)+(+e.amount||0));
@@ -66,20 +71,23 @@ function expensesView(){
   <div class="stats">${kpi(t('vc_count'),sar(list.length))}${kpi(t('ex_total'),sar2(total)+' '+t('sar'))}${kpi(t('ex_vat'),sar2(vat)+' '+t('sar'))}</div>
   <div class="filters"><button class="chip" aria-pressed="${!cf}" data-act="exCat" data-k="">${t('f_all')}</button>${EXP_CATS.map(c=>`<button class="chip" aria-pressed="${cf===c}" data-act="exCat" data-k="${c}">${esc(t('ec_'+c))}</button>`).join('')}</div>
   <div class="list">${list.length?list.map(e=>`<button class="oc" data-act="exOpen" data-id="${esc(e.id)}">
-    <span style="min-width:0"><span class="t">${esc(t('ec_'+(e.cat||'other')))} <span class="tag">${esc(placeL(e.place))}</span></span>
+    <span style="min-width:0"><span class="t">${esc(expLabel(e))} <span class="tag">${esc(placeL(e.place))}</span>${e.kind==='income'?` <span class="tag ex-inc">${t('ex_income')}</span>`:''}${e.periodFrom?` <span class="hint">${esc(e.periodFrom)} → ${esc(e.periodTo||'')}</span>`:''}</span>
       <span class="s">${esc(dateLabel(e.date))}${e.payee?' · '+esc(e.payee):''}${e.note?' · '+esc(String(e.note).slice(0,60)):''}</span></span>
     <span class="side"><b class="num">${esc(sar2(e.amount))} ${t('sar')}</b></span></button>`).join(''):`<div class="empty">${esc(t('ex_none'))}</div>`}</div>`;
 }
 function expenseSheet(){
   const isNew=S.openExp==='new';const d=S.hrDraft||{};
-  const body=`<div class="sl-grid hr-grid">${hrIn('date',t('sl_day'),'date')}${hrSel('cat',t('ex_cat'),EXP_CATS.map(c=>[c,t('ec_'+c)]))}
+  const inc=d.kind==='income';
+  const body=`<div class="kind" style="margin-bottom:12px">${[['expense','ex_expense'],['income','ex_income']].map(([k,l])=>`<button aria-pressed="${(inc?'income':'expense')===k}" data-act="exKind" data-k="${k}">${esc(t(l))}</button>`).join('')}</div>
+  <div class="sl-grid hr-grid">${hrIn('date',t('sl_day'),'date')}${hrSel('cat',t('ex_cat'),(inc?INC_CATS.map(c=>[c,t('ic_'+c)]):EXP_CATS.map(c=>[c,t('ec_'+c)])))}
     ${hrSel('place',t('hr_branch'),[['@all',t('li_allPlaces')],...hrPlaces().map(p=>[p,placeL(p)])])}${hrIn('payee',t('ex_payee'))}
     ${hrIn('amount',t('vc_amount')+' ('+t('sar')+')','number')}${hrIn('vat',t('ex_vat')+' ('+t('sar')+')','number')}
     ${hrSel('method',t('vc_method'),PAY_METHODS.map(k=>[k,t('pm_'+k)]))}${hrIn('ref',t('ex_ref'),'text','dir="ltr"')}</div>
   <button class="btn btn-ghost rp-btn" data-act="exVat15" style="margin-top:8px">${t('ex_vat15')}</button>
+  <h4 class="hr-sub">${t('ex_period')}</h4><div class="sl-grid hr-grid">${hrIn('periodFrom',t('ex_pFrom'),'month')}${hrIn('periodTo',t('ex_pTo'),'month')}</div><p class="hint">${esc(t('ex_periodHint'))}</p>
   <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>`;
   const foot=`${isNew?'':`<button class="btn btn-bad" data-act="exDel">${S.confirm==='exDel'?t('li_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="exSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
-  return hrSheetWrap(isNew?t('ex_add'):t('ec_'+(d.cat||'other')),body,foot);
+  return hrSheetWrap(isNew?t('ex_add'):expLabel(d),body,foot);
 }
 /* ---------- supplier invoices ---------- */
 function supInvView(){
@@ -119,14 +127,17 @@ Object.assign(A,{
       {name:t('tab_fsum'),headers:[t('fn_item'),t('vc_amount')],rows:[[t('fn_sales'),F.sales],[t('fn_payroll'),F.pay],[t('tab_exp'),F.exp],[t('fn_purchases'),F.purchases],[t('fn_net'),F.net],[t('fn_paidSupL'),F.paidSup],[t('fn_owed'),F.owed]]},
       {name:t('fn_byPlace'),headers:[t('hr_branch'),t('fn_sales'),t('fn_payroll'),t('tab_exp'),t('fn_result')],rows:F.places.map(p=>{const x=F.byPlace[p];return[placeL(p),r2p(x.sales),r2p(x.pay),r2p(x.exp),r2p(x.sales-x.pay-x.exp)]})},
       {name:t('tab_exp'),headers:[t('sl_day'),t('ex_cat'),t('hr_branch'),t('ex_payee'),t('vc_amount'),t('ex_vat'),t('vc_method'),t('ex_ref'),t('hr_note')],
-        rows:(S.expenses||[]).filter(e=>inMonth(e.date,F.mk)).map(e=>[e.date,t('ec_'+(e.cat||'other')),placeL(e.place),e.payee||'',+e.amount||0,+e.vat||0,t('pm_'+(e.method||'cash')),e.ref||'',e.note||''])}])},
+        rows:(S.expenses||[]).filter(e=>inMonth(e.date,F.mk)).map(e=>[e.date,expLabel(e),placeL(e.place),e.payee||'',+e.amount||0,+e.vat||0,t('pm_'+(e.method||'cash')),e.ref||'',e.note||''])}])},
   exNew(){S.openExp='new';S.confirm=null;S.hrDraft={date:dayKey(Date.now()),cat:S.expCat||'other',place:'@office',payee:'',amount:'',vat:'',method:'cash',ref:'',note:''};render()},
   exOpen(el){const e=(S.expenses||[]).find(x=>x.id===el.dataset.id);if(!e)return;S.openExp=e.id;S.confirm=null;S.hrDraft=Object.assign({},e);render()},
   exCat(el){S.expCat=el.dataset.k;render()},
+  exKind(el){const d=S.hrDraft;d.kind=el.dataset.k;d.cat=d.kind==='income'?'other':'other';render()},
   exVat15(){const d=S.hrDraft;const a=num(d.amount);if(!(a>0))return;d.vat=String(r2p(a*15/115));const o=document.getElementById('hr-vat');if(o)o.value=d.vat},
   exSave(){const d=S.hrDraft||{};const amount=num(d.amount);if(!(amount>0)){toast(t('vc_need'));return}
     const id=S.openExp==='new'?hrId('X'):S.openExp;const old=(S.expenses||[]).find(x=>x.id===id)||{};const tm=nowIso();
-    const data={date:isDay(d.date)?d.date:dayKey(Date.now()),cat:EXP_CATS.includes(d.cat)?d.cat:'other',place:d.place||'@office',payee:String(d.payee||'').trim(),amount,
+    const kind=d.kind==='income'?'income':'expense',okM=v=>/^[0-9]{4}-[0-9]{2}$/.test(v||'');
+    if(okM(d.periodFrom)!==okM(d.periodTo)||(okM(d.periodFrom)&&d.periodTo<d.periodFrom)){toast(t('lv_badDates'));return}
+    const data={kind,periodFrom:okM(d.periodFrom)?d.periodFrom:'',periodTo:okM(d.periodTo)?d.periodTo:'',date:isDay(d.date)?d.date:dayKey(Date.now()),cat:(kind==='income'?INC_CATS:EXP_CATS).includes(d.cat)?d.cat:'other',place:d.place||'@office',payee:String(d.payee||'').trim(),amount,
       vat:d.vat===''||d.vat==null?null:num(d.vat),method:PAY_METHODS.includes(d.method)?d.method:'cash',ref:String(d.ref||'').trim(),note:String(d.note||'').trim(),createdAt:old.createdAt||tm,updatedAt:tm};
     guard(async()=>{await X.put('expenses',id,data);S.openExp=null;S.hrDraft=null},()=>t('st_saved'))},
   exDel(){const id=S.openExp;if(!id||id==='new')return;if(S.confirm!=='exDel'){S.confirm='exDel';render();return}
@@ -159,10 +170,10 @@ document.addEventListener('input',ev=>{const el=ev.target;if(el.dataset&&el.data
 document.addEventListener('change',ev=>{const el=ev.target;if(el.id==='fnMonth'&&/^[0-9]{4}-[0-9]{2}$/.test(el.value)){S.fnMonth=el.value;render()}});
 /* Excel import / export */
 IO.expenses={name:()=>t('tab_exp'),col:'expenses',idp:'X',list:()=>S.expenses||[],
-  cols:[['date','sl_day','date',1],['cat','ex_cat',Object.fromEntries(EXP_CATS.map(c=>[c,'ec_'+c]))],['place','hr_branch','place'],['payee','ex_payee'],['amount','vc_amount','num',1],['vat','ex_vat','num'],
+  cols:[['kind','ex_kind',{expense:'ex_expense',income:'ex_income'}],['date','sl_day','date',1],['cat','ex_cat',Object.fromEntries([...EXP_CATS.map(c=>[c,'ec_'+c]),...INC_CATS.filter(c=>c!=='other').map(c=>[c,'ic_'+c])])],['periodFrom','ex_pFrom','month'],['periodTo','ex_pTo','month'],['place','hr_branch','place'],['payee','ex_payee'],['amount','vc_amount','num',1],['vat','ex_vat','num'],
     ['method','vc_method',Object.fromEntries(PAY_METHODS.map(k=>[k,'pm_'+k]))],['ref','ex_ref'],['note','hr_note']],
   match:(r,L)=>L.find(e=>e.date===r.date&&+e.amount===+r.amount&&(e.payee||'')===(r.payee||'')&&(e.cat||'other')===(r.cat||'other')),
-  build:(r,o)=>Object.assign({cat:'other',place:'@office',method:'cash'},o||{},r)};
+  build:(r,o)=>Object.assign({kind:'expense',cat:'other',place:'@office',method:'cash'},o||{},r)};
 IO.supinv={name:()=>t('tab_supinv'),col:'supInvoices',idp:'SI',list:()=>S.supInv||[],
   cols:[['supplier','st_supplier','text',1],['number','st_invoice'],['date','si_date','date'],['due','si_due','date'],['amount','si_amount','num',1],['vat','ex_vat','num'],['paid','av_paid','num'],['note','hr_note']],
   get:(i,k)=>k==='paid'?supPaid(i):i[k],

@@ -262,7 +262,7 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   await d.signIn('6060');
   assert.equal(w.eval('S.role'), 'finance');
   const tabs = [...w.document.querySelectorAll('#tabsIn .tab')].map((b) => b.dataset.k);
-  assert.deepEqual(tabs, ['fsum', 'expenses', 'supinv', 'payroll', 'vouchers', 'advances']);
+  assert.deepEqual(tabs, ['fsum', 'expenses', 'supinv', 'payroll', 'vouchers', 'advances', 'pnl', 'costs', 'assets']);
   const mk = w.eval('monthKey(Date.now())');
   // an expense
   d.click('[data-act="tab"][data-k="expenses"]');
@@ -295,4 +295,37 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   // payroll and vouchers pages open for finance
   d.click('[data-act="tab"][data-k="payroll"]'); assert.ok(w.document.querySelector('.pr-tbl') || w.document.querySelector('.empty'));
   d.click('[data-act="tab"][data-k="vouchers"]'); assert.ok(w.document.querySelector('[data-act="vcNew"]'));
+});
+
+test('P&L per branch and company: every line against hand-worked numbers', async () => {
+  const S = w.eval('S'), mk = '2026-11', B = 'القطيف';
+  S.costs = { 'tea-1': 50 };
+  S.finCfg = { salesVat: true };
+  S.sales = [{ branch: B, date: mk + '-05', sales: 115000, invoices: 900 }];           // 100,000 without VAT
+  S.orders = [
+    { id: 'P1', kind: 'supply', branch: B, status: 'received', shippedAt: mk + '-03T08:00:00Z', lines: [{ id: 'tea-1', sent: 10 }] },   // 500 at cost
+    { id: 'P2', kind: 'return', branch: B, status: 'received', receivedAt: mk + '-20T08:00:00Z', lines: [{ id: 'tea-1', received: 2 }] } ]; // −100
+  S.expenses = [
+    { kind: 'expense', cat: 'rent', place: B, date: '2026-01-05', amount: 120000, vat: 0, periodFrom: '2026-01', periodTo: '2026-12' },  // 10,000 a month
+    { kind: 'expense', cat: 'utilities', place: B, date: mk + '-09', amount: 2300, vat: 300 },        // 2,000
+    { kind: 'expense', cat: 'purchases', place: B, date: mk + '-11', amount: 1150, vat: 150 },        // 1,000 cash purchases
+    { kind: 'income', cat: 'catering', place: B, date: mk + '-15', amount: 5750, vat: 750 },          // 5,000 other income
+    { kind: 'expense', cat: 'rent', place: '@office', date: mk + '-01', amount: 3000, vat: 0 } ];    // head office
+  S.assets = [{ id: 'AS1', name: 'مكينة', place: B, cost: 60000, date: '2026-01-01', life: 5 }];       // 1,000 a month
+  S.emps = [{ id: 'PE1', name: 'م', branch: B, salary: 3000, alHousing: 750, hire: '2024-01-01', status: 'active' }]; // not GOSI → employer 2%
+  S.forms = []; S.leaves = []; S.advances = []; S.payroll = [];
+  const R = w.eval('pnlCalc')(mk, mk), x = R.P[B];
+  const near = (a, b, m) => assert.ok(Math.abs(a - b) < 0.01, m + ': ' + a + ' ≠ ' + b);
+  near(x.sales, 100000, 'net sales'); near(x.otherInc, 5000, 'other income'); near(x.rev, 105000, 'revenue');
+  near(x.cogsGoods, 400, 'goods at cost less returns'); near(x.cogsCash, 1000, 'cash purchases'); near(x.gross, 103600, 'gross profit');
+  near(x.pay, 3750, 'pay'); near(x.gosi, 75, 'employer insurance 2%'); near(x.eos, 156.25, 'end-of-service provision');
+  near(x.exp.rent, 10000, 'annual rent spread'); near(x.exp.utilities, 2000, 'utilities without VAT'); near(x.dep, 1000, 'depreciation');
+  near(x.net, 105000 - 1400 - (3750 + 75 + 156.25 + 10000 + 2000 + 1000), 'net operating profit');
+  near(R.C.exp.rent, 13000, 'company rent includes head office');
+  // spreading head-office costs: the only branch takes all of it, company total unchanged
+  const A = w.eval('pnlAllocate')(R);
+  near(A.P[B].exp.rent, 13000, 'allocated rent'); near(A.P[B].net + 0, R.C.net, 'branch = company after allocation');
+  // the page renders with the statement
+  await driver(w).signIn('6060'); driver(w).click('[data-act="tab"][data-k="pnl"]');
+  assert.ok(w.document.querySelector('.pl-tbl'), 'statement shown');
 });

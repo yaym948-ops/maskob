@@ -79,6 +79,7 @@ function xLoadDemo(){
   {const c=MEM('company');S.company=c&&!Array.isArray(c)?c:{};const l=MEM('companyLogo');S.coLogo=typeof l==='string'&&l?l:null}
   S.catalog=MEM('catalog');applyCatalog();
   {const st=MEM('stock');S.stock=st&&!Array.isArray(st)?st:{};S.stockMoves=MEM('stockMoves')}
+  {const c=MEM('costs');S.costs=c&&!Array.isArray(c)?c:{};const f=MEM('fincfg');S.finCfg=f&&!Array.isArray(f)?f:{};S.assets=MEM('assets')}
   S.users=MEM('users');S.log=S.role==='admin'?MEM('log'):[];
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
@@ -137,8 +138,14 @@ function xStart(){
   // finance: money matters (payroll inputs read-only, its own expenses and supplier invoices)
   if(S.role==='finance'){
     const out=e=>{if(e&&e.code==='permission-denied')Store.fbSignOut()};
-    for(const [col,key] of [['employees','emps'],['leaves','leaves'],['forms','forms'],['advances','advances'],['payroll','payroll'],['vouchers','vouchers'],['expenses','expenses'],['supInvoices','supInv'],['sales','sales']])
+    for(const [col,key] of [['employees','emps'],['leaves','leaves'],['forms','forms'],['advances','advances'],['payroll','payroll'],['vouchers','vouchers'],['expenses','expenses'],['supInvoices','supInv'],['sales','sales'],['assets','assets']])
       u.push(db.collection(col).onSnapshot(s=>{S[key]=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+  }
+  // item costs (P&L, stock receipts) and finance settings
+  if(['finance','warehouse','manager','dash'].includes(S.role))u.push(db.doc('config/costs').onSnapshot(s=>{S.costs=s.exists&&s.data().items?s.data().items:{};render()},onErr));
+  if(S.role==='finance'){
+    u.push(db.doc('config/finance').onSnapshot(s=>{S.finCfg=s.exists?s.data():{};render()},onErr));
+    u.push(db.collection('orders').orderBy('createdAt','desc').limit(1500).onSnapshot(s=>{S.orders=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},onErr));
   }
   // the general manager's dashboard needs a little of everything
   if(S.role==='dash'){

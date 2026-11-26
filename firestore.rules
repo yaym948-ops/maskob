@@ -241,6 +241,17 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // item costs: finance prices items; the warehouse updates them on supplier receipts; operations reads
+    match /config/costs {
+      allow read: if isRole('finance') || isRole('warehouse') || isMgr();
+      allow write: if isRole('finance') || isRole('warehouse');
+    }
+    match /config/finance {
+      allow read, write: if isRole('finance');
+    }
+    match /assets/{id} {
+      allow read, write: if isRole('finance');
+    }
     // finance: expenses and supplier invoices
     match /expenses/{id} {
       allow read, write: if isRole('finance');
@@ -279,7 +290,7 @@ service cloud.firestore {
 
     match /orders/{id} {
       allow read: if valid()
-        && (sess().role in ['manager', 'warehouse', 'owner']
+        && (sess().role in ['manager', 'warehouse', 'owner', 'finance']
             || (sess().role == 'branch' && resource.data.branch == sess().branch));
       allow create: if valid()
         && (sess().role in ['manager', 'owner']

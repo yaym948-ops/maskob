@@ -542,7 +542,7 @@ const NAV_IC={plus:'M12 5v14M5 12h14',inbox:'M4 13h4l2 3h4l2-3h4M4 13l2-8h12l2 8
   id:'M3 5h18v14H3zM7 15.5c.6-2 4.4-2 5 0M9.5 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM15 10h3M15 14h3',key:'M15 3a6 6 0 0 0-5.2 9L3 18.8V21h3v-2h2v-2h2l1.2-1.2A6 6 0 1 0 15 3zM16.5 7.5h.01',
   cash:'M3 7h18v10H3zM12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM6 10v4M18 10v4',shield:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4',
   receipt:'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4',dot:'M12 12h.01'};
-const NAV_OF={fsum:'chart',expenses:'receipt',supinv:'file',stock:'box',dash:'chart',users:'users',actlog:'archive',new:'plus',tasks:'inbox',orders:'list',sales:'chart',maint:'wrench',checks:'check',lr:'cal',forms:'file',fc:'trend',pending:'clock',report:'file',all:'list',
+const NAV_OF={pnl:'trend',costs:'tag',assets:'archive',fsum:'chart',expenses:'receipt',supinv:'file',stock:'box',dash:'chart',users:'users',actlog:'archive',new:'plus',tasks:'inbox',orders:'list',sales:'chart',maint:'wrench',checks:'check',lr:'cal',forms:'file',fc:'trend',pending:'clock',report:'file',all:'list',
   salesAll:'chart',maintAll:'wrench',prep:'box',sched:'cal',incoming:'truck',done:'archive',branches:'sliders',catalog:'tag',emps:'users',docs:'id',leaves:'cal',custody:'key',
   advances:'cash',lic:'shield',vouchers:'receipt',payroll:'cash'};
 const navIcon=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${NAV_IC[NAV_OF[k]]||NAV_IC.dot}"/></svg>`;
@@ -571,7 +571,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}"><span class="tab-ico">${navIcon(x.k)}</span><span class="tab-l">${esc(x.l)}</span>${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openExp&&window.expenseSheet?expenseSheet():S.openSi&&window.supInvSheet?supInvSheet():S.openStockRecv&&window.stockRecvSheet?stockRecvSheet():S.openStock&&window.stockItemSheet?stockItemSheet():S.openUser&&window.userSheet?userSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openAsset&&window.assetSheet?assetSheet():S.openExp&&window.expenseSheet?expenseSheet():S.openSi&&window.supInvSheet?supInvSheet():S.openStockRecv&&window.stockRecvSheet?stockRecvSheet():S.openStock&&window.stockItemSheet?stockItemSheet():S.openUser&&window.userSheet?userSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -1205,7 +1205,7 @@ function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
   menuOpen(){S.menuOpen=true;render()},
   menuClose(){S.menuOpen=false;render()},
-  tab(el){S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=S.openStockRecv=S.openStock=S.openExp=S.openSi=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
+  tab(el){S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=S.openStockRecv=S.openStock=S.openExp=S.openSi=S.openAsset=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.userId=null;S.userName=null;S.role=null;S.realRole=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -1290,7 +1290,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.imp=null;S.openExp=null;S.openSi=null;S.siPay=null;S.openStockRecv=null;S.openStock=null;S.openUser=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.imp=null;S.openAsset=null;S.openExp=null;S.openSi=null;S.siPay=null;S.openStockRecv=null;S.openStock=null;S.openUser=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -1329,7 +1329,8 @@ const A={
     const left=o.lines.filter(l=>+(l.approved??l.qty)>0&&!w.lines[l.id].checked).length;
     if(left&&S.confirm!=='ship'){S.confirm='ship';render();return}
     clearTimeout(progTimer);const tm=nowIso();
-    const lines=o.lines.map(l=>{const x=w.lines[l.id];return Object.assign({},l,{checked:x.checked,sent:x.checked?x.sent:0})});
+    const lines=o.lines.map(l=>{const x=w.lines[l.id];const n=Object.assign({},l,{checked:x.checked,sent:x.checked?x.sent:0});
+      const c=typeof itemCost==='function'?itemCost(l.id):0;if(c>0)n.cost=c;return n});   // cost of the day, for the P&L
     const f={status:'shipped',lines,shippedAt:tm,updatedAt:tm,shipNote:w.note.trim()};if(S.me)f.shippedBy=S.me;
     guard(async()=>{await Store.patch(o.id,f);
       if(o.kind!=='return'&&window.stockApply)await stockApply(lines.filter(l=>+l.sent>0).map(l=>[l.id,-(+l.sent)]),'issue',(o.num||o.id)+' — '+o.branch).catch(()=>{});

@@ -670,3 +670,11 @@ span.sh-c{cursor:default}
 
 /* finance */
 .fn-tbl th,.fn-tbl td{text-align:center}.fn-tbl td:first-child,.fn-tbl th:first-child{text-align:start}
+
+/* profit & loss */
+.pl-tbl th,.pl-tbl td{text-align:center;white-space:nowrap}.pl-tbl td:first-child,.pl-tbl th:first-child{text-align:start;white-space:normal;min-width:200px}
+.pl-tbl tr.pl-h td{background:var(--lav-soft);color:var(--navy);font-weight:800}
+.pl-tbl tr.pl-sum td{font-weight:700;border-top:2px solid var(--line)}
+.pl-tbl tr.pl-big td{font-weight:800;background:var(--sun-soft);color:var(--sun-ink);font-size:15px}
+.pl-tbl tr.pl-pct td{color:var(--muted);font-size:12.5px}
+.tag.ex-inc{background:var(--ok-soft);color:var(--navy)}
