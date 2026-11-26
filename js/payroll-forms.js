@@ -181,7 +181,7 @@ function voucherSheet(){
   return hrSheetWrap(isNew?t('vc_add'):t('vc_title')+' #'+(d.no||''),body,foot);
 }
 /* ---------- printing ---------- */
-const PRINT_CSS=`@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:Tajawal,Arial,sans-serif;color:#13233a;margin:0;font-size:13px;line-height:1.75}
+const PRINT_CSS=`@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:"IBM Plex Sans Arabic",Arial,sans-serif;color:#13233a;margin:0;font-size:13px;line-height:1.75}
 .bar{height:3px;width:90px;background:#EF8A22;margin:0 0 14px auto}
 table{width:100%;border-collapse:collapse;margin:8px 0 14px}td,th{border:1px solid #c9d5e3;padding:7px 10px;vertical-align:top}th{background:#e6eff9;color:#0758A7;text-align:start}
 .info td:first-child{width:32%;background:#f4f7fb;font-weight:700}
@@ -191,7 +191,7 @@ table{width:100%;border-collapse:collapse;margin:8px 0 14px}td,th{border:1px sol
 .line{border-bottom:1px dashed #8a9ab0;height:34px;margin-bottom:4px}`;
 function printDoc(titleAr,titleEn,meta,body,sigs,win){
   const co=coInfo();
-  const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${esc(titleAr)}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><style>${PRINT_CSS}</style></head><body>
+  const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${esc(titleAr)}</title><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>${PRINT_CSS}</style></head><body>
 ${letterhead(co,titleAr,titleEn,meta)}<div class="bar"></div>${body}
 ${sigs&&sigs.length?`<div class="sig">${sigs.map(s=>`<div><b>${s[0]}</b>${s[1]?`<div>${esc(s[1])}</div>`:''}<div class="line"></div>التوقيع / Signature</div>`).join('')}</div>`:''}
 ${letterfoot(co)}

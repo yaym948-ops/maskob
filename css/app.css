@@ -8,8 +8,8 @@
   --ok:#0758a7; --ok-soft:#e6eff9; --bad:#b8640f; --bad-soft:#fdf1e3;
   --late:#d32f2f; --late-soft:#fdecec;
   --hdr:#0758a7; --on-hdr:#ffffff;
-  --f-display:"Tajawal","Noto Sans Arabic","Noto Sans Bengali",Tahoma,sans-serif;
-  --f-body:"Tajawal","Noto Sans Arabic","Noto Sans Bengali",Tahoma,"Segoe UI",sans-serif;
+  --f-display:"IBM Plex Sans Arabic","Noto Sans Arabic","Noto Sans Bengali",Tahoma,sans-serif;
+  --f-body:"IBM Plex Sans Arabic","Noto Sans Arabic","Noto Sans Bengali",Tahoma,"Segoe UI",sans-serif;
   --r:12px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
@@ -30,8 +30,8 @@
   color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.65}
-.lang-bn{font-family:"Noto Sans Bengali","Tajawal",sans-serif}
-.lang-ur{font-family:"Noto Sans Arabic","Tajawal",sans-serif;line-height:1.75}
+.lang-bn{font-family:"Noto Sans Bengali","IBM Plex Sans Arabic",sans-serif}
+.lang-ur{font-family:"Noto Sans Arabic","IBM Plex Sans Arabic",sans-serif;line-height:1.75}
 h2,.cat-h,.rp-sec h3,.tile .nm,.oc .t,.stat b{font-weight:700}
 .lang-bn h2,.lang-bn .cat-h,.lang-bn .rp-sec h3,.lang-ur h2,.lang-ur .cat-h,.lang-ur .rp-sec h3{font-family:inherit}
 button,input,textarea,select{font:inherit;color:inherit}
@@ -44,7 +44,7 @@ button{cursor:pointer}
 .scene{background:var(--hdr);color:var(--on-hdr);margin-top:calc(-1 * env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px)}
 .scene .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:16px}
 .logo{display:flex;flex-direction:column;align-items:flex-start}
-.logo .ar{font-family:"Tajawal","Noto Sans Arabic",sans-serif;font-weight:800;font-size:32px;line-height:1.1;color:var(--on-hdr);position:relative;direction:rtl}
+.logo .ar{font-family:"IBM Plex Sans Arabic","Noto Sans Arabic",sans-serif;font-weight:700;font-size:32px;line-height:1.1;color:var(--on-hdr);position:relative;direction:rtl}
 .logo .ar i{position:absolute;top:-4px;left:38%;width:7px;height:7px;border-radius:50%;background:var(--sun)}
 .logo .en{font-weight:500;letter-spacing:.42em;font-size:10.5px;color:var(--on-hdr);margin-top:2px;direction:ltr}
 .logo .sub{font-size:13px;color:var(--on-hdr);opacity:.78;margin-top:6px}
@@ -387,7 +387,7 @@ button,a,input,select,label{touch-action:manipulation;-webkit-tap-highlight-colo
   .timeline{grid-template-columns:repeat(4,1fr)}
 }
 
-/* ---------- typography: Tajawal has 400/500/700/800 — 400 text, 500 UI, 700 emphasis ---------- */
+/* ---------- typography: IBM Plex Sans Arabic has 300-700 — 400 text, 500 UI, 700 emphasis ---------- */
 body{font-synthesis:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 h2,h3,.cat-h,.rp-sec h3,.btn,.tab[aria-selected="true"],.tile .nm,.ln .nm,.oc .t,.tbl td b,.who b,.code b,.stat b,.badge,.tile .q,.pill,.tag,.box h4{font-weight:700}
 .hint,.tile .alt,.tile .meta,.ln .sub,.oc .s,.stat span,.tl{font-weight:400}
@@ -648,7 +648,7 @@ span.sh-c{cursor:default}
 /* employee attachments */
 .ef-list{display:flex;flex-direction:column;gap:6px;margin:6px 0}
 .ef-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
-.ef-ico{flex:none;width:38px;height:38px;border-radius:8px;background:var(--lav-soft);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.ef-ico{flex:none;width:38px;height:38px;border-radius:8px;background:var(--lav-soft);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
 .ef-main{flex:1;min-width:0;display:flex;flex-direction:column}.ef-main .hint{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ef-add{gap:8px;flex-wrap:wrap;margin-top:6px}
 
@@ -664,7 +664,7 @@ span.sh-c{cursor:default}
 .dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:10px}
 .dash-card{display:flex;flex-direction:column;gap:4px;text-align:start;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);cursor:pointer;font:inherit;color:var(--fg)}
 .dash-card:hover{border-color:var(--navy)}
-.dash-card b{font-size:24px;color:var(--navy);font-weight:800}.dash-card b small{font-size:13px;font-weight:500}
+.dash-card b{font-size:24px;color:var(--navy);font-weight:700}.dash-card b small{font-size:13px;font-weight:500}
 .dash-card .dash-t{font-size:13px;color:var(--muted);font-weight:500}.dash-card .dash-s{font-size:12.5px;color:var(--muted)}
 .dash-card.hot{border-color:color-mix(in srgb,var(--late) 45%,var(--line));background:color-mix(in srgb,var(--late-soft) 55%,var(--card))}.dash-card.hot b{color:var(--late)}
 
@@ -673,9 +673,9 @@ span.sh-c{cursor:default}
 
 /* profit & loss */
 .pl-tbl th,.pl-tbl td{text-align:center;white-space:nowrap}.pl-tbl td:first-child,.pl-tbl th:first-child{text-align:start;white-space:normal;min-width:200px}
-.pl-tbl tr.pl-h td{background:var(--lav-soft);color:var(--navy);font-weight:800}
+.pl-tbl tr.pl-h td{background:var(--lav-soft);color:var(--navy);font-weight:700}
 .pl-tbl tr.pl-sum td{font-weight:700;border-top:2px solid var(--line)}
-.pl-tbl tr.pl-big td{font-weight:800;background:var(--sun-soft);color:var(--sun-ink);font-size:15px}
+.pl-tbl tr.pl-big td{font-weight:700;background:var(--sun-soft);color:var(--sun-ink);font-size:15px}
 .pl-tbl tr.pl-pct td{color:var(--muted);font-size:12.5px}
 .tag.ex-inc{background:var(--ok-soft);color:var(--navy)}
 
@@ -706,3 +706,23 @@ span.sh-c{cursor:default}
 .tm-due>span{flex:1 1 100%;font-weight:700;color:var(--navy)}
 .tm-due label{flex:1;min-width:150px}
 .ss-tbl td:nth-child(2){min-width:220px}
+/* ---------- icons (icons.js): one line style everywhere ---------- */
+.ic{width:1.15em;height:1.15em;flex:none;display:inline-block;vertical-align:-.18em}
+.tab-ico .ic{width:20px;height:20px}
+.sidenav .tab-grp .tab-car{display:inline-flex}.sidenav .tab-grp .tab-car .ic{width:16px;height:16px}
+.b-ic{width:17px;height:17px;margin-inline-end:2px}
+.btn .b-ic,.io-item .b-ic,.logout-btn .b-ic{opacity:.92}
+.io-item{display:flex;align-items:center;gap:8px}
+.io-car .ic{width:14px;height:14px;vertical-align:-2px}
+.logout-btn{display:inline-flex;align-items:center;gap:6px}
+.stat{position:relative;padding-inline-end:54px}
+.st-ic{position:absolute;top:12px;inset-inline-end:12px;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--lav-soft);color:var(--navy)}
+.st-ic .ic{width:19px;height:19px}
+.stat.hot .st-ic{background:#fdecea;color:#c0392b}
+.dash-t{display:inline-flex;align-items:center;gap:8px}
+.dc-ic{width:30px;height:30px;border-radius:9px;display:inline-grid;place-items:center;background:var(--lav-soft);color:var(--navy);flex:none}
+.dc-ic .ic{width:17px;height:17px}
+.dash-card.hot .dc-ic{background:#fdecea;color:#c0392b}
+/* the general manager's two pickers: departments and branches */
+.who.ow{gap:6px;flex-wrap:wrap}
+.ow-sel.on{background:var(--sun);color:var(--navy-ink)}

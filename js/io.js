@@ -70,9 +70,9 @@ const ioCan=k=>(S.role==='finance'&&['vouchers','advances','expenses','supinv'].
 /* one drop-down per list: export, import (and any extra item) */
 function ioBtns(k,extra){
   if(!ioCan(k))return'';
-  return`<details class="io-menu"><summary class="btn btn-ghost rp-btn">${t(IO[k].readOnly?'io_export':'io_menu')} <span aria-hidden="true">▾</span></summary><div class="io-pop" role="menu">
-    <button class="io-item" role="menuitem" data-act="ioExport" data-k="${k}">⬇ ${t('io_export')}</button>
-    ${IO[k].readOnly?'':`<label class="io-item io-imp" role="menuitem">⬆ ${t('io_import')}<input type="file" class="imp-in" data-k="${k}" accept=".xlsx,.xls,.csv" aria-label="${esc(t('io_import'))}"></label>`}
+  return`<details class="io-menu"><summary class="btn btn-ghost rp-btn">${t(IO[k].readOnly?'io_export':'io_menu')} <span aria-hidden="true" class="io-car">${typeof ico==='function'?ico('chevron'):'▾'}</span></summary><div class="io-pop" role="menu">
+    <button class="io-item" role="menuitem" data-act="ioExport" data-k="${k}">${typeof ico==='function'?ico('download','b-ic'):''}${t('io_export')}</button>
+    ${IO[k].readOnly?'':`<label class="io-item io-imp" role="menuitem">${typeof ico==='function'?ico('upload','b-ic'):''}${t('io_import')}<input type="file" class="imp-in" data-k="${k}" accept=".xlsx,.xls,.csv" aria-label="${esc(t('io_import'))}"></label>`}
     ${extra||''}</div></details>`;
 }
 /* close an open drop-down when tapping elsewhere, after choosing an item, or opening another */

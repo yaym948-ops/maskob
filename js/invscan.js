@@ -211,7 +211,7 @@ function scanSheet(){return S.scan?hrSheetWrap(t('sc_title'),`<div class="scan-w
 function scanBanner(){const i=S.scanInfo;if(!i)return'';const n=k=>t({supplier:'st_supplier',vatNo:'sc_vatNo',number:'st_invoice',date:'sl_day',amount:'vc_amount',vat:'ex_vat'}[k]);
   return`<div class="scan-note">${i.qr.length?`<div>✅ ${esc(t('sc_fromQr'))}: ${i.qr.map(n).map(esc).join('، ')}</div>`:`<div>${esc(t('sc_noQr'))}</div>`}
     ${i.text.length?`<div>🔎 ${esc(t('sc_fromText'))}: ${i.text.map(n).map(esc).join('، ')}</div>`:''}<div class="hint">${esc(t('sc_check'))}</div></div>`}
-function scanBtn(target){return`<label class="btn btn-navy rp-btn io-imp">📷 ${t('sc_btn')}<input type="file" class="scan-in" data-k="${target}" accept="image/*" capture="environment" aria-label="${esc(t('sc_btn'))}"></label>`}
+function scanBtn(target){return`<label class="btn btn-navy rp-btn io-imp">${typeof ico==='function'?ico('camera','b-ic'):'📷 '}${t('sc_btn')}<input type="file" class="scan-in" data-k="${target}" accept="image/*" capture="environment" aria-label="${esc(t('sc_btn'))}"></label>`}
 /* the stored photo of a record */
 const DOC_FILES={
   async put(col,id,data){if(S.fb)return db.doc(col+'/'+id+'/files/f0').set({data});(S._demoDocs||(S._demoDocs={}))[col+'/'+id]=data},

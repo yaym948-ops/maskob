@@ -183,7 +183,7 @@ test('general manager (full access) works as any department or branch from one a
   await d.signIn('9191');
   assert.equal(w.eval('S.realRole'), 'owner');
   assert.equal(w.eval('S.role'), 'dash', 'starts on the dashboard');
-  const pick = async (v) => { d.setVal('ownerView', v); await sleep(200); };
+  const pick = async (v) => { d.setVal(v.startsWith('branch:') ? 'ownerBranch' : 'ownerView', v); await sleep(200); };
   for (const v of ['warehouse', 'hr', 'admin', 'branch:القطيف', 'manager', 'dash']) {
     await pick(v);
     const want = v.startsWith('branch:') ? 'branch' : v;
@@ -193,6 +193,14 @@ test('general manager (full access) works as any department or branch from one a
   }
   await pick('branch:القطيف');
   assert.equal(w.eval('S.branch'), 'القطيف');
+  // departments and branches are two separate pickers; branches have no forecast page
+  assert.ok(w.document.getElementById('ownerBranch'), 'branches picker');
+  assert.equal(w.document.getElementById('ownerBranch').value, 'branch:القطيف');
+  assert.ok(![...w.document.getElementById('ownerView').options].some((o) => o.value.startsWith('branch:')), 'no branches in the departments picker');
+  assert.ok(![...w.document.querySelectorAll('#tabsIn [data-act="tab"]')].some((b) => b.dataset.k === 'fc'), 'no forecast page in a branch');
+  assert.ok(!w.document.querySelector('.fc-card'), 'no forecast suggestion on the order screen');
+  // the same line icons in the menu and on buttons
+  assert.ok(w.document.querySelector('#tabsIn .tab-ico svg.ic'), 'menu icons');
   await pick('hr');
   d.click('[data-act="tab"][data-k="emps"]');
   d.click('[data-act="hrNew"]'); await sleep(20);

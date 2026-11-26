@@ -46,7 +46,7 @@ function dashboardView(){
   </div></div>`;
 }
 A.dashGo=function(el){
-  const v=el.dataset.v,k=el.dataset.k;const sel=document.getElementById('ownerView');
+  const v=el.dataset.v,k=el.dataset.k;const sel=document.getElementById(String(v||'').startsWith('branch:')?'ownerBranch':'ownerView');
   if(!sel)return;LS.set('mk.tab',k);sel.value=v;sel.dispatchEvent(new Event('change',{bubbles:true}));
   setTimeout(()=>{if(k&&tabsFor().some(x=>x.k===k)){S.tab=k;LS.set('mk.tab',k);render()}},400);
 };

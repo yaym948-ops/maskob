@@ -103,7 +103,7 @@ A.delShared=function(el){
 };
 
 document.addEventListener('change',async ev=>{
-  const el=ev.target;if(el.id!=='ownerView'||S.realRole!=='owner')return;
+  const el=ev.target;if(!(el.id==='ownerView'||el.id==='ownerBranch')||!el.value||S.realRole!=='owner')return;
   const v=el.value.startsWith('branch:')?{role:'branch',branch:el.value.slice(7)}:{role:el.value};
   LS.set('mk.ownerView',v);S.role=v.role;if(v.branch)S.branch=v.branch;S.tab=null;S.open=null;S.menuOpen=false;
   if(S.fb){const a=Object.assign({},S.auth||{},{role:'owner',at:nowIso()});delete a.branch;if(v.branch)a.branch=v.branch;

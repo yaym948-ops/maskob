@@ -199,10 +199,10 @@ function contractHtml(e,c,co){
   let logo='https://fllow-maskob.web.app/maskob-wordmark.png';
   try{if(/^https?:$/.test(location.protocol))logo=new URL('maskob-wordmark.png',location.href).href}catch(e){}
   return`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>عقد عمل - ${h(e.name)}</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 @page{size:A4;margin:14mm}
-*{box-sizing:border-box}body{font-family:Tajawal,Arial,sans-serif;color:#13233a;margin:0;font-size:12.5px;line-height:1.7}
+*{box-sizing:border-box}body{font-family:"IBM Plex Sans Arabic",Arial,sans-serif;color:#13233a;margin:0;font-size:12.5px;line-height:1.7}
 .top{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #0758A7;padding-bottom:10px;margin-bottom:6px}
 .top img{height:40px}.top .meta{font-size:11.5px;color:#4a5b73;text-align:left}
 .bar{height:3px;width:90px;background:#EF8A22;margin:0 0 14px auto}
@@ -434,9 +434,9 @@ function settlementHtml(e,d,c,co){
     ['المهنة','Job',h(e.job||'—')],['مكان العمل','Workplace',h(pl)],['تاريخ المباشرة','Start date',dt(d.start)],['آخر يوم عمل','Last working day',dt(d.last)],
     ['مدة الخدمة','Length of service',perAr+' / '+perEn],['سبب انتهاء الخدمة','Reason',AR[d.reason]+' / '+EN[d.reason]],['الأجر المعتمد للحساب','Wage used',n(c.wage)+' SAR']];
   return`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>مخالصة نهائية - ${h(e.name)}</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:Tajawal,Arial,sans-serif;color:#13233a;margin:0;font-size:12.5px;line-height:1.7}
+@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:"IBM Plex Sans Arabic",Arial,sans-serif;color:#13233a;margin:0;font-size:12.5px;line-height:1.7}
 .top{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #0758A7;padding-bottom:10px;margin-bottom:6px}
 .top img{height:40px}.top .meta{font-size:11.5px;color:#4a5b73;text-align:left}.bar{height:3px;width:90px;background:#EF8A22;margin:0 0 14px auto}
 h1{font-size:22px;margin:0;color:#0758A7;font-weight:800}h1 small{display:block;font-size:13px;color:#4a5b73;font-weight:500}
