@@ -521,8 +521,8 @@ function counts(){
 }
 function tabsFor(){
   const c=counts();
-  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')},{k:'lr',l:t('tab_shifts'),b:(S.leaveReqs||[]).filter(r=>r.status==='pending').length},{k:'forms',l:t('tab_forms')},{k:'fc',l:t('tab_fc')}];
-  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales')},{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')},{k:'stock',l:t('tab_stock'),b:typeof stockLow==='function'?stockLow().length:0}];
+  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')},{k:'lr',l:t('tab_shifts'),b:(S.leaveReqs||[]).filter(r=>r.status==='pending').length},{k:'forms',l:t('tab_forms')},{k:'fc',l:t('tab_fc'),g:'rep'}];
+  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report'),g:'rep'},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales'),g:'rep'},{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')},{k:'stock',l:t('tab_stock'),b:typeof stockLow==='function'?stockLow().length:0}];
   if(S.role==='admin')return[{k:'branches',l:t('tab_settings')},{k:'users',l:t('tab_users')},{k:'actlog',l:t('tab_log2')},{k:'catalog',l:t('tab_catalog')}];
   if(S.role==='hr')return hrTabs();
   if(S.role==='finance'&&typeof finTabs==='function')return finTabs();
@@ -542,11 +542,21 @@ const NAV_IC={plus:'M12 5v14M5 12h14',inbox:'M4 13h4l2 3h4l2-3h4M4 13l2-8h12l2 8
   id:'M3 5h18v14H3zM7 15.5c.6-2 4.4-2 5 0M9.5 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM15 10h3M15 14h3',key:'M15 3a6 6 0 0 0-5.2 9L3 18.8V21h3v-2h2v-2h2l1.2-1.2A6 6 0 1 0 15 3zM16.5 7.5h.01',
   cash:'M3 7h18v10H3zM12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM6 10v4M18 10v4',shield:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4',
   receipt:'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4',dot:'M12 12h.01'};
-const NAV_OF={be:'chart',pnl:'trend',costs:'tag',assets:'archive',fsum:'chart',expenses:'receipt',supinv:'file',stock:'box',dash:'chart',users:'users',actlog:'archive',new:'plus',tasks:'inbox',orders:'list',sales:'chart',maint:'wrench',checks:'check',lr:'cal',forms:'file',fc:'trend',pending:'clock',report:'file',all:'list',
+const NAV_OF={rep:'chart',suppliers:'truck',supst:'file',be:'chart',pnl:'trend',costs:'tag',assets:'archive',fsum:'chart',expenses:'receipt',supinv:'file',stock:'box',dash:'chart',users:'users',actlog:'archive',new:'plus',tasks:'inbox',orders:'list',sales:'chart',maint:'wrench',checks:'check',lr:'cal',forms:'file',fc:'trend',pending:'clock',report:'file',all:'list',
   salesAll:'chart',maintAll:'wrench',prep:'box',sched:'cal',incoming:'truck',done:'archive',branches:'sliders',catalog:'tag',emps:'users',docs:'id',leaves:'cal',custody:'key',
   advances:'cash',lic:'shield',vouchers:'receipt',payroll:'cash'};
 const navIcon=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${NAV_IC[NAV_OF[k]]||NAV_IC.dot}"/></svg>`;
 
+/* the side menu: pages marked g:'rep' sit together under one "Reports" entry that opens and closes
+   (open by itself while one of them is shown); a department with a single report keeps it as a plain entry */
+function navHtml(tabs){
+  const one=x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}"><span class="tab-ico">${navIcon(x.k)}</span><span class="tab-l">${esc(x.l)}</span>${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`;
+  const grp=tabs.filter(x=>x.g==='rep');if(grp.length<2)return tabs.map(one).join('');
+  const inside=grp.some(x=>x.k===S.tab),open=inside||!!S.navRep,b=grp.reduce((s,x)=>s+(+x.b||0),0);let done=false;
+  return tabs.map(x=>{if(x.g!=='rep')return one(x);if(done)return'';done=true;
+    return`<button class="tab tab-grp${inside?' in':''}" data-act="navGrp" aria-expanded="${open}"><span class="tab-ico">${navIcon('rep')}</span><span class="tab-l">${esc(t('nav_reports'))}</span>${!open&&b?`<span class="badge num${grp.some(g=>g.late)?' late':''}">${b}</span>`:''}<span class="tab-car" aria-hidden="true">▾</span></button>
+      <div class="tab-sub" role="group" aria-label="${esc(t('nav_reports'))}"${open?'':' hidden'}>${grp.map(one).join('')}</div>`}).join('');
+}
 /* ---------- render ---------- */
 function applyLang(){
   const app=document.getElementById('app');
@@ -568,10 +578,10 @@ function render(){
   document.getElementById('layout').classList.toggle('no-nav',!authed);
   const mb=document.getElementById('menuBtn');mb.hidden=!authed;mb.setAttribute('aria-label',t('nav_menu'));
   document.getElementById('app').classList.toggle('menu-open',!!(authed&&S.menuOpen));
-  document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}"><span class="tab-ico">${navIcon(x.k)}</span><span class="tab-l">${esc(x.l)}</span>${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
+  document.getElementById('tabsIn').innerHTML=navHtml(tabs);
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.scan&&window.scanSheet?scanSheet():S.imp?impSheet():S.openAsset&&window.assetSheet?assetSheet():S.openExp&&window.expenseSheet?expenseSheet():S.openSi&&window.supInvSheet?supInvSheet():S.openStockRecv&&window.stockRecvSheet?stockRecvSheet():S.openStock&&window.stockItemSheet?stockItemSheet():S.openUser&&window.userSheet?userSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.scan&&window.scanSheet?scanSheet():S.imp?impSheet():S.openAsset&&window.assetSheet?assetSheet():S.openExp&&window.expenseSheet?expenseSheet():S.openSi&&window.supInvSheet?supInvSheet():S.openSup&&window.supplierSheet?supplierSheet():S.openStockRecv&&window.stockRecvSheet?stockRecvSheet():S.openStock&&window.stockItemSheet?stockItemSheet():S.openUser&&window.userSheet?userSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -1205,7 +1215,9 @@ function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
   menuOpen(){S.menuOpen=true;render()},
   menuClose(){S.menuOpen=false;render()},
-  tab(el){S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=S.openStockRecv=S.openStock=S.openExp=S.openSi=S.openAsset=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
+  /* open or close the Reports group of the side menu */
+  navGrp(el){if(el.classList.contains('in'))return;S.navRep=el.getAttribute('aria-expanded')!=='true';render()},
+  tab(el){S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openSup=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=S.openStockRecv=S.openStock=S.openExp=S.openSi=S.openAsset=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.userId=null;S.userName=null;S.role=null;S.realRole=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -1290,7 +1302,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.imp=null;S.docImg=null;S.scanInfo=null;S.openAsset=null;S.openExp=null;S.openSi=null;S.siPay=null;S.openStockRecv=null;S.openStock=null;S.openUser=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.imp=null;S.openSup=null;S.docImg=null;S.scanInfo=null;S.openAsset=null;S.openExp=null;S.openSi=null;S.siPay=null;S.openStockRecv=null;S.openStock=null;S.openUser=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},

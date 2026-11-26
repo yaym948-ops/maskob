@@ -193,10 +193,16 @@ async function scanInvoice(file,target){
     S.scanInfo={qr:Object.keys(fromQr).filter(k=>['supplier','vatNo','date','amount','vat'].includes(k)),text:Object.keys(got).filter(k=>got[k]!=null&&got[k]!==''&&!(k in fromQr))};
     S.scan=null;S.docImg=photo;
     const f=v=>v==null?'':String(v);
+    /* a saved supplier with this VAT number: its own name is surer than the one read from the photo */
+    const sup=typeof supFind==='function'?supFind('',got.vatNo):null;if(sup)got.supplier=sup.name;
+    /* the total read is with VAT; a VAT figure read is kept as typed */
+    const money={amount:f(got.amount),vat:f(got.vat),incVat:true,vatManual:got.vat!=null&&got.vat!==''};
+    const date=got.date||dayKey(Date.now());
     if(target==='expenses'){S.openExp='new';S.confirm=null;
-      S.hrDraft={kind:'expense',date:got.date||dayKey(Date.now()),cat:'other',place:'@office',payee:f(got.supplier),vatNo:f(got.vatNo),amount:f(got.amount),vat:f(got.vat),method:'bank',ref:f(got.number),note:''}}
+      S.hrDraft=Object.assign({kind:'expense',date,cat:'other',place:'@office',payee:f(got.supplier),vatNo:f(got.vatNo),method:'bank',ref:f(got.number),note:'',terms:'cash',termDays:'30',due:''},money)}
     else{S.openSi='new';S.confirm=null;S.siPay=null;
-      S.hrDraft={supplier:f(got.supplier),vatNo:f(got.vatNo),number:f(got.number),date:got.date||dayKey(Date.now()),due:'',amount:f(got.amount),vat:f(got.vat),note:''}}
+      S.hrDraft=Object.assign({supplier:f(got.supplier),vatNo:f(got.vatNo),number:f(got.number),date,due:typeof addDays==='function'?addDays(date,30):'',note:'',terms:'credit',termDays:'30',method:'bank'},money)}
+    if(sup&&typeof supApply==='function')supApply(S.hrDraft,sup);
     render();
   }catch(e){S.scan=null;toast(t('sc_fail'));render()}
 }

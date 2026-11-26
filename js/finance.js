@@ -26,8 +26,12 @@ function expCatSelect(cur){
 const INC_CATS=['catering','rebate','other'];
 const expLabel=e=>t((e.kind==='income'?'ic_':'ec_')+(e.cat||'other'));
 const finTabs=()=>{const due=(S.supInv||[]).filter(i=>supRemain(i)>0&&i.due&&i.due<=dayKey(Date.now())).length;
-  return[{k:'fsum',l:t('tab_fsum')},{k:'expenses',l:t('tab_exp')},{k:'supinv',l:t('tab_supinv'),b:due,late:due>0},{k:'payroll',l:t('tab_pr')},{k:'vouchers',l:t('tab_vc')},{k:'advances',l:t('tab_adv')},{k:'pnl',l:t('tab_pnl')},{k:'be',l:t('tab_be')},{k:'costs',l:t('tab_costs')},{k:'assets',l:t('tab_assets')}]};
+  const sup=typeof suppliersView==='function';
+  return[{k:'fsum',l:t('tab_fsum')},{k:'expenses',l:t('tab_exp')},{k:'supinv',l:t('tab_supinv'),b:due,late:due>0},...(sup?[{k:'suppliers',l:t('tab_sup')}]:[]),{k:'payroll',l:t('tab_pr')},{k:'vouchers',l:t('tab_vc')},{k:'advances',l:t('tab_adv')},
+    {k:'pnl',l:t('tab_pnl'),g:'rep'},{k:'be',l:t('tab_be'),g:'rep'},...(sup?[{k:'supst',l:t('tab_supst'),g:'rep'}]:[]),{k:'costs',l:t('tab_costs')},{k:'assets',l:t('tab_assets')}]};
 function financeView(tb){
+  if(tb==='suppliers'&&typeof suppliersView==='function')return suppliersView();
+  if(tb==='supst'&&typeof supStatementView==='function')return supStatementView();
   if(tb==='expenses')return expensesView();
   if(tb==='supinv')return supInvView();
   if(tb==='payroll')return payrollView();
@@ -39,6 +43,30 @@ function financeView(tb){
   if(tb==='assets')return assetsView();
   return financeSummaryView();
 }
+/* ---------- payment terms (cash / credit) and VAT, shared by supplier invoices and expenses ----------
+   Stored: amount = total payable with VAT, vat, incVat (false when the amount was typed before VAT),
+   terms 'cash'|'credit', termDays, due. A cash supplier invoice is paid on the spot (with a voucher);
+   a credit expense stays unpaid (paid:false) until its payment is recorded. */
+const TERM_DAYS=[15,30,45,60,90];
+/* the draft's figures: VAT worked out at 15% unless typed by hand */
+function draftTotals(d){const a=num(d.amount)||0,inc=d.incVat!==false;
+  const auto=r2p(inc?a*15/115:a*0.15),vat=d.vatManual&&d.vat!==''&&d.vat!=null?num(d.vat)||0:auto;
+  return{inc,vat:r2p(vat),total:r2p(inc?a:a+vat),net:r2p(inc?a-vat:a)}}
+const vatLineText=T=>t('tm_vatLine',{net:sar2(T.net),vat:sar2(T.vat),total:sar2(T.total)});
+function vatBlock(d){const T=draftTotals(d);
+  return`<label class="tm-chk"><input type="checkbox" id="hr-incVat" data-act="incVat" ${T.inc?'checked':''}> <b>${esc(t('tm_incVat'))}</b></label>
+  <p class="hint" id="vatLine">${esc(vatLineText(T))}</p>`}
+function termsBlock(d){const cr=d.terms==='credit';
+  return`<h4 class="hr-sub">${t('tm_title')}</h4><div class="kind">${['cash','credit'].map(k=>`<button aria-pressed="${(cr?'credit':'cash')===k}" data-act="tmSet" data-k="${k}">${esc(t('tm_'+k))}</button>`).join('')}</div>
+  <div class="sl-grid hr-grid" style="margin-top:8px">${cr?hrSel('termDays',t('tm_days'),[...TERM_DAYS.map(n=>[String(n),t('tm_nDays',{n})]),['other',t('tm_other')]])+hrIn('due',t('si_due'),'date')
+    :hrSel('method',t('vc_method'),PAY_METHODS.map(k=>[k,t('pm_'+k)]))}</div>
+  <p class="hint">${esc(t(cr?'tm_creditHint':S.openSi?'tm_cashHintSi':'tm_cashHintEx'))}</p>`}
+/* a saved record back into a form: an amount typed before VAT is shown that way again */
+function draftOf(rec,defTerms){const d=Object.assign({},rec);
+  d.incVat=rec.incVat!==false;if(!d.incVat)d.amount=String(r2p((+rec.amount||0)-(+rec.vat||0)));
+  d.vatManual=rec.vat!=null;d.terms=rec.terms||defTerms;d.termDays=rec.termDays?String(rec.termDays):'other';return d}
+const dueOf=(d,date)=>d.terms==='cash'?date:isDay(d.due)?d.due:d.termDays&&d.termDays!=='other'?addDays(date,+d.termDays):'';
+const expUnpaid=e=>e.terms==='credit'&&!e.paid&&e.kind!=='income';
 const supPaid=i=>(i.payments||[]).reduce((s,p)=>s+(+p.amount||0),0);
 const supRemain=i=>Math.max(0,r2p((+i.amount||0)-supPaid(i)));
 const inMonth=(d,mk)=>String(d||'').startsWith(mk);
@@ -86,23 +114,25 @@ function expensesView(){
   const mk=S.fnMonth||monthKey(Date.now());const cf=S.expCat||'';
   const list=[...(S.expenses||[])].filter(e=>inMonth(e.date,mk)&&(!cf||expGroup(e.cat)===cf)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   const total=list.reduce((s,e)=>s+(+e.amount||0),0),vat=list.reduce((s,e)=>s+(+e.vat||0),0);
+  const unpaid=(S.expenses||[]).filter(expUnpaid),today=dayKey(Date.now());
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_exp')}</h2><div class="row">${window.scanBtn?scanBtn('expenses'):''}${ioBtns('expenses')}<input class="field" type="month" id="fnMonth" value="${esc(mk)}" style="width:auto"><button class="btn btn-sun" data-act="exNew">+ ${t('ex_add')}</button></div></div>
-  <div class="stats">${kpi(t('vc_count'),sar(list.length))}${kpi(t('ex_total'),sar2(total)+' '+t('sar'))}${kpi(t('ex_vat'),sar2(vat)+' '+t('sar'))}</div>
+  <div class="stats">${kpi(t('vc_count'),sar(list.length))}${kpi(t('ex_total'),sar2(total)+' '+t('sar'))}${kpi(t('ex_vat'),sar2(vat)+' '+t('sar'))}${kpi(t('tm_unpaidExp'),sar2(unpaid.reduce((s,e)=>s+(+e.amount||0),0))+' '+t('sar'),unpaid.some(e=>e.due&&e.due<today)?'hot':'')}</div>
   <div class="filters"><button class="chip" aria-pressed="${!cf}" data-act="exCat" data-k="">${t('f_all')}</button>${EXP_GROUPS.map(([g])=>`<button class="chip" aria-pressed="${cf===g}" data-act="exCat" data-k="${g}">${esc(t('eg_'+g))}</button>`).join('')}</div>
   <div class="list">${list.length?list.map(e=>`<button class="oc" data-act="exOpen" data-id="${esc(e.id)}">
     <span style="min-width:0"><span class="t">${esc(expLabel(e))} <span class="tag">${esc(placeL(e.place))}</span>${e.kind==='income'?` <span class="tag ex-inc">${t('ex_income')}</span>`:''}${e.periodFrom?` <span class="hint">${esc(e.periodFrom)} → ${esc(e.periodTo||'')}</span>`:''}</span>
       <span class="s">${esc(dateLabel(e.date))}${e.payee?' · '+esc(e.payee):''}${e.note?' · '+esc(String(e.note).slice(0,60)):''}</span></span>
-    <span class="side"><b class="num">${esc(sar2(e.amount))} ${t('sar')}</b></span></button>`).join(''):`<div class="empty">${esc(t('ex_none'))}</div>`}</div>`;
+    <span class="side"><b class="num">${esc(sar2(e.amount))} ${t('sar')}</b>${expUnpaid(e)?`<span class="pill ${e.due&&e.due<today?'li-expired':'ms-progress'}">${esc(t('tm_credit'))}${e.due?' · '+esc(dateLabel(e.due)):''}</span>`:''}</span></button>`).join(''):`<div class="empty">${esc(t('ex_none'))}</div>`}</div>`;
 }
 function expenseSheet(){
   const isNew=S.openExp==='new';const d=S.hrDraft||{};
   const inc=d.kind==='income';
   const body=`${window.scanBanner?scanBanner():''}<div class="kind" style="margin-bottom:12px">${[['expense','ex_expense'],['income','ex_income']].map(([k,l])=>`<button aria-pressed="${(inc?'income':'expense')===k}" data-act="exKind" data-k="${k}">${esc(t(l))}</button>`).join('')}</div>
   <div class="sl-grid hr-grid">${hrIn('date',t('sl_day'),'date')}${inc?hrSel('cat',t('ex_cat'),INC_CATS.map(c=>[c,t('ic_'+c)])):expCatSelect(d.cat)}
-    ${hrSel('place',t('hr_branch'),[['@all',t('li_allPlaces')],...hrPlaces().map(p=>[p,placeL(p)])])}${hrIn('payee',t('ex_payee'))}${hrIn('vatNo',t('sc_vatNo'),'text','dir="ltr" inputmode="numeric"')}
+    ${hrSel('place',t('hr_branch'),[['@all',t('li_allPlaces')],...hrPlaces().map(p=>[p,placeL(p)])])}${hrIn('payee',t('ex_payee'),'text',typeof supDatalist==='function'?'list="supList" autocomplete="off"':'')}${hrIn('vatNo',t('sc_vatNo'),'text','dir="ltr" inputmode="numeric"')}
     ${hrIn('amount',t('vc_amount')+' ('+t('sar')+')','number')}${hrIn('vat',t('ex_vat')+' ('+t('sar')+')','number')}
-    ${hrSel('method',t('vc_method'),PAY_METHODS.map(k=>[k,t('pm_'+k)]))}${hrIn('ref',t('ex_ref'),'text','dir="ltr"')}</div>
-  <button class="btn btn-ghost rp-btn" data-act="exVat15" style="margin-top:8px">${t('ex_vat15')}</button>
+    ${hrIn('ref',t('ex_ref'),'text','dir="ltr"')}</div>${typeof supDatalist==='function'?supDatalist():''}
+  ${vatBlock(d)}${inc?`<div class="sl-grid hr-grid">${hrSel('method',t('vc_method'),PAY_METHODS.map(k=>[k,t('pm_'+k)]))}</div>`:termsBlock(d)}
+  ${!isNew&&expUnpaid((S.expenses||[]).find(x=>x.id===S.openExp)||{})?`<div class="tm-due"><span>${esc(t('tm_notPaid'))}${d.due?' · '+esc(t('si_due'))+': '+esc(dateLabel(d.due)):''}</span>${hrSel('method',t('vc_method'),PAY_METHODS.map(k=>[k,t('pm_'+k)]))}<button class="btn btn-navy" data-act="exPaid">${esc(t('tm_markPaid'))}</button></div>`:''}
   <h4 class="hr-sub">${t('ex_period')}</h4><div class="sl-grid hr-grid">${hrIn('periodFrom',t('ex_pFrom'),'month')}${hrIn('periodTo',t('ex_pTo'),'month')}</div><p class="hint">${esc(t('ex_periodHint'))}</p>
   <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>${window.docImgBlock?docImgBlock('expenses',isNew?null:Object.assign({id:S.openExp},(S.expenses||[]).find(x=>x.id===S.openExp))):''}`;
   const foot=`${isNew?'':`<button class="btn btn-bad" data-act="exDel">${S.confirm==='exDel'?t('li_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="exSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
@@ -133,9 +163,10 @@ function supInvSheet(){
       <input class="field num" id="si-payAmt" data-in="siP" data-f="amount" inputmode="decimal" dir="ltr" placeholder="${esc(sar2(supRemain(inv)))}" value="${esc(p.amount||'')}" style="flex:1;min-width:110px">
       <select class="field" id="si-payMethod" data-in="siP" data-f="method" style="flex:1;min-width:120px">${PAY_METHODS.map(k=>`<option value="${k}" ${(p.method||'bank')===k?'selected':''}>${esc(t('pm_'+k))}</option>`).join('')}</select>
       <button class="btn btn-navy" data-act="siPay">${t('av_pay')}</button></div><p class="hint">${esc(t('si_payHint'))}</p>`:''}`;
-  const body=`${window.scanBanner?scanBanner():''}<div class="sl-grid hr-grid">${hrIn('supplier',t('st_supplier'))}${hrIn('vatNo',t('sc_vatNo'),'text','dir="ltr" inputmode="numeric"')}${hrIn('number',t('st_invoice'),'text','dir="ltr"')}
-    ${hrIn('date',t('si_date'),'date')}${hrIn('due',t('si_due'),'date')}
-    ${hrIn('amount',t('si_amount')+' ('+t('sar')+')','number')}${hrIn('vat',t('ex_vat')+' ('+t('sar')+')','number')}</div>
+  const body=`${window.scanBanner?scanBanner():''}<div class="sl-grid hr-grid">${hrIn('supplier',t('st_supplier'),'text',typeof supDatalist==='function'?'list="supList" autocomplete="off"':'')}${hrIn('vatNo',t('sc_vatNo'),'text','dir="ltr" inputmode="numeric"')}${hrIn('number',t('st_invoice'),'text','dir="ltr"')}
+    ${hrIn('date',t('si_date'),'date')}
+    ${hrIn('amount',t('si_amount')+' ('+t('sar')+')','number')}${hrIn('vat',t('ex_vat')+' ('+t('sar')+')','number')}</div>${typeof supDatalist==='function'?supDatalist():''}
+  ${vatBlock(d)}${isNew?termsBlock(d):`<p class="hint">${esc(t('tm_'+(inv.terms||'credit')))}${inv.due&&inv.terms!=='cash'?' · '+esc(t('si_due'))+': '+esc(dateLabel(inv.due)):''}</p>${inv.terms==='cash'?'':`<div class="sl-grid hr-grid">${hrIn('due',t('si_due'),'date')}</div>`}`}
   <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>${window.docImgBlock?docImgBlock('supInvoices',inv):''}${pays}`;
   const foot=`${isNew?'':`<button class="btn btn-bad" data-act="siDel">${S.confirm==='siDel'?t('li_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="siSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
   return hrSheetWrap(isNew?t('si_add'):inv.supplier,body,foot);
@@ -147,37 +178,59 @@ Object.assign(A,{
       {name:t('fn_byPlace'),headers:[t('hr_branch'),t('fn_sales'),t('fn_payroll'),t('tab_exp'),t('fn_result')],rows:F.places.map(p=>{const x=F.byPlace[p];return[placeL(p),r2p(x.sales),r2p(x.pay),r2p(x.exp),r2p(x.sales-x.pay-x.exp)]})},
       {name:t('tab_exp'),headers:[t('sl_day'),t('ex_cat'),t('hr_branch'),t('ex_payee'),t('vc_amount'),t('ex_vat'),t('vc_method'),t('ex_ref'),t('hr_note')],
         rows:(S.expenses||[]).filter(e=>inMonth(e.date,F.mk)).map(e=>[e.date,expLabel(e),placeL(e.place),e.payee||'',+e.amount||0,+e.vat||0,t('pm_'+(e.method||'cash')),e.ref||'',e.note||''])}])},
-  exNew(){S.openExp='new';S.confirm=null;S.docImg=null;S.scanInfo=null;S.hrDraft={date:dayKey(Date.now()),cat:S.expCat?(EXP_GROUPS.find(g=>g[0]===S.expCat)||[0,['other']])[1][0]:'other',place:'@office',payee:'',amount:'',vat:'',method:'cash',ref:'',note:''};render()},
-  exOpen(el){const e=(S.expenses||[]).find(x=>x.id===el.dataset.id);if(!e)return;S.openExp=e.id;S.confirm=null;S.docImg=null;S.scanInfo=null;S.hrDraft=Object.assign({},e);render()},
+  exNew(){S.openExp='new';S.confirm=null;S.docImg=null;S.scanInfo=null;S.hrDraft={date:dayKey(Date.now()),cat:S.expCat?(EXP_GROUPS.find(g=>g[0]===S.expCat)||[0,['other']])[1][0]:'other',place:'@office',payee:'',amount:'',vat:'',method:'cash',ref:'',note:'',incVat:true,terms:'cash',termDays:'30',due:''};render()},
+  exOpen(el){const e=(S.expenses||[]).find(x=>x.id===el.dataset.id);if(!e)return;S.openExp=e.id;S.confirm=null;S.docImg=null;S.scanInfo=null;S.hrDraft=draftOf(e,'cash');render()},
+  /* VAT included or not; cash or credit — the form is drawn again */
+  incVat(el){const d=S.hrDraft;if(!d)return;d.incVat=!!el.checked;render()},
+  tmSet(el){const d=S.hrDraft;if(!d)return;d.terms=el.dataset.k;if(d.terms==='credit'&&!d.due&&isDay(d.date)&&d.termDays!=='other')d.due=addDays(d.date,+(d.termDays||30));render()},
+  exPaid(){const e=(S.expenses||[]).find(x=>x.id===S.openExp);if(!e)return;const d=S.hrDraft||{};
+    guard(async()=>{await X.upd('expenses',e.id,{paid:true,paidDate:dayKey(Date.now()),method:PAY_METHODS.includes(d.method)?d.method:'bank',updatedAt:nowIso()});S.openExp=null;S.hrDraft=null},()=>t('si_paid'))},
   exCat(el){S.expCat=el.dataset.k;render()},
   exKind(el){const d=S.hrDraft;d.kind=el.dataset.k;d.cat=d.kind==='income'?'other':'other';render()},
   exVat15(){const d=S.hrDraft;const a=num(d.amount);if(!(a>0))return;d.vat=String(r2p(a*15/115));const o=document.getElementById('hr-vat');if(o)o.value=d.vat},
-  exSave(){const d=S.hrDraft||{};const amount=num(d.amount);if(!(amount>0)){toast(t('vc_need'));return}
+  exSave(){const d=S.hrDraft||{};const T=draftTotals(d),amount=T.total;if(!(num(d.amount)>0)){toast(t('vc_need'));return}
     if(!(!d.vatNo||/^3[0-9]{13}3$/.test(String(d.vatNo).trim()))){toast(t('sc_badVat'));return}
     const id=S.openExp==='new'?hrId('X'):S.openExp;const old=(S.expenses||[]).find(x=>x.id===id)||{};const tm=nowIso();
     const kind=d.kind==='income'?'income':'expense',okM=v=>/^[0-9]{4}-[0-9]{2}$/.test(v||'');
     if(okM(d.periodFrom)!==okM(d.periodTo)||(okM(d.periodFrom)&&d.periodTo<d.periodFrom)){toast(t('lv_badDates'));return}
     const data={kind,periodFrom:okM(d.periodFrom)?d.periodFrom:'',periodTo:okM(d.periodTo)?d.periodTo:'',date:isDay(d.date)?d.date:dayKey(Date.now()),cat:(kind==='income'?INC_CATS:EXP_CATS).includes(d.cat)?d.cat:'other',place:d.place||'@office',payee:String(d.payee||'').trim(),vatNo:String(d.vatNo||'').trim(),hasFile:!!(old.hasFile||S.docImg),amount,
-      vat:d.vat===''||d.vat==null?null:num(d.vat),method:PAY_METHODS.includes(d.method)?d.method:'cash',ref:String(d.ref||'').trim(),note:String(d.note||'').trim(),createdAt:old.createdAt||tm,updatedAt:tm};
+      vat:T.vat,incVat:T.inc,method:PAY_METHODS.includes(d.method)?d.method:'cash',ref:String(d.ref||'').trim(),note:String(d.note||'').trim(),createdAt:old.createdAt||tm,updatedAt:tm};
+    /* paid on the spot, or on credit: owed until its payment is recorded */
+    data.terms=kind==='expense'&&d.terms==='credit'?'credit':'cash';
+    if(data.terms==='credit'){data.termDays=d.termDays&&d.termDays!=='other'?+d.termDays:null;data.due=dueOf(d,data.date);data.paid=!!old.paid;data.paidDate=old.paidDate||''}
+    else{data.termDays=null;data.due='';data.paid=true;data.paidDate=old.paidDate||data.date}
+    if(typeof supFind==='function'){const s=supFind(data.payee,data.vatNo);data.supplierId=s?s.id:''}
     const img=S.docImg;
     guard(async()=>{await X.put('expenses',id,data);if(img&&typeof DOC_FILES!=='undefined'){await DOC_FILES.put('expenses',id,img);(S.docImgs||(S.docImgs={}))['expenses/'+id]=img}
       S.openExp=null;S.hrDraft=null;S.docImg=null;S.scanInfo=null},()=>t('st_saved'))},
   exDel(){const id=S.openExp;if(!id||id==='new')return;if(S.confirm!=='exDel'){S.confirm='exDel';render();return}
     guard(async()=>{if(typeof DOC_FILES!=='undefined')await DOC_FILES.del('expenses',id);await X.del('expenses',id);S.openExp=null;S.confirm=null},()=>t('li_deleted'))},
-  siNew(){S.openSi='new';S.confirm=null;S.siPay=null;S.docImg=null;S.scanInfo=null;S.hrDraft={supplier:'',number:'',date:dayKey(Date.now()),due:'',amount:'',vat:'',note:''};render()},
-  siOpen(el){const i=(S.supInv||[]).find(x=>x.id===el.dataset.id);if(!i)return;S.openSi=i.id;S.confirm=null;S.siPay=null;S.docImg=null;S.scanInfo=null;S.hrDraft=Object.assign({},i);render()},
+  siNew(el){S.openSi='new';S.confirm=null;S.siPay=null;S.docImg=null;S.scanInfo=null;const today=dayKey(Date.now());
+    S.hrDraft={supplier:'',number:'',date:today,due:addDays(today,30),amount:'',vat:'',note:'',incVat:true,terms:'credit',termDays:'30',method:'bank'};
+    const s=el&&el.dataset&&el.dataset.sup&&typeof supById==='function'&&supById(el.dataset.sup);if(s){S.hrDraft.supplier=s.name;supApply(S.hrDraft,s)}
+    render()},
+  siOpen(el){const i=(S.supInv||[]).find(x=>x.id===el.dataset.id);if(!i)return;S.openSi=i.id;S.confirm=null;S.siPay=null;S.docImg=null;S.scanInfo=null;S.hrDraft=draftOf(i,'credit');render()},
   siFilter(el){S.siFilter=el.dataset.k;render()},
-  siSave(){const d=S.hrDraft||{};const amount=num(d.amount);const supplier=String(d.supplier||'').trim();
-    if(!supplier||!(amount>0)){toast(t('si_need'));return}
+  siSave(){const d=S.hrDraft||{};const T=draftTotals(d),amount=T.total;const supplier=String(d.supplier||'').trim();
+    if(!supplier||!(num(d.amount)>0)){toast(t('si_need'));return}
     if(!(!d.vatNo||/^3[0-9]{13}3$/.test(String(d.vatNo).trim()))){toast(t('sc_badVat'));return}
     const id=S.openSi==='new'?hrId('SI'):S.openSi;const old=(S.supInv||[]).find(x=>x.id===id)||{};const tm=nowIso();
     const num0=String(d.number||'').trim(),vat0=String(d.vatNo||'').trim();
     if(num0&&S.confirm!=='siDup'&&(S.supInv||[]).some(x=>x.id!==id&&String(x.number||'')===num0&&(vat0&&x.vatNo?x.vatNo===vat0:x.supplier===supplier))){S.confirm='siDup';toast(t('sc_dup'));return}
-    const data={supplier,vatNo:String(d.vatNo||'').trim(),hasFile:!!(old.hasFile||S.docImg),number:String(d.number||'').trim(),date:isDay(d.date)?d.date:dayKey(Date.now()),due:isDay(d.due)?d.due:'',amount,vat:d.vat===''||d.vat==null?null:num(d.vat),
+    const isNew=S.openSi==='new',date=isDay(d.date)?d.date:dayKey(Date.now());
+    const terms=isNew?(d.terms==='cash'?'cash':'credit'):(old.terms||'credit');
+    const data={supplier,vatNo:String(d.vatNo||'').trim(),hasFile:!!(old.hasFile||S.docImg),number:String(d.number||'').trim(),date,due:dueOf(Object.assign({},d,{terms}),date),amount,vat:T.vat,incVat:T.inc,
+      terms,termDays:terms==='credit'&&d.termDays&&d.termDays!=='other'?+d.termDays:(old.termDays||null),
       note:String(d.note||'').trim(),payments:old.payments||[],createdAt:old.createdAt||tm,updatedAt:tm};
+    if(typeof supFind==='function'){const s=(d.supplierId&&supById(d.supplierId))||supFind(supplier,data.vatNo);data.supplierId=s&&(s.name===supplier||(s.vatNo&&s.vatNo===data.vatNo))?s.id:''}
     data.status=supRemain(data)>0?'open':'paid';
-    const img=S.docImg;
-    guard(async()=>{await X.put('supInvoices',id,data);if(img&&typeof DOC_FILES!=='undefined'){await DOC_FILES.put('supInvoices',id,img);(S.docImgs||(S.docImgs={}))['supInvoices/'+id]=img}
+    const img=S.docImg,method=PAY_METHODS.includes(d.method)?d.method:'bank';
+    guard(async()=>{
+      /* a cash invoice is paid when it is entered: the payment and its voucher are made with it */
+      if(isNew&&terms==='cash'){const vid=hrId('V'),vno=nextVoucherNo();
+        await X.put('vouchers',vid,{no:vno,date,emp:'',payee:supplier,amount,cat:'supplier',method,ref:'',purpose:t('si_payFor',{n:data.number||supplier}),createdAt:tm,updatedAt:tm});
+        data.payments=[{date,amount,method,voucher:vid,vno}];data.status='paid'}
+      await X.put('supInvoices',id,data);if(img&&typeof DOC_FILES!=='undefined'){await DOC_FILES.put('supInvoices',id,img);(S.docImgs||(S.docImgs={}))['supInvoices/'+id]=img}
       S.openSi=null;S.hrDraft=null;S.docImg=null;S.scanInfo=null;S.confirm=null},()=>t('st_saved'))},
   /* a payment is recorded on the invoice and as a payment voucher */
   siPay(){const inv=(S.supInv||[]).find(x=>x.id===S.openSi);if(!inv)return;const p=S.siPay||{};
@@ -194,6 +247,17 @@ Object.assign(A,{
     guard(async()=>{if(typeof DOC_FILES!=='undefined')await DOC_FILES.del('supInvoices',id);await X.del('supInvoices',id);S.openSi=null;S.confirm=null},()=>t('li_deleted'))}
 });
 document.addEventListener('input',ev=>{const el=ev.target;if(el.dataset&&el.dataset.in==='siP'){S.siPay=S.siPay||{};S.siPay[el.dataset.f]=el.value}});
+/* while typing in an invoice or expense: VAT follows the amount (until typed by hand), the due date follows
+   the date and the term, and a known supplier fills in its own details */
+document.addEventListener('input',ev=>{const el=ev.target;if(!(el.dataset&&el.dataset.in==='hrF'&&(S.openSi||S.openExp)&&S.hrDraft))return;
+  const d=S.hrDraft,f=el.dataset.f,put=(k,v)=>{d[k]=v;const o=document.getElementById('hr-'+k);if(o)o.value=v};
+  if(f==='vat')d.vatManual=el.value!=='';
+  if(f==='amount'&&!d.vatManual){const o=document.getElementById('hr-vat');if(o)o.value=num(el.value)>0?String(draftTotals(d).vat):''}
+  if(f==='amount'||f==='vat'){const o=document.getElementById('vatLine');if(o)o.textContent=vatLineText(draftTotals(d))}
+  if((f==='date'||f==='termDays')&&d.terms==='credit'&&d.termDays&&d.termDays!=='other'&&isDay(d.date))put('due',addDays(d.date,+d.termDays));
+  if(f==='due'&&d.terms==='credit'&&isDay(d.date)&&isDay(el.value)){const n=Math.round((fromKey(el.value)-fromKey(d.date))/864e5);put('termDays',TERM_DAYS.includes(n)?String(n):'other')}
+  if((f==='supplier'||f==='payee')&&typeof supFind==='function'){const s=supFind(el.value,'');
+    if(s){const before={vatNo:d.vatNo,due:d.due,termDays:d.termDays};supApply(d,s);for(const k of ['vatNo','due','termDays'])if(d[k]!==before[k])put(k,d[k])}else d.supplierId=''}});
 document.addEventListener('change',ev=>{const el=ev.target;if(el.id==='fnMonth'&&/^[0-9]{4}-[0-9]{2}$/.test(el.value)){S.fnMonth=el.value;render()}});
 /* Excel import / export */
 IO.expenses={name:()=>t('tab_exp'),col:'expenses',idp:'X',list:()=>S.expenses||[],
@@ -202,7 +266,7 @@ IO.expenses={name:()=>t('tab_exp'),col:'expenses',idp:'X',list:()=>S.expenses||[
   match:(r,L)=>L.find(e=>e.date===r.date&&+e.amount===+r.amount&&(e.payee||'')===(r.payee||'')&&(e.cat||'other')===(r.cat||'other')),
   build:(r,o)=>Object.assign({kind:'expense',cat:'other',place:'@office',method:'cash'},o||{},r)};
 IO.supinv={name:()=>t('tab_supinv'),col:'supInvoices',idp:'SI',list:()=>S.supInv||[],
-  cols:[['supplier','st_supplier','text',1],['number','st_invoice'],['date','si_date','date'],['due','si_due','date'],['amount','si_amount','num',1],['vat','ex_vat','num'],['paid','av_paid','num'],['note','hr_note']],
+  cols:[['supplier','st_supplier','text',1],['number','st_invoice'],['date','si_date','date'],['terms','tm_title',{cash:'tm_cash',credit:'tm_credit'}],['due','si_due','date'],['amount','si_amount','num',1],['vat','ex_vat','num'],['paid','av_paid','num'],['note','hr_note']],
   get:(i,k)=>k==='paid'?supPaid(i):i[k],
   extra:[['av_remain',i=>supRemain(i)]],
   match:(r,L)=>L.find(i=>i.supplier===r.supplier&&String(i.number||'')===String(r.number||'')),

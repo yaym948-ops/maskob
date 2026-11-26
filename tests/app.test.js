@@ -261,14 +261,20 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   d.setVal('pin-finance', '6060'); w.document.getElementById('pin-finance').parentElement.querySelector('[data-act="savePin"]').click(); await sleep(500);
   await d.signIn('6060');
   assert.equal(w.eval('S.role'), 'finance');
-  const tabs = [...w.document.querySelectorAll('#tabsIn .tab')].map((b) => b.dataset.k);
-  assert.deepEqual(tabs, ['fsum', 'expenses', 'supinv', 'payroll', 'vouchers', 'advances', 'pnl', 'be', 'costs', 'assets']);
+  const tabs = [...w.document.querySelectorAll('#tabsIn [data-act="tab"]')].map((b) => b.dataset.k);
+  assert.deepEqual(tabs, ['fsum', 'expenses', 'supinv', 'suppliers', 'payroll', 'vouchers', 'advances', 'pnl', 'be', 'supst', 'costs', 'assets']);
+  // the reports sit in one group of the side menu, closed until opened
+  const grp = w.document.querySelector('#tabsIn [data-act="navGrp"]');
+  assert.ok(grp, 'reports group shown');
+  assert.deepEqual([...w.document.querySelectorAll('#tabsIn .tab-sub [data-act="tab"]')].map((b) => b.dataset.k), ['pnl', 'be', 'supst']);
+  assert.ok(w.document.querySelector('#tabsIn .tab-sub').hidden, 'group closed');
+  d.click('[data-act="navGrp"]'); assert.ok(!w.document.querySelector('#tabsIn .tab-sub').hidden, 'group opens');
+  d.click('[data-act="navGrp"]');
   const mk = w.eval('monthKey(Date.now())');
-  // an expense
+  // an expense: VAT included by default, worked out as the amount is typed
   d.click('[data-act="tab"][data-k="expenses"]');
   d.click('[data-act="exNew"]'); await sleep(20);
   d.setVal('hr-cat', 'rent'); d.setVal('hr-place', 'القطيف'); d.setVal('hr-amount', '11500');
-  d.click('[data-act="exVat15"]');
   assert.equal(w.document.getElementById('hr-vat').value, '1500');
   d.click('[data-act="exSave"]'); await sleep(300);
   assert.equal(w.eval('S.expenses').length, 1);
@@ -295,6 +301,70 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   // payroll and vouchers pages open for finance
   d.click('[data-act="tab"][data-k="payroll"]'); assert.ok(w.document.querySelector('.pr-tbl') || w.document.querySelector('.empty'));
   d.click('[data-act="tab"][data-k="vouchers"]'); assert.ok(w.document.querySelector('[data-act="vcNew"]'));
+});
+
+test('suppliers, credit terms and VAT: supplier card fills the invoice, cash invoice paid, credit expense, statement', async () => {
+  const d = driver(w), S = w.eval('S');
+  await d.signIn('6060');
+  for (const c of ['suppliers', 'supInvoices', 'expenses', 'vouchers']) w.eval('MEMSET')(c, []);
+  w.eval('xLoadDemo()'); w.eval('render()');
+  const today = w.eval('dayKey(Date.now())'), addDays = w.eval('addDays');
+  // a supplier card with a usual 45-day term
+  d.click('[data-act="tab"][data-k="suppliers"]');
+  d.click('[data-act="supNew"]'); await sleep(20);
+  d.setVal('hr-name', 'مؤسسة الحليب الطازج'); d.setVal('hr-vatNo', '310000111200003'); d.setVal('hr-termDays', '45');
+  d.click('[data-act="supSave"]'); await sleep(300);
+  const sup = w.eval('S.suppliers')[0];
+  assert.equal(sup.termDays, 45);
+  // picking it in a new invoice brings its VAT number and term; amount typed before VAT
+  d.click('[data-act="tab"][data-k="supinv"]');
+  d.click('[data-act="siNew"]'); await sleep(20);
+  d.setVal('hr-supplier', 'مؤسسة الحليب الطازج');
+  assert.equal(w.document.getElementById('hr-vatNo').value, '310000111200003');
+  assert.equal(w.document.getElementById('hr-due').value, addDays(today, 45));
+  d.click('#hr-incVat'); await sleep(10);
+  assert.equal(S.hrDraft.incVat, false);
+  d.setVal('hr-number', 'F-1'); d.setVal('hr-amount', '1000');
+  assert.equal(w.document.getElementById('hr-vat').value, '150');
+  d.click('[data-act="siSave"]'); await sleep(300);
+  const inv = w.eval('S.supInv').find((i) => i.number === 'F-1');
+  assert.equal(inv.amount, 1150); assert.equal(inv.vat, 150); assert.equal(inv.incVat, false);
+  assert.equal(inv.terms, 'credit'); assert.equal(inv.termDays, 45); assert.equal(inv.due, addDays(today, 45)); assert.equal(inv.supplierId, sup.id);
+  // opened again, the amount shows as typed (before VAT)
+  w.eval('A.siOpen')({ dataset: { id: inv.id } }); assert.equal(S.hrDraft.amount, '1000'); d.click('[data-act="close"]');
+  // a cash invoice is paid when saved, with its voucher
+  d.click('[data-act="siNew"]'); await sleep(20);
+  d.setVal('hr-supplier', 'مخبز الحي'); d.setVal('hr-number', 'C-9'); d.setVal('hr-amount', '230');
+  d.click('[data-act="tmSet"][data-k="cash"]'); d.setVal('hr-method', 'cash');
+  d.click('[data-act="siSave"]'); await sleep(300);
+  const cash = w.eval('S.supInv').find((i) => i.number === 'C-9');
+  assert.equal(cash.terms, 'cash'); assert.equal(cash.status, 'paid'); assert.equal(w.eval('supRemain')(cash), 0);
+  assert.ok(w.eval('S.vouchers').some((v) => v.amount === 230 && v.payee === 'مخبز الحي' && v.method === 'cash'), 'voucher for the cash invoice');
+  // a credit expense stays owed until its payment is recorded
+  d.click('[data-act="tab"][data-k="expenses"]');
+  d.click('[data-act="exNew"]'); await sleep(20);
+  d.click('[data-act="tmSet"][data-k="credit"]'); d.setVal('hr-amount', '575');
+  d.click('[data-act="exSave"]'); await sleep(300);
+  const ex = w.eval('S.expenses')[0];
+  assert.equal(ex.terms, 'credit'); assert.equal(ex.paid, false); assert.equal(ex.vat, 75); assert.equal(ex.due, addDays(today, 30));
+  w.eval('A.exOpen')({ dataset: { id: ex.id } }); w.eval('render()');
+  d.click('[data-act="exPaid"]'); await sleep(300);
+  assert.equal(w.eval('S.expenses')[0].paid, true);
+  // the supplier statement: invoice, then a part payment
+  d.click('[data-act="tab"][data-k="supinv"]');
+  w.eval('A.siOpen')({ dataset: { id: inv.id } }); w.eval('render()');
+  d.setVal('si-payAmt', '400'); d.click('[data-act="siPay"]'); await sleep(400);
+  const st = w.eval('supStatement')(w.eval('S.suppliers')[0], '', '');
+  assert.equal(st.rows.length, 2); assert.equal(st.inv, 1150); assert.equal(st.paid, 400); assert.equal(st.close, 750);
+  assert.equal(w.eval('supBalance')(w.eval('S.suppliers')[0]), 750);
+  d.click('[data-act="tab"][data-k="supst"]');
+  assert.ok(w.document.querySelector('.ss-tbl'), 'statement table shown');
+  assert.ok(!w.document.querySelector('#tabsIn .tab-sub').hidden, 'reports group open while a report is shown');
+  // a supplier with invoices cannot be deleted
+  w.eval('A.supOpen')({ dataset: { id: sup.id } }); w.eval('render()');
+  d.click('[data-act="supDel"]'); await sleep(50);
+  assert.equal(w.eval('S.suppliers').length, 1);
+  d.click('[data-act="close"]');
 });
 
 test('P&L per branch and company: every line against hand-worked numbers', async () => {

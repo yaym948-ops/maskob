@@ -692,3 +692,17 @@ span.sh-c{cursor:default}
 @keyframes scanspin{to{transform:rotate(360deg)}}
 .scan-note{border:1px solid color-mix(in srgb,var(--navy) 30%,var(--line));background:var(--lav-soft);border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.8}
 .scan-thumb img{max-height:220px}
+/* side menu: the Reports group */
+.sidenav .tab-grp .tab-car{flex:none;font-size:12px;color:var(--muted);transition:transform .2s}
+.sidenav .tab-grp[aria-expanded="true"] .tab-car{transform:rotate(180deg)}
+.sidenav .tab-grp.in{color:var(--navy);font-weight:700}
+.tab-sub{display:flex;flex-direction:column;gap:2px;margin-inline-start:14px;padding-inline-start:6px;border-inline-start:1px dashed var(--line)}
+.tab-sub[hidden]{display:none}
+.sidenav .tab-sub .tab{font-size:14px;padding:8px 10px}
+/* payment terms and VAT */
+.tm-chk{display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer}
+.tm-chk input{width:18px;height:18px;accent-color:var(--navy)}
+.tm-due{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.tm-due>span{flex:1 1 100%;font-weight:700;color:var(--navy)}
+.tm-due label{flex:1;min-width:150px}
+.ss-tbl td:nth-child(2){min-width:220px}

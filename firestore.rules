@@ -261,6 +261,10 @@ service cloud.firestore {
       allow read, write: if isRole('finance');
       match /files/{f} { allow read, write: if isRole('finance'); }   // the invoice photo
     }
+    // supplier cards (name, VAT number, mobile, bank, usual credit term)
+    match /suppliers/{id} {
+      allow read, write: if isRole('finance');
+    }
     // daily sales: finance reads every branch for the monthly summary
     match /sales/{id} {
       allow read: if isRole('finance');
