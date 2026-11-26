@@ -138,7 +138,7 @@ document.addEventListener('change',ev=>{const el=ev.target;
    forms/{id}:    {branch, staffId, emp, empName, empNo, type deduction|warning|reward, date, reason, amount, days, level,
                    status pending|approved|rejected, hrNote, by branch|hr, createdAt, decidedAt} */
 const FORM_TYPES=['deduction','warning','notice','reward','thanks'];
-const VC_CATS=['advance','reward','eos','salary','allow','other'];
+const VC_CATS=['advance','reward','eos','salary','allow','supplier','other'];
 const PAY_METHODS=['cash','bank','cheque'];
 /* amount in Arabic words: "فقط ألف ومائتان وخمسون ريالاً لا غير" */
 function tafqeet(x){

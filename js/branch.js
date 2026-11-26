@@ -85,6 +85,7 @@ function xLoadDemo(){
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
   S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];S.leaveReqs=S.role==='hr'||S.role==='branch'?mine(MEM('leaveReqs')):[];S.staff=S.role==='hr'||S.role==='branch'?mine(MEM('staff')):[];if(S.role==='hr')hrSyncStaff();S.shifts=S.role==='branch'?mine(MEM('shifts')):[];S.vouchers=S.role==='hr'?MEM('vouchers'):[];S.payroll=S.role==='hr'?MEM('payroll'):[];S.forms=S.role==='hr'||S.role==='branch'?mine(MEM('forms')):[];
   {const c=S.role==='hr'?MEM('hrcfg'):null;S.hrCfg=c&&!Array.isArray(c)?c:{}}
+  if(S.role==='finance'){S.emps=MEM('employees');S.leaves=MEM('leaves');S.forms=MEM('forms');S.advances=MEM('advances');S.payroll=MEM('payroll');S.vouchers=MEM('vouchers');S.expenses=MEM('expenses');S.supInv=MEM('supInvoices');S.sales=MEM('sales')}
   if(S.role==='dash'){S.emps=MEM('employees');S.leaveReqs=MEM('leaveReqs');S.forms=MEM('forms');S.licenses=MEM('licenses');S.leaves=MEM('leaves')}
 }
 /* live subscriptions per role */
@@ -133,6 +134,12 @@ function xStart(){
     u.push(db.collection('stock').onSnapshot(s=>{const m={};s.docs.forEach(d=>m[d.id]=d.data());S.stock=m;render()},onErr));
     u.push(db.collection('stockMoves').orderBy('at','desc').limit(200).onSnapshot(s=>{S.stockMoves=s.docs.map(d=>d.data());render()},onErr));
   }
+  // finance: money matters (payroll inputs read-only, its own expenses and supplier invoices)
+  if(S.role==='finance'){
+    const out=e=>{if(e&&e.code==='permission-denied')Store.fbSignOut()};
+    for(const [col,key] of [['employees','emps'],['leaves','leaves'],['forms','forms'],['advances','advances'],['payroll','payroll'],['vouchers','vouchers'],['expenses','expenses'],['supInvoices','supInv'],['sales','sales']])
+      u.push(db.collection(col).onSnapshot(s=>{S[key]=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},out));
+  }
   // the general manager's dashboard needs a little of everything
   if(S.role==='dash'){
     list('sales',a=>S.sales=a);list('maintenance',a=>S.maint=a);
@@ -140,7 +147,7 @@ function xStart(){
     for(const [col,key] of [['employees','emps'],['leaveReqs','leaveReqs'],['forms','forms'],['licenses','licenses']])list(col,a=>S[key]=a);
   }
 }
-function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.stock={};S.stockMoves=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
+function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.stock={};S.stockMoves=[];S.expenses=[];S.supInv=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
 /* ---------- sales: numbers for a branch and month ---------- */
 function salesStats(branch,mk){

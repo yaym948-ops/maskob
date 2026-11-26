@@ -254,3 +254,45 @@ test('warehouse stock: receive, ship to a branch, count; dashboard; WPS file', a
   d.setVal('ownerView', 'dash'); await sleep(200);
   assert.ok(w.document.querySelectorAll('.dash-card').length >= 8, 'dashboard cards shown');
 });
+
+test('finance department: expenses, supplier invoice paid by voucher, monthly summary', async () => {
+  const d = driver(w);
+  await d.signIn('2468');
+  d.setVal('pin-finance', '6060'); w.document.getElementById('pin-finance').parentElement.querySelector('[data-act="savePin"]').click(); await sleep(500);
+  await d.signIn('6060');
+  assert.equal(w.eval('S.role'), 'finance');
+  const tabs = [...w.document.querySelectorAll('#tabsIn .tab')].map((b) => b.dataset.k);
+  assert.deepEqual(tabs, ['fsum', 'expenses', 'supinv', 'payroll', 'vouchers', 'advances']);
+  const mk = w.eval('monthKey(Date.now())');
+  // an expense
+  d.click('[data-act="tab"][data-k="expenses"]');
+  d.click('[data-act="exNew"]'); await sleep(20);
+  d.setVal('hr-cat', 'rent'); d.setVal('hr-place', 'القطيف'); d.setVal('hr-amount', '11500');
+  d.click('[data-act="exVat15"]');
+  assert.equal(w.document.getElementById('hr-vat').value, '1500');
+  d.click('[data-act="exSave"]'); await sleep(300);
+  assert.equal(w.eval('S.expenses').length, 1);
+  // a supplier invoice, part-paid: the payment becomes a voucher
+  d.click('[data-act="tab"][data-k="supinv"]');
+  d.click('[data-act="siNew"]'); await sleep(20);
+  d.setVal('hr-supplier', 'شركة الألبان'); d.setVal('hr-number', 'INV-77'); d.setVal('hr-amount', '2300');
+  d.click('[data-act="siSave"]'); await sleep(300);
+  d.click('[data-act="siOpen"]'); await sleep(20);
+  d.setVal('si-payAmt', '1000'); d.click('[data-act="siPay"]'); await sleep(400);
+  const inv = w.eval('S.supInv')[0];
+  assert.equal(w.eval('supRemain')(inv), 1300);
+  assert.ok(w.eval('S.vouchers').some((v) => v.payee === 'شركة الألبان' && v.amount === 1000 && v.cat === 'supplier'), 'voucher created');
+  d.click('[data-act="close"]');
+  // summary
+  const F = w.eval('financeCalc')(mk);
+  assert.equal(F.exp, 11500);
+  assert.equal(F.purchases, 2300);
+  assert.equal(F.paidSup, 1000);
+  assert.equal(F.owed, 1300);
+  assert.equal(F.byPlace['القطيف'].exp, 11500);
+  d.click('[data-act="tab"][data-k="fsum"]');
+  assert.ok(w.document.querySelectorAll('.dash-card').length >= 6, 'summary cards shown');
+  // payroll and vouchers pages open for finance
+  d.click('[data-act="tab"][data-k="payroll"]'); assert.ok(w.document.querySelector('.pr-tbl') || w.document.querySelector('.empty'));
+  d.click('[data-act="tab"][data-k="vouchers"]'); assert.ok(w.document.querySelector('[data-act="vcNew"]'));
+});

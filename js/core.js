@@ -236,7 +236,7 @@ const S={
 /* code keys: 'manager' | 'warehouse' | 'branch:<name>' — each salts its own hash */
 function pinEntries(){
   const e=[];
-  for(const k of ['admin','manager','warehouse','hr'])if(hashForKey(k))e.push({role:k,key:k,h:S.pins[k]});
+  for(const k of ['admin','manager','warehouse','hr','finance'])if(hashForKey(k))e.push({role:k,key:k,h:S.pins[k]});
   const br=S.pins.br||{};Object.keys(br).forEach(b=>{if(hashForKey('branch:'+b))e.push({role:'branch',branch:b,key:'branch:'+b,h:br[b]})});
   (S.users||[]).forEach(u=>{if(u.h&&u.active!==false)e.push({role:u.role,branch:u.branch||null,key:'u',ukey:'user:'+u.id,h:u.h,user:u.id,name:u.name})});
   return e;
@@ -373,7 +373,7 @@ const Store={
     this.fbStop();
     xStart();
     this._unsubC=db.doc('config/contact').onSnapshot(s=>{S.contact=s.exists?s.data():{};render()},()=>{});
-    if(S.role==='hr'){S.loaded=true;render();return}   // human resources: employees and leave only, no orders
+    if(S.role==='hr'||S.role==='finance'){S.loaded=true;render();return}   // finance: no orders either   // human resources: employees and leave only, no orders
     if(S.role==='admin'){            // system admin: settings only, no orders
       S.loaded=true;
       this._unsubP=db.doc('config/pins').onSnapshot(s=>{S.pins=s.exists?Object.assign({},s.data()):{};S.pinsReadable=true;render()},
@@ -525,6 +525,7 @@ function tabsFor(){
   if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report')},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales')},{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')},{k:'stock',l:t('tab_stock'),b:typeof stockLow==='function'?stockLow().length:0}];
   if(S.role==='admin')return[{k:'branches',l:t('tab_settings')},{k:'users',l:t('tab_users')},{k:'actlog',l:t('tab_log2')},{k:'catalog',l:t('tab_catalog')}];
   if(S.role==='hr')return hrTabs();
+  if(S.role==='finance'&&typeof finTabs==='function')return finTabs();
   if(S.role==='warehouse')return[{k:'prep',l:t('tab_prep'),b:c.prep,late:c.prepLate},{k:'sched',l:t('tab_sched'),b:c.sched,late:c.schedLate},{k:'incoming',l:t('tab_incoming'),b:c.incoming,late:c.incomingLate},{k:'done',l:t('tab_log')},{k:'stock',l:t('tab_stock'),b:typeof stockLow==='function'?stockLow().length:0,late:typeof stockLow==='function'?stockLow().some(it=>stockState(it.id)==='out'):false}];
   if(S.role==='dash')return[{k:'dash',l:t('tab_dash')}];
   return[];
@@ -541,7 +542,7 @@ const NAV_IC={plus:'M12 5v14M5 12h14',inbox:'M4 13h4l2 3h4l2-3h4M4 13l2-8h12l2 8
   id:'M3 5h18v14H3zM7 15.5c.6-2 4.4-2 5 0M9.5 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM15 10h3M15 14h3',key:'M15 3a6 6 0 0 0-5.2 9L3 18.8V21h3v-2h2v-2h2l1.2-1.2A6 6 0 1 0 15 3zM16.5 7.5h.01',
   cash:'M3 7h18v10H3zM12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM6 10v4M18 10v4',shield:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4',
   receipt:'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4',dot:'M12 12h.01'};
-const NAV_OF={stock:'box',dash:'chart',users:'users',actlog:'archive',new:'plus',tasks:'inbox',orders:'list',sales:'chart',maint:'wrench',checks:'check',lr:'cal',forms:'file',fc:'trend',pending:'clock',report:'file',all:'list',
+const NAV_OF={fsum:'chart',expenses:'receipt',supinv:'file',stock:'box',dash:'chart',users:'users',actlog:'archive',new:'plus',tasks:'inbox',orders:'list',sales:'chart',maint:'wrench',checks:'check',lr:'cal',forms:'file',fc:'trend',pending:'clock',report:'file',all:'list',
   salesAll:'chart',maintAll:'wrench',prep:'box',sched:'cal',incoming:'truck',done:'archive',branches:'sliders',catalog:'tag',emps:'users',docs:'id',leaves:'cal',custody:'key',
   advances:'cash',lic:'shield',vouchers:'receipt',payroll:'cash'};
 const navIcon=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${NAV_IC[NAV_OF[k]]||NAV_IC.dot}"/></svg>`;
@@ -570,7 +571,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=tabs.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}"><span class="tab-ico">${navIcon(x.k)}</span><span class="tab-l">${esc(x.l)}</span>${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`).join('');
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openStockRecv&&window.stockRecvSheet?stockRecvSheet():S.openStock&&window.stockItemSheet?stockItemSheet():S.openUser&&window.userSheet?userSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.imp?impSheet():S.openExp&&window.expenseSheet?expenseSheet():S.openSi&&window.supInvSheet?supInvSheet():S.openStockRecv&&window.stockRecvSheet?stockRecvSheet():S.openStock&&window.stockItemSheet?stockItemSheet():S.openUser&&window.userSheet?userSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
 
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(ss!=null)el.setSelectionRange(ss,se)}catch(e){}}}
@@ -586,7 +587,7 @@ function renderWho(authed){
   const lo=document.getElementById('logoutBox');
   if(!authed){el.innerHTML='';lo.innerHTML='';return}
   if(S.realRole==='owner'){const cur=S.role==='branch'?'branch:'+S.branch:S.role;
-    el.innerHTML=`<div class="who ow"><span>${S.userName?`<b>${esc(S.userName)}</b>`:esc(roleL('owner'))}</span><select class="ow-sel" id="ownerView" aria-label="${esc(t('ow_view'))}">${['dash','manager','warehouse','hr','admin'].map(r=>`<option value="${r}" ${cur===r?'selected':''}>${esc(roleL(r))}</option>`).join('')}${S.branches.map(b=>`<option value="branch:${esc(b)}" ${cur==='branch:'+b?'selected':''}>${esc(roleL('branch'))}: ${esc(b)}</option>`).join('')}</select></div>`}
+    el.innerHTML=`<div class="who ow"><span>${S.userName?`<b>${esc(S.userName)}</b>`:esc(roleL('owner'))}</span><select class="ow-sel" id="ownerView" aria-label="${esc(t('ow_view'))}">${['dash','manager','warehouse','hr','finance','admin'].map(r=>`<option value="${r}" ${cur===r?'selected':''}>${esc(roleL(r))}</option>`).join('')}${S.branches.map(b=>`<option value="branch:${esc(b)}" ${cur==='branch:'+b?'selected':''}>${esc(roleL('branch'))}: ${esc(b)}</option>`).join('')}</select></div>`}
   else el.innerHTML=`<div class="who"><span>${S.userName?`<b>${esc(S.userName)}</b> · `:''}${esc(roleL(S.role))}${S.role==='branch'?`: <b>${esc(S.branch||'')}</b>`:''}</span></div>`;
   lo.innerHTML=`<button class="logout-btn" data-act="logout">${esc(t('logout'))}</button>`;
 }
@@ -615,6 +616,7 @@ function view(){
   if(tb==='stock'&&(S.role==='warehouse'||S.role==='manager')&&window.stockView)return stockView();
   if(S.role==='admin')return tb==='catalog'?catalogView():tb==='users'&&window.usersView?usersView():tb==='actlog'&&window.logView?logView():branchesView();
   if(S.role==='hr')return hrView(tb);
+  if(S.role==='finance'&&window.financeView)return financeView(tb);
   if(tb==='report'&&S.role==='manager')return reportView();
   if(S.role==='branch'&&tb==='fc')return branchForecastView();
   if(S.role==='branch'&&tb==='lr')return branchStaffTab(tb);
@@ -904,7 +906,7 @@ function lenView(){
   const CL=codeLenSet();
   const btn=(v,l)=>`<button class="dday${(CL===v)?' on':''}" data-act="setLen" data-n="${v||0}" aria-pressed="${CL===v}">${esc(l)}</button>`;
   let warn='';
-  if(CL){const keys=['admin','manager','warehouse','hr',...S.branches.map(b=>'branch:'+b)].filter(k=>hashForKey(k));
+  if(CL){const keys=['admin','manager','warehouse','hr','finance',...S.branches.map(b=>'branch:'+b)].filter(k=>hashForKey(k));
     const lens=(S.pins&&S.pins.lens)||{};
     const bad=keys.filter(k=>lens[k]!==CL).map(k=>k.startsWith('branch:')?k.slice(7):roleL(k));
     if(bad.length)warn=`<div class="len-warn">${esc(t('lenWarn',{n:CL,list:bad.join('، ')}))}</div>`}
@@ -921,7 +923,7 @@ function adminBootBox(){
 function branchesView(){
   const row=(key,icon,label,id,extra)=>{const set=!!hashForKey(key);return`<div class="code"><div><b>${esc(label)}</b><div class="${set?'set':'unset'}">${set?t('isSet'):t('notSet')}</div></div>
     <div class="wide"><input class="field" type="password" inputmode="numeric" maxlength="${codeLenSet()||6}" id="${id}" placeholder="${esc(codePh())}" value="${esc(S.pinIn[key]||'')}" data-in="pinIn" data-k="${esc(key)}" autocomplete="new-password"><button class="btn btn-navy" data-act="savePin" data-k="${esc(key)}">${set?t('change'):t('assign')}</button>${set&&(S.users||[]).length?`<button class="btn btn-ghost" data-act="delShared" data-k="${esc(key)}">${S.confirm==='delShared:'+key?t('us_delSharedConfirm'):t('us_delShared')}</button>`:''}${extra||''}</div></div>`};
-  const codes=row('admin','manager',t('codeOf',{r:roleL('admin')}),'pin-admin')+row('manager','manager',t('codeOf',{r:roleL('manager')}),'pin-manager')+row('warehouse','warehouse',t('codeOf',{r:roleL('warehouse')}),'pin-warehouse')+row('hr','manager',t('codeOf',{r:roleL('hr')}),'pin-hr');
+  const codes=row('admin','manager',t('codeOf',{r:roleL('admin')}),'pin-admin')+row('manager','manager',t('codeOf',{r:roleL('manager')}),'pin-manager')+row('warehouse','warehouse',t('codeOf',{r:roleL('warehouse')}),'pin-warehouse')+row('hr','manager',t('codeOf',{r:roleL('hr')}),'pin-hr')+row('finance','manager',t('codeOf',{r:roleL('finance')}),'pin-finance');
   const brs=S.branches.map((b,i)=>{const r=row('branch:'+b,'branch',b,'pin-br-'+i,S.branches.length>1?`<button class="btn btn-bad" data-act="delBranch" data-i="${i}">${t('del')}</button>`:'');return r.slice(0,-6)+daysRow(b,i)+'</div>'}).join('');
   return`<h2>${t('codesTitle')}</h2>${lenView()}
   <div class="codes">${codes}</div>
@@ -1144,7 +1146,7 @@ async function findCode(pin){
   try{const h=await hashPin('u',pin);const s=await db.doc('codes/'+h).get();
     if(s.exists&&s.data().user){const c=s.data();const e={role:c.role,branch:c.branch||null,key:'u',h,user:c.user,name:c.name||''};
       if(await Store.fbTrySession(e.role,e.branch,e.h,e.user,e.name))return e;return null}}catch(e){}
-  const keys=[['admin',null],['manager',null],['warehouse',null],['hr',null],...S.branches.map(b=>['branch',b])];
+  const keys=[['admin',null],['manager',null],['warehouse',null],['hr',null],['finance',null],...S.branches.map(b=>['branch',b])];
   const hits=await Promise.all(keys.map(async([role,branch])=>{
     const key=role==='branch'?'branch:'+branch:role;const h=await hashPin(key,pin);
     try{const s=await db.doc('codes/'+h).get();return s.exists?{role,branch,key,h}:null}catch(e){return null}
@@ -1203,7 +1205,7 @@ function afterWork(f){if(f==='sent')saveProgressSoon()}
 const A={
   menuOpen(){S.menuOpen=true;render()},
   menuClose(){S.menuOpen=false;render()},
-  tab(el){S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=S.openStockRecv=S.openStock=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
+  tab(el){S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=S.openStockRecv=S.openStock=S.openExp=S.openSi=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.userId=null;S.userName=null;S.role=null;S.realRole=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -1288,7 +1290,7 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){S.imp=null;S.openStockRecv=null;S.openStock=null;S.openUser=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  close(){S.imp=null;S.openExp=null;S.openSi=null;S.siPay=null;S.openStockRecv=null;S.openStock=null;S.openUser=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},

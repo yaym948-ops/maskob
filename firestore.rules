@@ -12,6 +12,7 @@ rules_version = '2';
 //   warehouse — prepares approved orders, receives returns.
 //   branch    — its own orders only.
 //   hr        — human resources: employees and leave records only.
+//   finance   — finance department: payroll, vouchers, advances, expenses, supplier invoices.
 //   owner     — general manager: personal accounts only; passes every role check (full access).
 //
 // Sign-in: either a shared department code (config/pins) or a personal account (users/{id}).
@@ -92,7 +93,7 @@ service cloud.firestore {
       allow read, delete: if signedIn() && request.auth.uid == uid;
       allow create, update: if signedIn() && request.auth.uid == uid
         && exists(pinsPath())
-        && request.resource.data.role in ['admin', 'manager', 'warehouse', 'branch', 'hr', 'owner']
+        && request.resource.data.role in ['admin', 'manager', 'warehouse', 'branch', 'hr', 'finance', 'owner']
         && codeMatches(request.resource.data);
     }
 
@@ -180,7 +181,8 @@ service cloud.firestore {
 
     // human resources: employee files and leave records, visible to HR only
     match /employees/{id} {
-      allow read, write: if isRole('hr');
+      allow read: if isRole('hr') || isRole('finance');   // finance reads salaries for payroll
+      allow write: if isRole('hr');
       // attachments: file details + the file itself split into pieces
       match /files/{f} {
         allow read, write: if isRole('hr');
@@ -198,7 +200,7 @@ service cloud.firestore {
       allow read, write: if isRole('hr');
     }
     match /advances/{id} {
-      allow read, write: if isRole('hr');
+      allow read, write: if isRole('hr') || isRole('finance');
     }
     // company licenses and contracts, with one attached photo each
     match /licenses/{id} {
@@ -226,7 +228,7 @@ service cloud.firestore {
 
     // monthly payroll sheets: HR only
     match /payroll/{id} {
-      allow read, write: if isRole('hr');
+      allow read, write: if isRole('hr') || isRole('finance');
     }
     // warehouse stock: the warehouse keeps it, operations can look
     match /stock/{item} {
@@ -239,13 +241,25 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // payment vouchers: HR only
+    // finance: expenses and supplier invoices
+    match /expenses/{id} {
+      allow read, write: if isRole('finance');
+    }
+    match /supInvoices/{id} {
+      allow read, write: if isRole('finance');
+    }
+    // daily sales: finance reads every branch for the monthly summary
+    match /sales/{id} {
+      allow read: if isRole('finance');
+    }
+
+    // payment vouchers: HR and finance
     match /vouchers/{id} {
-      allow read, write: if isRole('hr');
+      allow read, write: if isRole('hr') || isRole('finance');
     }
     // deduction / warning / reward forms: a branch files for its staff, HR approves (or issues its own)
     match /forms/{id} {
-      allow read: if isRole('hr') || (isBranch() && resource.data.branch == myBranch());
+      allow read: if isRole('hr') || isRole('finance') || (isBranch() && resource.data.branch == myBranch());
       allow create: if isRole('hr') || (isBranch() && request.resource.data.branch == myBranch() && request.resource.data.status == 'pending' && request.resource.data.by == 'branch');
       allow update: if isRole('hr');
       allow delete: if isRole('hr') || (isBranch() && resource.data.branch == myBranch() && resource.data.status == 'pending');
@@ -259,7 +273,8 @@ service cloud.firestore {
       allow delete: if isRole('hr') || (isBranch() && resource.data.branch == myBranch() && resource.data.status == 'pending');
     }
     match /leaves/{id} {
-      allow read, write: if isRole('hr');
+      allow read: if isRole('hr') || isRole('finance');
+      allow write: if isRole('hr');
     }
 
     match /orders/{id} {

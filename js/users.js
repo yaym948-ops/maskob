@@ -7,7 +7,7 @@
    sessions/{uid} gets {user, name} as well; firestore.rules accepts the session only while the
    account exists, is active, and still has that code and role.
    log/{id}:    {at, uid, user, name, role, branch, op, col, doc}  — read by the system admin only. */
-const USER_ROLES=['owner','manager','warehouse','branch','hr','admin'];
+const USER_ROLES=['owner','manager','warehouse','branch','hr','finance','admin'];
 const usersList=()=>[...(S.users||[])].sort((a,b)=>(+(b.active!==false)-+(a.active!==false))||String(a.name).localeCompare(String(b.name),'ar'));
 const userRoleL=u=>roleL(u.role)+(u.role==='branch'&&u.branch?': '+u.branch:'');
 

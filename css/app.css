@@ -667,3 +667,6 @@ span.sh-c{cursor:default}
 .dash-card b{font-size:24px;color:var(--navy);font-weight:800}.dash-card b small{font-size:13px;font-weight:500}
 .dash-card .dash-t{font-size:13px;color:var(--muted);font-weight:500}.dash-card .dash-s{font-size:12.5px;color:var(--muted)}
 .dash-card.hot{border-color:color-mix(in srgb,var(--late) 45%,var(--line));background:color-mix(in srgb,var(--late-soft) 55%,var(--card))}.dash-card.hot b{color:var(--late)}
+
+/* finance */
+.fn-tbl th,.fn-tbl td{text-align:center}.fn-tbl td:first-child,.fn-tbl th:first-child{text-align:start}

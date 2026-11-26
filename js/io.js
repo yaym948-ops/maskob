@@ -66,7 +66,7 @@ const IO={
       ['status','hr_status',{open:'ms_open',progress:'ms_progress',done:'ms_done'}],['createdAt','c_created'],['opsNote','m_reply']],
     get:(m,k)=>k==='urgent'?(m.urgent?'yes':'no'):k==='createdAt'?fmtDT(m.createdAt):m[k]}
 };
-const ioCan=k=>({employees:'hr',leaves:'hr',custody:'hr',advances:'hr',licenses:'hr',vouchers:'hr',stock:'warehouse',targets:'manager',maint:'manager',catalog:'admin'}[k]||(k==='sales'?(S.role==='manager'||S.role==='branch')&&S.role:null))===S.role;
+const ioCan=k=>(S.role==='finance'&&['vouchers','advances','expenses','supinv'].includes(k))||({employees:'hr',leaves:'hr',custody:'hr',advances:'hr',licenses:'hr',vouchers:'hr',stock:'warehouse',targets:'manager',maint:'manager',catalog:'admin'}[k]||(k==='sales'?(S.role==='manager'||S.role==='branch')&&S.role:null))===S.role;
 /* one drop-down per list: export, import (and any extra item) */
 function ioBtns(k,extra){
   if(!ioCan(k))return'';
