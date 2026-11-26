@@ -4,7 +4,25 @@
 
    expenses/{id}:    {date, place, cat, amount, vat, payee, method, ref, note, createdAt}
    supInvoices/{id}: {supplier, number, date, due, amount, vat, payments:[{date,amount,method,ref,voucher}], note, status open|paid} */
-const EXP_CATS=['rent','utilities','telecom','maintenance','purchases','delivery','transport','marketing','gov','iqama','medical','bank','other'];
+/* expense categories (فئة المصروف) and their items, as in the company's cost study; items marked
+   old are kept only so earlier entries still read correctly — they are not offered for new entries */
+const EXP_GROUPS=[
+  ['cogs',['foodCost','packaging','purchases']],
+  ['staff',['wages','tickets','leaveAllow','uniform']],
+  ['rentals',['staffHousing','rent']],
+  ['energy',['electricity','water','telecom','gas','utilities']],
+  ['tech',['pos']],
+  ['gov',['municipal','cr','chamber','civil','absher','muqeem','qiwa','mudad','tam','natAddress','staffGov','zakat','gosiSub','gov','iqama','medical']],
+  ['clean',['maintenance','cleaning','housingMaint','pest']],
+  ['marketing',['marketing','delivery']],
+  ['consult',['consult']],
+  ['admin',['transport','bank','other']]];
+const EXP_OLD=['utilities','gov','iqama','medical'];
+const EXP_CATS=EXP_GROUPS.flatMap(g=>g[1]);
+const expGroup=c=>(EXP_GROUPS.find(g=>g[1].includes(c))||['admin'])[0];
+function expCatSelect(cur){
+  return`<label><span class="hint">${t('ex_cat')}</span><select class="field" id="hr-cat" data-in="hrF" data-f="cat">${EXP_GROUPS.map(([g,list])=>`<optgroup label="${esc(t('eg_'+g))}">${list.filter(c=>!EXP_OLD.includes(c)||c===cur).map(c=>`<option value="${c}" ${cur===c?'selected':''}>${esc(t('ec_'+c))}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
+}
 const INC_CATS=['catering','rebate','other'];
 const expLabel=e=>t((e.kind==='income'?'ic_':'ec_')+(e.cat||'other'));
 const finTabs=()=>{const due=(S.supInv||[]).filter(i=>supRemain(i)>0&&i.due&&i.due<=dayKey(Date.now())).length;
@@ -33,7 +51,7 @@ function financeCalc(mk){
   const exps=(S.expenses||[]).filter(e=>inMonth(e.date,mk)&&e.kind!=='income');
   exps.forEach(e=>{const p=byPlace[e.place]?e.place:'@office';byPlace[p].exp+=+e.amount||0});
   P.rows.forEach(r=>{const p=byPlace[r.branch]?r.branch:'@office';byPlace[p].pay+=(r.gross||0)+(r.reward||0)+(r.ot||0)+(r.add||0)});
-  const byCat={};exps.forEach(e=>byCat[e.cat||'other']=(byCat[e.cat||'other']||0)+(+e.amount||0));
+  const byCat={};exps.forEach(e=>{const g=expGroup(e.cat||'other');byCat[g]=(byCat[g]||0)+(+e.amount||0)});
   const inv=(S.supInv||[]);
   const purchases=inv.filter(i=>inMonth(i.date,mk)).reduce((s,i)=>s+(+i.amount||0),0);
   const paidSup=inv.reduce((s,i)=>s+(i.payments||[]).filter(p=>inMonth(p.date,mk)).reduce((a,p)=>a+(+p.amount||0),0),0);
@@ -60,16 +78,16 @@ function financeSummaryView(){
   <div class="rp-sec"><h3>${t('fn_byPlace')}</h3><div class="scroll"><table class="tbl fn-tbl"><thead><tr><th>${t('hr_branch')}</th><th>${t('fn_sales')}</th><th>${t('fn_payroll')}</th><th>${t('tab_exp')}</th><th>${t('fn_result')}</th></tr></thead><tbody>
     ${F.places.filter(p=>F.byPlace[p].sales||F.byPlace[p].exp||F.byPlace[p].pay).map(p=>{const x=F.byPlace[p],n=x.sales-x.pay-x.exp;return`<tr><td><b>${esc(placeL(p))}</b></td><td class="n">${esc(sar(x.sales))}</td><td class="n">${esc(sar(x.pay))}</td><td class="n">${esc(sar(x.exp))}</td><td class="n ${n<0?'mis':''}"><b>${esc(sar(n))}</b></td></tr>`}).join('')||`<tr><td colspan="5" class="hint">${esc(t('fn_noData'))}</td></tr>`}
   </tbody></table></div></div>
-  ${cats.length?`<div class="rp-sec"><h3>${t('fn_byCat')}</h3><div class="cmp">${cats.map(c=>`<div class="cmp-row"><b>${esc(t('ec_'+c))}</b><div class="cmp-bar"><i style="width:${Math.round(F.byCat[c]/Math.max(...Object.values(F.byCat))*100)}%"></i></div><span class="num">${esc(sar(F.byCat[c]))}</span></div>`).join('')}</div></div>`:''}`;
+  ${cats.length?`<div class="rp-sec"><h3>${t('fn_byCat')}</h3><div class="cmp">${cats.map(c=>`<div class="cmp-row"><b>${esc(t('eg_'+c))}</b><div class="cmp-bar"><i style="width:${Math.round(F.byCat[c]/Math.max(...Object.values(F.byCat))*100)}%"></i></div><span class="num">${esc(sar(F.byCat[c]))}</span></div>`).join('')}</div></div>`:''}`;
 }
 /* ---------- expenses ---------- */
 function expensesView(){
   const mk=S.fnMonth||monthKey(Date.now());const cf=S.expCat||'';
-  const list=[...(S.expenses||[])].filter(e=>inMonth(e.date,mk)&&(!cf||e.cat===cf)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const list=[...(S.expenses||[])].filter(e=>inMonth(e.date,mk)&&(!cf||expGroup(e.cat)===cf)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   const total=list.reduce((s,e)=>s+(+e.amount||0),0),vat=list.reduce((s,e)=>s+(+e.vat||0),0);
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_exp')}</h2><div class="row">${ioBtns('expenses')}<input class="field" type="month" id="fnMonth" value="${esc(mk)}" style="width:auto"><button class="btn btn-sun" data-act="exNew">+ ${t('ex_add')}</button></div></div>
   <div class="stats">${kpi(t('vc_count'),sar(list.length))}${kpi(t('ex_total'),sar2(total)+' '+t('sar'))}${kpi(t('ex_vat'),sar2(vat)+' '+t('sar'))}</div>
-  <div class="filters"><button class="chip" aria-pressed="${!cf}" data-act="exCat" data-k="">${t('f_all')}</button>${EXP_CATS.map(c=>`<button class="chip" aria-pressed="${cf===c}" data-act="exCat" data-k="${c}">${esc(t('ec_'+c))}</button>`).join('')}</div>
+  <div class="filters"><button class="chip" aria-pressed="${!cf}" data-act="exCat" data-k="">${t('f_all')}</button>${EXP_GROUPS.map(([g])=>`<button class="chip" aria-pressed="${cf===g}" data-act="exCat" data-k="${g}">${esc(t('eg_'+g))}</button>`).join('')}</div>
   <div class="list">${list.length?list.map(e=>`<button class="oc" data-act="exOpen" data-id="${esc(e.id)}">
     <span style="min-width:0"><span class="t">${esc(expLabel(e))} <span class="tag">${esc(placeL(e.place))}</span>${e.kind==='income'?` <span class="tag ex-inc">${t('ex_income')}</span>`:''}${e.periodFrom?` <span class="hint">${esc(e.periodFrom)} → ${esc(e.periodTo||'')}</span>`:''}</span>
       <span class="s">${esc(dateLabel(e.date))}${e.payee?' · '+esc(e.payee):''}${e.note?' · '+esc(String(e.note).slice(0,60)):''}</span></span>
@@ -79,7 +97,7 @@ function expenseSheet(){
   const isNew=S.openExp==='new';const d=S.hrDraft||{};
   const inc=d.kind==='income';
   const body=`<div class="kind" style="margin-bottom:12px">${[['expense','ex_expense'],['income','ex_income']].map(([k,l])=>`<button aria-pressed="${(inc?'income':'expense')===k}" data-act="exKind" data-k="${k}">${esc(t(l))}</button>`).join('')}</div>
-  <div class="sl-grid hr-grid">${hrIn('date',t('sl_day'),'date')}${hrSel('cat',t('ex_cat'),(inc?INC_CATS.map(c=>[c,t('ic_'+c)]):EXP_CATS.map(c=>[c,t('ec_'+c)])))}
+  <div class="sl-grid hr-grid">${hrIn('date',t('sl_day'),'date')}${inc?hrSel('cat',t('ex_cat'),INC_CATS.map(c=>[c,t('ic_'+c)])):expCatSelect(d.cat)}
     ${hrSel('place',t('hr_branch'),[['@all',t('li_allPlaces')],...hrPlaces().map(p=>[p,placeL(p)])])}${hrIn('payee',t('ex_payee'))}
     ${hrIn('amount',t('vc_amount')+' ('+t('sar')+')','number')}${hrIn('vat',t('ex_vat')+' ('+t('sar')+')','number')}
     ${hrSel('method',t('vc_method'),PAY_METHODS.map(k=>[k,t('pm_'+k)]))}${hrIn('ref',t('ex_ref'),'text','dir="ltr"')}</div>
@@ -128,7 +146,7 @@ Object.assign(A,{
       {name:t('fn_byPlace'),headers:[t('hr_branch'),t('fn_sales'),t('fn_payroll'),t('tab_exp'),t('fn_result')],rows:F.places.map(p=>{const x=F.byPlace[p];return[placeL(p),r2p(x.sales),r2p(x.pay),r2p(x.exp),r2p(x.sales-x.pay-x.exp)]})},
       {name:t('tab_exp'),headers:[t('sl_day'),t('ex_cat'),t('hr_branch'),t('ex_payee'),t('vc_amount'),t('ex_vat'),t('vc_method'),t('ex_ref'),t('hr_note')],
         rows:(S.expenses||[]).filter(e=>inMonth(e.date,F.mk)).map(e=>[e.date,expLabel(e),placeL(e.place),e.payee||'',+e.amount||0,+e.vat||0,t('pm_'+(e.method||'cash')),e.ref||'',e.note||''])}])},
-  exNew(){S.openExp='new';S.confirm=null;S.hrDraft={date:dayKey(Date.now()),cat:S.expCat||'other',place:'@office',payee:'',amount:'',vat:'',method:'cash',ref:'',note:''};render()},
+  exNew(){S.openExp='new';S.confirm=null;S.hrDraft={date:dayKey(Date.now()),cat:S.expCat?(EXP_GROUPS.find(g=>g[0]===S.expCat)||[0,['other']])[1][0]:'other',place:'@office',payee:'',amount:'',vat:'',method:'cash',ref:'',note:''};render()},
   exOpen(el){const e=(S.expenses||[]).find(x=>x.id===el.dataset.id);if(!e)return;S.openExp=e.id;S.confirm=null;S.hrDraft=Object.assign({},e);render()},
   exCat(el){S.expCat=el.dataset.k;render()},
   exKind(el){const d=S.hrDraft;d.kind=el.dataset.k;d.cat=d.kind==='income'?'other':'other';render()},

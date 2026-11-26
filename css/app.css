@@ -678,3 +678,6 @@ span.sh-c{cursor:default}
 .pl-tbl tr.pl-big td{font-weight:800;background:var(--sun-soft);color:var(--sun-ink);font-size:15px}
 .pl-tbl tr.pl-pct td{color:var(--muted);font-size:12.5px}
 .tag.ex-inc{background:var(--ok-soft);color:var(--navy)}
+
+.pl-tbl tr.pl-grp td{font-weight:700}
+.pl-tbl tr.pl-sub td{color:var(--muted);font-size:12.5px}.pl-tbl tr.pl-sub td:first-child{padding-inline-start:26px}

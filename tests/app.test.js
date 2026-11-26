@@ -329,3 +329,23 @@ test('P&L per branch and company: every line against hand-worked numbers', async
   await driver(w).signIn('6060'); driver(w).click('[data-act="tab"][data-k="pnl"]');
   assert.ok(w.document.querySelector('.pl-tbl'), 'statement shown');
 });
+
+test('expense categories from the cost study: every item belongs to one category and has a name', () => {
+  const groups = w.eval('EXP_GROUPS'), cats = w.eval('EXP_CATS');
+  assert.equal(new Set(cats).size, cats.length, 'no item in two categories');
+  const names = JSON.parse(w.eval('JSON.stringify(EXP_CATS.map(c=>t("ec_"+c)).concat(EXP_GROUPS.map(g=>t("eg_"+g[0]))))'));
+  assert.ok(names.every((n) => n && !n.startsWith('ec_') && !n.startsWith('eg_')), 'all named');
+  for (const k of ['foodCost', 'packaging', 'staffHousing', 'gas', 'pos', 'qiwa', 'mudad', 'zakat', 'pest', 'tickets'])
+    assert.ok(cats.includes(k), k + ' present');
+  // a cost-of-sales item goes to cost of sales, an item of another category to its category
+  const S = w.eval('S');
+  S.sales = []; S.orders = []; S.assets = []; S.emps = []; S.costs = {};
+  S.expenses = [{ kind: 'expense', cat: 'packaging', place: 'القطيف', date: '2026-11-02', amount: 1150, vat: 150 },
+                { kind: 'expense', cat: 'gas', place: 'القطيف', date: '2026-11-02', amount: 500, vat: 0 }];
+  const R = w.eval('pnlCalc')('2026-11', '2026-11');
+  assert.equal(R.P['القطيف'].cogs, 1000);
+  assert.equal(R.P['القطيف'].exp.gas, 500);
+  const labels = w.eval('pnlLines')(R).map((l) => l[0]);
+  assert.ok(labels.includes(w.eval('t("eg_energy")')), 'energy category line');
+  assert.ok(labels.includes(w.eval('t("ec_packaging")')), 'packaging line under cost of sales');
+});

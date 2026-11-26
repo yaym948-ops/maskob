@@ -32,7 +32,7 @@ function eosProvision(e,mk,f){
 function pnlCalc(from,to){
   const months=monthsBetween(from,to);const cfg=finCfg();
   const places=[...S.branches,'@wh','@office'];
-  const z=()=>({sales:0,otherInc:0,cogsGoods:0,cogsCash:0,pay:0,gosi:0,eos:0,dep:0,exp:{}});
+  const z=()=>({sales:0,otherInc:0,cogsGoods:0,cogsCash:0,pay:0,gosi:0,eos:0,dep:0,exp:{},cogsItems:{}});
   const P={};places.forEach(p=>P[p]=z());
   const at=p=>P[p]||P['@office'];
   const inPeriod=d=>{const m=String(d||'').slice(0,7);return months.includes(m)};
@@ -52,7 +52,7 @@ function pnlCalc(from,to){
     const net=((+e.amount||0)-(+e.vat||0))*hit/span.length;
     const p=e.place==='@all'||!P[e.place]?'@office':e.place;
     if(e.kind==='income'){at(p).otherInc+=net;return}
-    if(e.cat==='purchases'){at(p).cogsCash+=net;return}
+    if(expGroup(e.cat)==='cogs'){at(p).cogsCash+=net;at(p).cogsItems[e.cat]=(at(p).cogsItems[e.cat]||0)+net;return}
     const c=e.cat||'other';at(p).exp[c]=(at(p).exp[c]||0)+net;
   });
   // people: pay, employer insurance, end-of-service provision (by workplace)
@@ -68,13 +68,14 @@ function pnlCalc(from,to){
   });
   // totals per place
   const cats=[...new Set(places.flatMap(p=>Object.keys(P[p].exp)))].sort((a,b)=>EXP_CATS.indexOf(a)-EXP_CATS.indexOf(b));
+  const cogsCats=[...new Set(places.flatMap(p=>Object.keys(P[p].cogsItems)))].sort((a,b)=>EXP_CATS.indexOf(a)-EXP_CATS.indexOf(b));
   const tot=x=>{const rev=x.sales+x.otherInc,cogs=x.cogsGoods+x.cogsCash,gross=rev-cogs;
     const opex=x.pay+x.gosi+x.eos+x.dep+Object.values(x.exp).reduce((s,v)=>s+v,0);return{rev,cogs,gross,opex,net:gross-opex}};
   places.forEach(p=>Object.assign(P[p],tot(P[p])));
   // company total
   const C=z();places.forEach(p=>{for(const k of ['sales','otherInc','cogsGoods','cogsCash','pay','gosi','eos','dep'])C[k]+=P[p][k];
-    for(const c in P[p].exp)C.exp[c]=(C.exp[c]||0)+P[p].exp[c]});Object.assign(C,tot(C));
-  return{from,to,months,places,P,C,cats,cfg};
+    for(const c in P[p].exp)C.exp[c]=(C.exp[c]||0)+P[p].exp[c];for(const c in P[p].cogsItems)C.cogsItems[c]=(C.cogsItems[c]||0)+P[p].cogsItems[c]});Object.assign(C,tot(C));
+  return{from,to,months,places,P,C,cats,cogsCats,cfg};
 }
 /* spread head-office and warehouse lines over the branches by share of net sales */
 function pnlAllocate(R){
@@ -84,8 +85,8 @@ function pnlAllocate(R){
   for(const src of ['@office','@wh']){const s=P[src];
     br.forEach(b=>{const w=R.P[b].sales/base,d=P[b];
       for(const k of ['otherInc','cogsGoods','cogsCash','pay','gosi','eos','dep'])d[k]+=s[k]*w;
-      for(const c in s.exp)d.exp[c]=(d.exp[c]||0)+s.exp[c]*w});
-    P[src]={sales:0,otherInc:0,cogsGoods:0,cogsCash:0,pay:0,gosi:0,eos:0,dep:0,exp:{}}}
+      for(const c in s.exp)d.exp[c]=(d.exp[c]||0)+s.exp[c]*w;for(const c in s.cogsItems)d.cogsItems[c]=(d.cogsItems[c]||0)+s.cogsItems[c]*w});
+    P[src]={sales:0,otherInc:0,cogsGoods:0,cogsCash:0,pay:0,gosi:0,eos:0,dep:0,exp:{},cogsItems:{}}}
   const tot=x=>{const rev=x.sales+x.otherInc,cogs=x.cogsGoods+x.cogsCash,gross=rev-cogs;const opex=x.pay+x.gosi+x.eos+x.dep+Object.values(x.exp).reduce((s,v)=>s+v,0);return{rev,cogs,gross,opex,net:gross-opex}};
   Object.keys(P).forEach(p=>Object.assign(P[p],tot(P[p])));
   return Object.assign({},R,{P,places:br,allocated:true});
@@ -93,10 +94,12 @@ function pnlAllocate(R){
 /* the lines of the statement: [label, value(x), style] */
 function pnlLines(R){
   const L=[[t('pl_revenue'),null,'h'],[t('pl_netSales'),x=>x.sales],[t('pl_otherInc'),x=>x.otherInc],[t('pl_totalRev'),x=>x.rev,'sum'],
-    [t('pl_cogs'),null,'h'],[t('pl_cogsGoods'),x=>x.cogsGoods],[t('pl_cogsCash'),x=>x.cogsCash],[t('pl_totalCogs'),x=>x.cogs,'sum'],
+    [t('pl_cogs'),null,'h'],[t('pl_cogsGoods'),x=>x.cogsGoods],...R.cogsCats.map(c=>[t('ec_'+c),x=>(x.cogsItems||{})[c]||0]),[t('pl_totalCogs'),x=>x.cogs,'sum'],
     [t('pl_gross'),x=>x.gross,'big'],[t('pl_grossM'),x=>x.rev?x.gross/x.rev:null,'pct'],
     [t('pl_opex'),null,'h'],[t('pl_pay'),x=>x.pay],[t('pl_gosi'),x=>x.gosi],[t('pl_eos'),x=>x.eos],
-    ...R.cats.map(c=>[t('ec_'+c),x=>x.exp[c]||0]),[t('pl_dep'),x=>x.dep],[t('pl_totalOpex'),x=>x.opex,'sum'],
+    // each expense category with its total, then its items
+    ...EXP_GROUPS.filter(([g])=>g!=='cogs').flatMap(([g,list])=>{const inG=R.cats.filter(c=>list.includes(c));if(!inG.length)return[];
+      return[[t('eg_'+g),x=>inG.reduce((s,c)=>s+(x.exp[c]||0),0),'grp'],...inG.map(c=>[t('ec_'+c),x=>x.exp[c]||0,'sub'])]}),[t('pl_dep'),x=>x.dep],[t('pl_totalOpex'),x=>x.opex,'sum'],
     [t('pl_net'),x=>x.net,'big'],[t('pl_netM'),x=>x.rev?x.net/x.rev:null,'pct']];
   return L;
 }
