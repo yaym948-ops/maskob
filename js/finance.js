@@ -26,7 +26,7 @@ function expCatSelect(cur){
 const INC_CATS=['catering','rebate','other'];
 const expLabel=e=>t((e.kind==='income'?'ic_':'ec_')+(e.cat||'other'));
 const finTabs=()=>{const due=(S.supInv||[]).filter(i=>supRemain(i)>0&&i.due&&i.due<=dayKey(Date.now())).length;
-  return[{k:'fsum',l:t('tab_fsum')},{k:'expenses',l:t('tab_exp')},{k:'supinv',l:t('tab_supinv'),b:due,late:due>0},{k:'payroll',l:t('tab_pr')},{k:'vouchers',l:t('tab_vc')},{k:'advances',l:t('tab_adv')},{k:'pnl',l:t('tab_pnl')},{k:'costs',l:t('tab_costs')},{k:'assets',l:t('tab_assets')}]};
+  return[{k:'fsum',l:t('tab_fsum')},{k:'expenses',l:t('tab_exp')},{k:'supinv',l:t('tab_supinv'),b:due,late:due>0},{k:'payroll',l:t('tab_pr')},{k:'vouchers',l:t('tab_vc')},{k:'advances',l:t('tab_adv')},{k:'pnl',l:t('tab_pnl')},{k:'be',l:t('tab_be')},{k:'costs',l:t('tab_costs')},{k:'assets',l:t('tab_assets')}]};
 function financeView(tb){
   if(tb==='expenses')return expensesView();
   if(tb==='supinv')return supInvView();
@@ -34,6 +34,7 @@ function financeView(tb){
   if(tb==='vouchers')return vouchersView();
   if(tb==='advances')return advancesView();
   if(tb==='pnl')return pnlView();
+  if(tb==='be'&&window.breakEvenView)return breakEvenView();
   if(tb==='costs')return costsView();
   if(tb==='assets')return assetsView();
   return financeSummaryView();

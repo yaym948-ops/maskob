@@ -262,7 +262,7 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   await d.signIn('6060');
   assert.equal(w.eval('S.role'), 'finance');
   const tabs = [...w.document.querySelectorAll('#tabsIn .tab')].map((b) => b.dataset.k);
-  assert.deepEqual(tabs, ['fsum', 'expenses', 'supinv', 'payroll', 'vouchers', 'advances', 'pnl', 'costs', 'assets']);
+  assert.deepEqual(tabs, ['fsum', 'expenses', 'supinv', 'payroll', 'vouchers', 'advances', 'pnl', 'be', 'costs', 'assets']);
   const mk = w.eval('monthKey(Date.now())');
   // an expense
   d.click('[data-act="tab"][data-k="expenses"]');
@@ -348,4 +348,26 @@ test('expense categories from the cost study: every item belongs to one category
   const labels = w.eval('pnlLines')(R).map((l) => l[0]);
   assert.ok(labels.includes(w.eval('t("eg_energy")')), 'energy category line');
   assert.ok(labels.includes(w.eval('t("ec_packaging")')), 'packaging line under cost of sales');
+});
+
+test('break-even per branch: contribution margin, daily point, invoices needed, safety margin', async () => {
+  const S = w.eval('S'), mk = '2026-11', B = 'القطيف';
+  S.costs = {}; S.orders = []; S.assets = []; S.emps = []; S.forms = []; S.leaves = []; S.advances = []; S.payroll = [];
+  S.finCfg = { salesVat: true };
+  // 20 recorded days, 115,000 incl. VAT (100,000 net), 2,000 invoices
+  S.sales = Array.from({ length: 20 }, (_, i) => ({ branch: B, date: mk + '-' + String(i + 1).padStart(2, '0'), sales: 5750, invoices: 100 }));
+  S.expenses = [
+    { kind: 'expense', cat: 'foodCost', place: B, date: mk + '-02', amount: 40000, vat: 0 },        // variable (cost of sales)
+    { kind: 'expense', cat: 'delivery', place: B, date: mk + '-02', amount: 5750, vat: 750 },        // variable (5,000)
+    { kind: 'expense', cat: 'electricity', place: B, date: mk + '-02', amount: 30000, vat: 0 } ];    // fixed
+  const X = w.eval('beCalc')(mk, mk, false), r = X.rows.find((x) => x.name === B);
+  const near = (a, b, m) => assert.ok(Math.abs(a - b) < 0.01, m + ': ' + a + ' ≠ ' + b);
+  near(r.sales, 100000, 'net sales'); near(r.variable, 45000, 'variable'); near(r.fixed, 30000, 'fixed');
+  near(r.cm, 0.55, 'contribution margin'); near(r.be, 30000 / 0.55, 'break-even');
+  near(r.beDaily, 30000 / 0.55 / 30, 'daily break-even'); near(r.beDailyVat, 30000 / 0.55 / 30 * 1.15, 'daily incl. VAT');
+  near(r.ticket, 50, 'average invoice'); near(r.beInvDaily, 30000 / 0.55 / 30 / 50, 'invoices needed a day');
+  near(r.actualDaily, 5000, 'actual daily'); near(r.safety, (100000 - 30000 / 0.55) / 100000, 'margin of safety');
+  assert.equal(r.status, 'above');
+  await driver(w).signIn('6060'); driver(w).click('[data-act="tab"][data-k="be"]');
+  assert.ok(w.document.querySelectorAll('.be-card').length >= 2, 'branch and company cards');
 });

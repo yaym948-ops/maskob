@@ -681,3 +681,7 @@ span.sh-c{cursor:default}
 
 .pl-tbl tr.pl-grp td{font-weight:700}
 .pl-tbl tr.pl-sub td{color:var(--muted);font-size:12.5px}.pl-tbl tr.pl-sub td:first-child{padding-inline-start:26px}
+
+/* break-even */
+.be-card.be-below,.be-card.be-loss{border-color:color-mix(in srgb,var(--late) 45%,var(--line))}
+.be-card.be-above{border-color:color-mix(in srgb,var(--navy) 35%,var(--line))}
