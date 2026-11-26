@@ -30,8 +30,10 @@ function parseInvoiceText(text){
   const T=toLatinDigits(text).replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069\u061C\uFEFF]/g,'').replace(/[٫]/g,'.').replace(/[،]/g,',').replace(/[|]/g,' ');
   const lines=T.split(/\n+/).map(l=>l.replace(/\s+/g,' ').trim()).filter(Boolean);
   const out={};
-  /* VAT number: 15 digits, starts and ends with 3; OCR often splits it with spaces */
-  const vat=T.match(/(?<!\d)3\d{13}3(?!\d)/)||T.replace(/(\d)[ \-](?=\d)/g,'$1').match(/(?<!\d)3\d{13}3(?!\d)/);if(vat)out.vatNo=vat[0];
+  /* VAT number: 15 digits, starts and ends with 3; OCR often splits it with spaces.
+     The customer's number (our own) is on the invoice too: never take that one as the supplier's. */
+  const CUST=/(customer|العميل|عميل|buyer|المشتري|client)/i;
+  for(const l of lines){if(CUST.test(l))continue;const v=l.match(/(?<!\d)3\d{13}3(?!\d)/)||l.replace(/(\d)[ \-](?=\d)/g,'$1').match(/(?<!\d)3\d{13}3(?!\d)/);if(v){out.vatNo=v[0];break}}
   /* invoice number: after its label, before it (right-to-left lines), or on the next line */
   const LBL=/(?:رقم\s*ال[فق]ا[تنث]ور[ةه](?:\s*الضريبي[ةه])?|[فق]ا[تنث]ور[ةه]\s*رقم|رقم\s*ال[فق]ا[تنث]ور|Invoice\s*(?:No\.?|Number|#|ID)|Inv\.?\s*No\.?|Bill\s*No\.?|Receipt\s*No\.?|رقم\s*الإيصال|رقم\s*السند)/i;
   const TOK=/^[\s:#.\-–]*((?:[A-Z]{1,6}[\-\/]?)?\d[A-Z0-9\-\/]{0,24}|[A-Z0-9][A-Z0-9\-\/]{2,24})/i;
@@ -42,6 +44,9 @@ function parseInvoiceText(text){
     if((!tk||!okNo(tk[1]))&&lines[i+1])tk=lines[i+1].match(TOK);
     if(tk&&okNo(tk[1]))out.number=tk[1].replace(/[\-\/]+$/,'')}
   if(!out.number){const m=T.match(/\b(INV[\-\/]?\d[\w\-\/]{0,20})/i);if(m)out.number=m[1]}
+  /* label read badly ("No. فاتورة ضريبية 2602005403"): a long run of digits on an invoice/No. line, not a phone, VAT number or date */
+  if(!out.number)for(const l of lines){if(!/(invoice|\bNo\b\.?|[فق]ا[تنث]ور|رقم)/i.test(l)||CUST.test(l)||/(VAT|ضريب[يى]\b|الرقم الضريبي|date|التاريخ|page)/i.test(l.replace(/[فق]ا[تنث]ور[ةه]\s*ضري[بن][يةه]+/,'')))continue;
+    const m=[...l.matchAll(/(?<![\d\/\-.:])((?:[A-Z]{1,4}[\-\/]?)?\d{5,14})(?![\d\/\-.:])/gi)].map(x=>x[1]).find(v=>!/^0?5\d{8}$/.test(v)&&!/^01\d{8}$/.test(v));if(m){out.number=m;break}}
   const today=new Date(),okD=(y,m,d)=>{const x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&Math.abs(x-today)<2*365*864e5};
   for(const m of T.matchAll(/(\d{4})\s?[\/\-.]\s?(\d{1,2})\s?[\/\-.]\s?(\d{1,2})|(\d{1,2})\s?[\/\-.]\s?(\d{1,2})\s?[\/\-.]\s?(\d{4})/g)){
     const y=+(m[1]||m[6]),mo=+(m[2]||m[5]),d=+(m[3]||m[4]);if(okD(y,mo,d)){out.date=y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');break}
@@ -49,25 +54,31 @@ function parseInvoiceText(text){
   const nums=l=>[...l.replace(/(\d)\s+(?=[.,]\d)/g,'$1').replace(/([.,])\s+(?=\d)/g,'$1').matchAll(/(\d{1,3}(?:,\d{3})+|\d+)(?:[.,](\d{1,2}))?(?!\d)/g)]
     .map(m=>+(m[1].replace(/,/g,'')+(m[2]?'.'+m[2]:''))).filter(n=>n>0&&n<1e8);
   const TOTAL=/(الإجمالي|الاجمالي|الإجمالى|الاجمالى|المجموع|المبلغ المستحق|الصافي|صافي|إجمالي|اجمالي|Total|Amount\s*Due|Net\s*Amount|Balance\s*Due)/i;
-  const NOTTOT=/(قبل|بدون|غير شامل|excl|before|sub|خصم|discount|كمية|qty|quantity)/i;
+  const NOTTOT=/(قبل|بدون|غير|excl|exc[il1]usive|before|sub|خصم|discount|كمية|qty|quantity|words|كتابة|تفقيط)/i;
+  /* the VAT line: "Total VAT 15%", "مجموع ضريبة القيمة المضافة", "ضريبة القيمة المضافة 15%" … but not the VAT number or the total with VAT */
+  const VATL=/(ضري[بن][ةه]|القيمة المضافة|\bVAT\b|Vat|Tax\s*Amount)/i, NOTVAT=/(الرقم|رقم|\bNo\b|Number|Registration|TRN|شامل|قبل|بدون|غير|incl|exc[il1]usive|excl|before|sub|customer|العميل|Amount\s*\(|Tot\.?\s*Amount|[فق]ا[تنث]ور|invoice|page)/i;
   let total=null,vatAmt=null;
   for(let i=0;i<lines.length;i++){const l=lines[i];
+    const isVat=VATL.test(l)&&!NOTVAT.test(l)&&!/3\d{13}3/.test(l.replace(/\s/g,''));
+    if(isVat){const v=nums(l).filter(n=>n!==15&&n<1e7);if(v.length)vatAmt=Math.max(...v);continue}
     if(TOTAL.test(l)&&!NOTTOT.test(l)){
-      let v=nums(l).filter(n=>!(/%/.test(l)&&n===15));if(!v.length&&lines[i+1])v=nums(lines[i+1]);
+      let v=nums(l).filter(n=>!(/%/.test(l)&&n===15)&&n<1e7);if(!v.length&&lines[i+1])v=nums(lines[i+1]).filter(n=>n<1e7);
       if(v.length){const m=Math.max(...v);if(total==null||m>total)total=m}}
-    if(/(ضريبة القيمة المضافة|القيمة المضافة|الضريبة|ضريبة|VAT|Tax\s*Amount)/i.test(l)&&!/(الرقم|رقم|No\b|Number|Registration|TRN)/i.test(l)
-       &&!/(الإجمالي|الاجمالي|الإجمالى|المجموع|إجمالي|اجمالي|Total|شامل|قبل|بدون|incl|excl|before|sub)/i.test(l)){
-      const v=nums(l).filter(n=>n!==15);if(v.length)vatAmt=Math.max(...v)}
   }
   /* no total line read: the biggest money-looking amount (with halalas) on the page */
   if(total==null){const money=lines.flatMap(l=>/\d[.,]\d{2}(?!\d)/.test(l)?nums(l).filter(n=>n<1e7&&n%1!==0):[]);if(money.length)total=Math.max(...money)}
   if(total!=null)out.amount=total;
-  if(vatAmt!=null&&(total==null||vatAmt<total))out.vat=vatAmt;
-  else if(total!=null&&lines.some(l=>/(15\s*%|%\s*15)/.test(l)))out.vat=Math.round(total*15/115*100)/100;
+  /* Saudi VAT is 15% of the price: a read VAT that does not fit the total is a misread, so work it out instead */
+  const fit=total!=null?Math.round(total*15/115*100)/100:null;
+  if(vatAmt!=null&&(fit==null||Math.abs(vatAmt-fit)<=Math.max(1,fit*0.02)))out.vat=vatAmt;
+  else if(fit!=null&&(vatAmt!=null||lines.some(l=>/(15\s*%|%\s*15|VAT|ضريب)/i.test(l))))out.vat=fit;
   /* supplier: a line naming a company, else the first real text line */
   const isName=l=>/[A-Za-z؀-ۿ]{3,}/.test(l)&&!/(فاتورة|فاتوره|invoice|tax|ضريبي|ضريبة|الرقم|رقم|التاريخ|date|العميل|customer|المشتري|buyer|هاتف|جوال|phone|tel|www|http|@)/i.test(l);
   const co=lines.find(l=>/(شركة|شركه|مؤسسة|مؤسسه|مصنع|مخبز|مطبعة|متجر|مجموعة|Company|\bCo\b\.?|\bEst\b\.?|Establishment|Trading|Factory|LLC|Ltd)/i.test(l)&&isName(l));
-  const first=co||lines.slice(0,8).find(isName);
+  /* from a noisy line keep just the name: "الا Malath Company LTD. vv سدت" → "Malath Company LTD." */
+  const nameIn=l=>{const en=l.match(/(?:[A-Z][A-Za-z&'\-]+\.?\s+){0,4}(?:Company|Co\.|Est\.|Establishment|Trading|Factory|Group)(?:\s+(?:LTD|LLC|Ltd|Limited|Co)\.?)?|(?:[A-Z][A-Za-z&'\-]+\s+){1,4}(?:LTD|LLC|Ltd)\.?/);
+    const ar=l.match(/(?:شركة|شركه|مؤسسة|مؤسسه|مصنع|مخبز|مطبعة|متجر|مجموعة)(?:\s+[؀-ۿ]{2,}){1,4}/);return(ar&&ar[0])||(en&&en[0])||null};
+  const first=co?(nameIn(co)||co):lines.slice(0,8).find(isName);
   if(first)out.supplier=first.replace(/^[\s:\-–]+|[\s:\-–]+$/g,'').slice(0,60);
   return out;
 }
@@ -78,8 +89,9 @@ function canvasOf(img,max,crop){const [cx,cy,cw,ch]=crop||[0,0,1,1];const sw=img
   const sc=Math.min(max/Math.max(sw,sh),crop?3:1);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(sw*sc));c.height=Math.max(1,Math.round(sh*sc));
   const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.imageSmoothingQuality='high';g.drawImage(img,img.width*cx,img.height*cy,sw,sh,0,0,c.width,c.height);return c}
 /* grey with stretched contrast: helps with dim photos, shadows and coloured paper */
-function enhance(c){const g=c.getContext('2d'),d=g.getImageData(0,0,c.width,c.height),p=d.data,h=new Uint32Array(256);
-  for(let i=0;i<p.length;i+=4){const v=(p[i]*299+p[i+1]*587+p[i+2]*114)/1000|0;p[i]=v;h[v]++}
+/* mode 'red': the red channel alone — blue or black ink stays dark while pink, yellow and white paper turn white */
+function enhance(c,mode){const g=c.getContext('2d'),d=g.getImageData(0,0,c.width,c.height),p=d.data,h=new Uint32Array(256);
+  for(let i=0;i<p.length;i+=4){const v=mode==='red'?p[i]:(p[i]*299+p[i+1]*587+p[i+2]*114)/1000|0;p[i]=v;h[v]++}
   const n=p.length/4;let lo=0,hi=255,a=0;while(lo<255&&(a+=h[lo])<n*0.01)lo++;a=0;while(hi>0&&(a+=h[hi])<n*0.01)hi--;
   const k=hi>lo?255/(hi-lo):1;for(let i=0;i<p.length;i+=4){const v=Math.max(0,Math.min(255,(p[i]-lo)*k));p[i]=p[i+1]=p[i+2]=v}
   g.putImageData(d,0,0);return c}
@@ -90,18 +102,30 @@ async function readQR(img){
     for(const cr of [null,[0,.45,1,.55]]){const r=await det.detect(cr?canvasOf(img,2000,cr):img);if(r&&r[0])return r[0].rawValue}}catch(e){}}
   await loadScript(SCAN_LIBS.jsqr);if(!window.jsQR)return null;
   const tryC=c=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height);const r=jsQR(d.data,c.width,c.height,{inversionAttempts:'attemptBoth'});return r&&r.data||null};
-  for(const max of [1200,1800])for(const cr of QR_CROPS){const c=canvasOf(img,max,cr);const v=tryC(c)||tryC(enhance(c));if(v)return v;await new Promise(r=>setTimeout(r))}
+  const until=Date.now()+9000;  /* phones are slow: stop looking after ~9 s and go on to the text */
+  for(const max of [1200,1800])for(const cr of QR_CROPS){if(Date.now()>until)return null;const c=canvasOf(img,max,cr);const v=tryC(c)||tryC(enhance(canvasOf(img,max,cr),'red'))||tryC(enhance(c));if(v)return v;await new Promise(r=>setTimeout(r))}
   for(const cr of [null,[0,.45,1,.55]]){const v=tryC(enhance(canvasOf(img,800,cr)));if(v)return v}
   return null;
 }
 /* one text reader kept for the session: the language data loads once */
 let tessWorker=null;
-async function readText(img,onStep){
+/* small photos are enlarged to about 2400 px: the reader needs letters of a decent size */
+async function readText(img,onStep,mode){
   await loadScript(SCAN_LIBS.tess);
   if(!tessWorker)tessWorker=Tesseract.createWorker(['ara','eng'],1,{logger:m=>{if(m.status==='recognizing text'&&readText.onStep)readText.onStep(Math.round((m.progress||0)*100))}}).catch(e=>{tessWorker=null;throw e});
   const worker=await tessWorker;readText.onStep=onStep;
   try{await worker.setParameters({preserve_interword_spaces:'1'})}catch(e){}
-  const {data}=await worker.recognize(enhance(canvasOf(img,2400)));return data.text||'';
+  const {data}=await worker.recognize(enhance(canvasOf(img,2400,[0,0,1,1]),mode));return data.text||'';
+}
+/* read the text in red first; if the invoice number or the total is still missing, read again in grey and fill the gaps */
+async function readInvoiceText(img,onStep,known){
+  const a=parseInvoiceText(await readText(img,p=>onStep&&onStep(Math.round(p/2)),'red'));
+  const has=k=>(a[k]!=null&&a[k]!=='')||(known&&known[k]!=null&&known[k]!=='');
+  if(has('number')&&has('amount')&&has('vatNo'))return a;
+  const b=parseInvoiceText(await readText(img,p=>onStep&&onStep(50+Math.round(p/2))));
+  for(const k of Object.keys(b))if(a[k]==null||a[k]==='')a[k]=b[k];
+  if(a.amount!=null&&b.vat!=null&&a.vat==null)a.vat=b.vat;
+  return a;
 }
 function photoForStore(img){let c=canvasOf(img,1600),q=0.8,d=c.toDataURL('image/jpeg',q);while(d.length>850000&&q>0.35){q-=0.1;d=c.toDataURL('image/jpeg',q)}
   if(d.length>850000){c=canvasOf(img,1100);d=c.toDataURL('image/jpeg',0.6)}return d}
@@ -114,7 +138,7 @@ async function scanInvoice(file,target){
     let fromQr={},fromText={};
     try{const raw=await readQR(img);const q=raw&&parseZatcaQR(raw);if(q)fromQr=q}catch(e){}
     S.scan={step:t('sc_text'),pct:0};render();
-    try{const txt=await readText(img,p=>{S.scan={step:t('sc_text'),pct:p};render()});fromText=parseInvoiceText(txt)}catch(e){toast(t('sc_noText'))}
+    try{fromText=await readInvoiceText(img,p=>{S.scan={step:t('sc_text'),pct:p};render()},fromQr)}catch(e){toast(t('sc_noText'))}
     const pick=k=>fromQr[k]!=null&&fromQr[k]!==''?fromQr[k]:fromText[k];
     const got={supplier:pick('supplier'),vatNo:pick('vatNo'),number:pick('number'),date:pick('date'),amount:pick('amount'),vat:pick('vat')};
     S.scanInfo={qr:Object.keys(fromQr).filter(k=>['supplier','vatNo','date','amount','vat'].includes(k)),text:Object.keys(got).filter(k=>got[k]!=null&&got[k]!==''&&!(k in fromQr))};

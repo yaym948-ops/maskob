@@ -390,6 +390,11 @@ test('invoice reading: ZATCA QR, invoice text, prefilled form saved with its pho
   assert.equal(P2.number, 'INV-2045'); assert.equal(P2.vatNo, '310122393500003'); assert.equal(P2.date, '2026-11-20');
   assert.equal(P2.amount, 2300); assert.equal(P2.supplier, 'شركة الألبان المتحدة');
   const P3 = w.eval('parseInvoiceText')('ALMARAI COMPANY\nTax Invoice\nInvoice No. 88-1043\nVAT No 300555666700003\nDate 2026/11/02\nSubtotal 400.00\nVAT 15% 60.00\nTotal Amount 460.00 SAR');
+  // a real supplier invoice (dot-matrix on pink paper) as the text reader returns it: badly read labels,
+  // the customer's VAT number next to the supplier's, "Total Vat" line, total without VAT
+  const P4 = w.eval('parseInvoiceText')('‎TAM Malath Company LTD. 7 ‏نسدد« ص‎ —\nVAT: 311529670600003 711814511765660 : لرظهم الضريبي\nTax Invoice فاتورة ضريبة Page 1 1\n© No. فاتورة ضربية 2602005403 Jal) Credit Moble جوال 0535111802\n[Date 06/05/2026 11:23:57 | Customer VAT ز قم الضريبي العميل 311652583900003\n973.91 Tot Amount{exciusive vat) الإجمالي غير الغريبة\n146.09 TotalVat 15% ا | مجموم ضريية القمة المضافة\n1,120.00 Total المستحق');
+  assert.equal(P4.number, '2602005403'); assert.equal(P4.vatNo, '311529670600003'); assert.equal(P4.date, '2026-05-06');
+  assert.equal(P4.amount, 1120); assert.equal(P4.vat, 146.09); assert.match(P4.supplier, /Malath Company LTD\./);
   assert.equal(P3.number, '88-1043'); assert.equal(P3.amount, 460); assert.equal(P3.vat, 60); assert.equal(P3.supplier, 'ALMARAI COMPANY');
   // the prefilled form saves the invoice together with its photo
   const d = driver(w), S = w.eval('S');
