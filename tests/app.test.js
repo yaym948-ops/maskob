@@ -385,6 +385,12 @@ test('invoice reading: ZATCA QR, invoice text, prefilled form saved with its pho
   const P = w.eval('parseInvoiceText')(txt);
   assert.equal(P.number, 'INV-2045'); assert.equal(P.vatNo, '300112233400003'); assert.equal(P.date, '2026-11-18');
   assert.equal(P.amount, 1150); assert.equal(P.vat, 150); assert.equal(P.supplier, 'مؤسسة التموين الحديثة');
+  // what a phone photo really gives: direction marks, a split VAT number, the value on the next line
+  const P2 = w.eval('parseInvoiceText')('فاتورة ضريبية مبسطة\nشركة الألبان المتحدة\nرقم الفاتورة:\n‎INV-2045‏\nالرقم الضريبي: 3101 2239 3500 003\nالتاريخ: 20-11-2026\nالإجمالي\n2,300.00 ر.س');
+  assert.equal(P2.number, 'INV-2045'); assert.equal(P2.vatNo, '310122393500003'); assert.equal(P2.date, '2026-11-20');
+  assert.equal(P2.amount, 2300); assert.equal(P2.supplier, 'شركة الألبان المتحدة');
+  const P3 = w.eval('parseInvoiceText')('ALMARAI COMPANY\nTax Invoice\nInvoice No. 88-1043\nVAT No 300555666700003\nDate 2026/11/02\nSubtotal 400.00\nVAT 15% 60.00\nTotal Amount 460.00 SAR');
+  assert.equal(P3.number, '88-1043'); assert.equal(P3.amount, 460); assert.equal(P3.vat, 60); assert.equal(P3.supplier, 'ALMARAI COMPANY');
   // the prefilled form saves the invoice together with its photo
   const d = driver(w), S = w.eval('S');
   await d.signIn('6060'); d.click('[data-act="tab"][data-k="supinv"]');
