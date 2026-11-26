@@ -371,3 +371,36 @@ test('break-even per branch: contribution margin, daily point, invoices needed, 
   await driver(w).signIn('6060'); driver(w).click('[data-act="tab"][data-k="be"]');
   assert.ok(w.document.querySelectorAll('.be-card').length >= 2, 'branch and company cards');
 });
+
+test('invoice reading: ZATCA QR, invoice text, prefilled form saved with its photo, duplicate warning', async () => {
+  // a ZATCA QR: tag-length-value, base64
+  const tlv = (tag, v) => { const b = Buffer.from(v, 'utf8'); return Buffer.concat([Buffer.from([tag, b.length]), b]); };
+  const qr = Buffer.concat([tlv(1, 'شركة الألبان المتحدة'), tlv(2, '310122393500003'), tlv(3, '2026-11-20T10:15:00Z'), tlv(4, '2300.00'), tlv(5, '300.00')]).toString('base64');
+  const Q = w.eval('parseZatcaQR')(qr);
+  assert.equal(Q.supplier, 'شركة الألبان المتحدة'); assert.equal(Q.vatNo, '310122393500003');
+  assert.equal(Q.date, '2026-11-20'); assert.equal(Q.amount, 2300); assert.equal(Q.vat, 300);
+  assert.equal(w.eval('parseZatcaQR')('not a qr'), null);
+  // text from a photographed invoice (Arabic digits, mixed labels)
+  const txt = 'مؤسسة التموين الحديثة\nفاتورة ضريبية\nرقم الفاتورة: INV-٢٠٤٥\nالتاريخ ٢٠٢٦/١١/١٨\nالرقم الضريبي 300112233400003\nالمجموع قبل الضريبة 1,000.00\nضريبة القيمة المضافة 15% 150.00\nالإجمالي شامل الضريبة 1,150.00';
+  const P = w.eval('parseInvoiceText')(txt);
+  assert.equal(P.number, 'INV-2045'); assert.equal(P.vatNo, '300112233400003'); assert.equal(P.date, '2026-11-18');
+  assert.equal(P.amount, 1150); assert.equal(P.vat, 150); assert.equal(P.supplier, 'مؤسسة التموين الحديثة');
+  // the prefilled form saves the invoice together with its photo
+  const d = driver(w), S = w.eval('S');
+  await d.signIn('6060'); d.click('[data-act="tab"][data-k="supinv"]');
+  assert.ok(w.document.querySelector('.scan-in'), 'upload button shown');
+  S.supInv = []; w.eval('MEMSET')('supInvoices', []);
+  S.docImg = 'data:image/jpeg;base64,/9j/AAAA'; S.scanInfo = { qr: ['supplier', 'vatNo', 'date', 'amount', 'vat'], text: ['number'] };
+  S.openSi = 'new'; S.hrDraft = { supplier: Q.supplier, vatNo: Q.vatNo, number: 'A-77', date: Q.date, due: '', amount: '2300', vat: '300', note: '' };
+  w.eval('render()');
+  assert.ok(w.document.querySelector('.scan-note'), 'shows what was read'); assert.ok(w.document.querySelector('.scan-thumb'), 'shows the photo');
+  d.click('[data-act="siSave"]'); await sleep(300);
+  const inv = w.eval('S.supInv')[0];
+  assert.equal(inv.vatNo, '310122393500003'); assert.equal(inv.hasFile, true);
+  assert.equal(await w.eval('DOC_FILES').get('supInvoices', inv.id), 'data:image/jpeg;base64,/9j/AAAA');
+  // the same invoice again is flagged before it is saved twice
+  S.openSi = 'new'; S.hrDraft = { supplier: Q.supplier, vatNo: Q.vatNo, number: 'A-77', date: Q.date, amount: '2300', vat: '300' }; w.eval('render()');
+  d.click('[data-act="siSave"]'); await sleep(100);
+  assert.equal(w.eval('S.supInv').length, 1, 'duplicate held back');
+  d.click('[data-act="close"]');
+});

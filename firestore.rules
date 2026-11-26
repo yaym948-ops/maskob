@@ -255,9 +255,11 @@ service cloud.firestore {
     // finance: expenses and supplier invoices
     match /expenses/{id} {
       allow read, write: if isRole('finance');
+      match /files/{f} { allow read, write: if isRole('finance'); }
     }
     match /supInvoices/{id} {
       allow read, write: if isRole('finance');
+      match /files/{f} { allow read, write: if isRole('finance'); }   // the invoice photo
     }
     // daily sales: finance reads every branch for the monthly summary
     match /sales/{id} {
