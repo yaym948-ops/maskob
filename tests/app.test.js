@@ -284,7 +284,7 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   await d.signIn('6060');
   assert.equal(w.eval('S.role'), 'finance');
   const tabs = [...w.document.querySelectorAll('#tabsIn [data-act="tab"]')].map((b) => b.dataset.k);
-  assert.deepEqual(tabs, ['fsum', 'expenses', 'supinv', 'suppliers', 'payroll', 'vouchers', 'advances', 'pnl', 'be', 'supst', 'costs', 'assets']);
+  assert.deepEqual(tabs, ['fsum', 'salesLog', 'expenses', 'supinv', 'suppliers', 'payroll', 'vouchers', 'advances', 'pnl', 'be', 'supst', 'costs', 'assets']);
   // the reports sit in one group of the side menu, closed until opened
   const grp = w.document.querySelector('#tabsIn [data-act="navGrp"]');
   assert.ok(grp, 'reports group shown');
@@ -554,5 +554,36 @@ test('attached photos: kept with an expense, removed again, required with the da
   d.click('[data-act="saveSales"]'); await sleep(300);
   const row = w.eval('S.sales').find((r) => r.id === sid);
   assert.ok(row, 'saved with the photo'); assert.equal(row.photos, 1);
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});
+
+test('daily sales log: operations and finance see each day with its photo and mark it checked', async () => {
+  const d = driver(w), S = w.eval('S'), day = w.eval('dayKey(Date.now())');
+  const rows = [{ id: 'القطيف_' + day, branch: 'القطيف', date: day, sales: 5000, invoices: 120, photos: 1 },
+    { id: 'الخبر_' + day, branch: 'الخبر', date: day, sales: 3000, invoices: 80 }];
+  w.eval('MEMSET')('sales', rows); S._demoPh = {}; S.phs = {}; w.eval('PH_STORE').put('sales', rows[0].id, 'p1', 'data:image/jpeg;base64,/9j/Z', 'القطيف');
+  // finance
+  await d.signIn('6060'); w.eval('xLoadDemo()'); w.eval('render()');
+  d.click('[data-act="tab"][data-k="salesLog"]');
+  assert.equal(w.document.querySelectorAll('[data-act="slLogOpen"]').length, 2, 'both branches listed');
+  assert.ok(w.document.querySelector('.sl-nophoto'), 'a day without a photo is flagged');
+  d.click(`[data-act="slLogOpen"][data-id="${rows[0].id}"]`); await sleep(50);
+  assert.equal(w.document.querySelectorAll('.ph-th').length, 1, 'closing report photo shown');
+  assert.ok(!w.document.querySelector('.ph-x'), 'read-only: no remove button');
+  d.click('[data-act="slRev"][data-k="diff"]'); await sleep(100);
+  assert.ok(!w.eval('S.sales').find((r) => r.id === rows[0].id).review, 'a difference needs a note');
+  d.setVal('slRevNote', 'الصورة تبين 4,950'); d.click('[data-act="slRev"][data-k="diff"]'); await sleep(300);
+  const rv = w.eval('S.sales').find((r) => r.id === rows[0].id).review;
+  assert.equal(rv.st, 'diff'); assert.equal(rv.note, 'الصورة تبين 4,950');
+  // filters: waiting for review
+  d.click('[data-act="slLogSt"][data-k="wait"]');
+  assert.equal(w.document.querySelectorAll('[data-act="slLogOpen"]').length, 1);
+  d.click('[data-act="slLogSt"][data-k=""]');
+  // operations sees the same log
+  await d.signIn('9191'); d.setVal('ownerView', 'manager'); await sleep(200);
+  assert.ok(w.document.querySelector('#tabsIn [data-act="tab"][data-k="salesLog"]'), 'operations menu entry');
+  d.click('[data-act="tab"][data-k="salesLog"]');
+  d.click(`[data-act="slLogOpen"][data-id="${rows[1].id}"]`); d.click('[data-act="slRev"][data-k="ok"]'); await sleep(300);
+  assert.equal(w.eval('S.sales').find((r) => r.id === rows[1].id).review.st, 'ok');
   d.setVal('ownerView', 'dash'); await sleep(200);
 });

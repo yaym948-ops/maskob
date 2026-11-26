@@ -117,8 +117,8 @@ service cloud.firestore {
     // daily sales: a branch writes and reads its own days; operations reads and corrects all
     match /sales/{id} {
       allow read: if isMgr() || (isBranch() && resource.data.branch == myBranch());
-      allow create: if isMgr() || (isBranch() && request.resource.data.branch == myBranch());
-      allow update: if isMgr() || (isBranch() && resource.data.branch == myBranch() && request.resource.data.branch == myBranch());
+      allow create: if isMgr() || (isBranch() && request.resource.data.branch == myBranch() && !('review' in request.resource.data));
+      allow update: if isMgr() || (isBranch() && resource.data.branch == myBranch() && request.resource.data.branch == myBranch() && !('review' in request.resource.data));
       allow delete: if isMgr();
     }
 
@@ -297,6 +297,8 @@ service cloud.firestore {
     // daily sales: finance reads every branch for the monthly summary
     match /sales/{id} {
       allow read: if isRole('finance');
+      // finance marks a day as checked against its closing report photo (only the review field)
+      allow update: if isRole('finance') && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['review']);
     }
 
     // payment vouchers: HR and finance

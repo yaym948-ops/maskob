@@ -73,7 +73,7 @@ const ico=(name,cls)=>`<svg class="ic${cls?' '+cls:''}" viewBox="0 0 24 24" fill
 const NAV_ICON={rep:'pie',new:'plus',tasks:'inbox',orders:'clipboard',sales:'bars',maint:'wrench',checks:'listCheck',lr:'calClock',forms:'filePen',
   pending:'clock',report:'fileText',all:'list',salesAll:'bars',maintAll:'wrench',stock:'box',prep:'clipCheck',sched:'cal',incoming:'truck',done:'history',
   branches:'sliders',users:'users',actlog:'activity',catalog:'tag',emps:'users',docs:'idCard',leaves:'calCheck',custody:'key',advances:'wallet',lic:'shield',
-  payroll:'cash',vouchers:'receipt',dash:'dash',fsum:'dash',expenses:'receipt',supinv:'fileSheet',suppliers:'truck',pnl:'trend',be:'target',supst:'book',
+  payroll:'cash',vouchers:'receipt',dash:'dash',fsum:'dash',expenses:'receipt',supinv:'fileSheet',suppliers:'truck',pnl:'trend',be:'target',supst:'book',salesLog:'clipCheck',
   costs:'tag',assets:'archive'};
 
 /* buttons, by what they do */
