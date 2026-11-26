@@ -12,6 +12,7 @@ rules_version = '2';
 //   warehouse — prepares approved orders, receives returns.
 //   branch    — its own orders only.
 //   hr        — human resources: employees and leave records only.
+//   owner     — general manager: personal accounts only; passes every role check (full access).
 //
 // Sign-in: either a shared department code (config/pins) or a personal account (users/{id}).
 service cloud.firestore {
@@ -43,7 +44,8 @@ service cloud.firestore {
     function valid() {
       return signedIn() && exists(sessPath()) && exists(pinsPath()) && codeMatches(sess());
     }
-    function isRole(r) { return valid() && sess().role == r; }
+    // 'owner' = general manager: a full-access account that passes every role check
+    function isRole(r) { return valid() && (sess().role == r || sess().role == 'owner'); }
     function isAdmin() { return isRole('admin'); }
     function isMgr() { return isRole('manager'); }
     function adminSet() { return 'admin' in pins(); }
@@ -90,7 +92,7 @@ service cloud.firestore {
       allow read, delete: if signedIn() && request.auth.uid == uid;
       allow create, update: if signedIn() && request.auth.uid == uid
         && exists(pinsPath())
-        && request.resource.data.role in ['admin', 'manager', 'warehouse', 'branch', 'hr']
+        && request.resource.data.role in ['admin', 'manager', 'warehouse', 'branch', 'hr', 'owner']
         && codeMatches(request.resource.data);
     }
 
@@ -107,7 +109,8 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    function isBranch() { return valid() && sess().role == 'branch'; }
+    // the general manager acts as the branch it has chosen (stored in its session)
+    function isBranch() { return valid() && (sess().role == 'branch' || (sess().role == 'owner' && 'branch' in sess())); }
     function myBranch() { return sess().branch; }
 
     // daily sales: a branch writes and reads its own days; operations reads and corrects all
@@ -250,17 +253,17 @@ service cloud.firestore {
 
     match /orders/{id} {
       allow read: if valid()
-        && (sess().role in ['manager', 'warehouse']
+        && (sess().role in ['manager', 'warehouse', 'owner']
             || (sess().role == 'branch' && resource.data.branch == sess().branch));
       allow create: if valid()
-        && (sess().role == 'manager'
+        && (sess().role in ['manager', 'owner']
             || (sess().role == 'branch' && request.resource.data.branch == sess().branch && request.resource.data.status == 'pending'));
       allow update: if valid()
-        && (sess().role in ['manager', 'warehouse']
+        && (sess().role in ['manager', 'warehouse', 'owner']
             || (sess().role == 'branch' && resource.data.branch == sess().branch && request.resource.data.branch == sess().branch));
       // operations may delete any order; a branch only its own order while still pending
       allow delete: if valid()
-        && (sess().role == 'manager'
+        && (sess().role in ['manager', 'owner']
             || (sess().role == 'branch' && resource.data.branch == sess().branch && resource.data.status == 'pending'));
     }
   }

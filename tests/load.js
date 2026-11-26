@@ -56,7 +56,11 @@ function driver(w) {
   const click = (sel) => $(sel).click();
   const type = (digits) => { for (const c of digits) click(`[data-act="pinKey"][data-k="${c}"]`); };
   const setVal = (id, v) => { const e = $('#' + id); e.value = v; e.dispatchEvent(new w.Event('input', { bubbles: true })); e.dispatchEvent(new w.Event('change', { bubbles: true })); };
-  const signIn = async (code) => { if (w.eval('S.role')) { click('.logout-btn'); await sleep(50); } type(code); await sleep(400); };
+  const signIn = async (code) => {
+    if (w.eval('S.role')) { click('.logout-btn'); await sleep(50); }
+    click('[data-act="pinClear"]');                 // start from an empty pad (like a person after "wrong code")
+    type(code); await sleep(400);
+  };
   return { $, click, type, setVal, signIn };
 }
 

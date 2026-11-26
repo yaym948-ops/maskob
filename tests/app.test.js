@@ -172,3 +172,34 @@ test('personal accounts: sign in with your own code, name shown, switched-off ac
   await d.signIn('7777');
   assert.notEqual(w.eval('S.role'), 'hr', 'switched-off account cannot sign in');
 });
+
+test('general manager (full access) works as any department or branch from one account', async () => {
+  const d = driver(w);
+  await d.signIn('2468');
+  d.click('[data-act="tab"][data-k="users"]');
+  d.click('[data-act="usNew"]'); await sleep(20);
+  d.setVal('hr-name', 'المدير'); d.setVal('hr-role', 'owner'); d.setVal('hr-pin', '9191');
+  d.click('[data-act="usSave"]'); await sleep(400);
+  await d.signIn('9191');
+  assert.equal(w.eval('S.realRole'), 'owner');
+  assert.equal(w.eval('S.role'), 'manager', 'starts in operations');
+  const pick = async (v) => { d.setVal('ownerView', v); await sleep(200); };
+  for (const v of ['warehouse', 'hr', 'admin', 'branch:القطيف', 'manager']) {
+    await pick(v);
+    const want = v.startsWith('branch:') ? 'branch' : v;
+    assert.equal(w.eval('S.role'), want, 'view ' + v);
+    assert.equal(w.eval('S.realRole'), 'owner', 'still the general manager after ' + v);
+    assert.ok(w.document.querySelectorAll('#tabsIn .tab').length > 0, 'menu shown for ' + v);
+  }
+  await pick('branch:القطيف');
+  assert.equal(w.eval('S.branch'), 'القطيف');
+  await pick('hr');
+  d.click('[data-act="tab"][data-k="emps"]');
+  d.click('[data-act="hrNew"]'); await sleep(20);
+  d.setVal('hr-name', 'أضافه المدير العام'); d.click('[data-act="hrSave"]'); await sleep(300);
+  assert.ok(w.eval('S.emps').some((e) => e.name === 'أضافه المدير العام'), 'can work in HR');
+  const log = w.eval('MEM("log")');
+  assert.ok(log.some((e) => e.name === 'المدير' && e.role === 'owner'), 'logged as the general manager');
+  w.eval('checkAuth()');
+  assert.equal(w.eval('S.realRole'), 'owner', 'not signed out by the session check');
+});

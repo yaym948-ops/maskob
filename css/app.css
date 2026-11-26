@@ -651,3 +651,7 @@ span.sh-c{cursor:default}
 .ef-ico{flex:none;width:38px;height:38px;border-radius:8px;background:var(--lav-soft);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
 .ef-main{flex:1;min-width:0;display:flex;flex-direction:column}.ef-main .hint{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ef-add{gap:8px;flex-wrap:wrap;margin-top:6px}
+
+/* full-access account: department / branch picker in the header */
+.who.ow{gap:8px;padding-inline:12px 6px}
+.ow-sel{appearance:auto;border:0;border-radius:999px;background:#fff;color:var(--navy);font:inherit;font-size:13px;font-weight:700;padding:3px 8px;max-width:170px}

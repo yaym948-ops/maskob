@@ -243,6 +243,9 @@ function pinEntries(){
 }
 const hashForKey=key=>{const h=key.startsWith('branch:')?(S.pins.br||{})[key.slice(7)]:S.pins[key];return h&&!String(h).startsWith('off:')?h:undefined};
 S.auth=LS.get('mk.auth',null);
+/* full-access accounts (role 'owner') look at the app as one department or branch at a time */
+function applyOwnerView(){const v=LS.get('mk.ownerView',{role:'manager'})||{role:'manager'};S.realRole='owner';S.role=v.role||'manager';S.branch=v.role==='branch'?(v.branch||S.branches[0]||null):S.branch}
+if(S.role==='owner')applyOwnerView();
 function setAuth(a){S.auth=a;LS.set('mk.auth',a)}
 const saveDraft=()=>LS.set('mk.draft',S.draft);
 
@@ -272,7 +275,7 @@ function checkAuth(){
   const key=a&&(a.role==='branch'?'branch:'+a.branch:a.role);
   const u=a&&a.user&&(S.users||[]).find(x=>x.id===a.user);
   const okUser=u&&u.active!==false&&u.h===a.h&&u.role===a.role;
-  if(!a||a.role!==S.role||(a.role==='branch'&&a.branch!==S.branch)||(a.user?!okUser:(!hashForKey(key)||a.h!==hashForKey(key)))){S.role=null;setAuth(null);LS.set('mk.role',null);S.open=null;S.review=false}
+  if(!a||a.role!==(S.realRole||S.role)||(a.role==='branch'&&a.branch!==S.branch)||(a.user?!okUser:(!hashForKey(key)||a.h!==hashForKey(key)))){S.role=null;setAuth(null);LS.set('mk.role',null);S.open=null;S.review=false}
 }
 
 /* ---------- store ---------- */
@@ -355,7 +358,8 @@ const Store={
     },e=>{S.error=e.code;S.pinsLoaded=true;render()});
     // resume an existing session on this device
     try{const s=await db.doc('sessions/'+S.uid).get();
-      if(s.exists){const a=s.data();S.role=a.role;S.branch=a.branch||null;S.auth=a;S.userId=a.user||null;S.userName=a.name||null;S.me=a.name||S.me}else{S.role=null;S.auth=null}
+      if(s.exists){const a=s.data();S.role=a.role;S.branch=a.branch||null;if(a.role==='owner'){applyOwnerView();const want=S.role==='branch'?S.branch:null;
+        if((a.branch||null)!==want){const n=Object.assign({},a);delete n.branch;if(want)n.branch=want;try{await db.doc('sessions/'+S.uid).set(n);S.auth=n}catch(e){}}}else S.realRole=null;S.auth=a;S.userId=a.user||null;S.userName=a.name||null;S.me=a.name||S.me}else{S.role=null;S.auth=null}
     }catch(e){S.role=null}
     S.sessChecked=true;this.fbReadyCheck();
   },
@@ -392,10 +396,11 @@ const Store={
   fbStop(){if(this._unsubO){this._unsubO();this._unsubO=null}if(this._unsubP){this._unsubP();this._unsubP=null}if(this._unsubN){this._unsubN();this._unsubN=null}if(this._unsubC){this._unsubC();this._unsubC=null}xStop();S.contact=null;S.notify=null;S.waDraft=null;S.orders=[];S.loaded=false;S.pins={};S.pinsReadable=undefined},
   async fbSignOut(){
     this.fbStop();try{await db.doc('sessions/'+S.uid).delete()}catch(e){}
-    S.role=null;S.auth=null;S.userId=null;S.userName=null;LS.set('mk.role',null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render();
+    S.role=null;S.realRole=null;S.auth=null;S.userId=null;S.userName=null;LS.set('mk.role',null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render();
   },
   async fbTrySession(role,branch,h,user,name){
     const d={role,h,at:new Date().toISOString()};if(role==='branch')d.branch=branch;if(user){d.user=user;d.name=name||''}
+    if(role==='owner'){const v=LS.get('mk.ownerView',null);if(v&&v.role==='branch'&&v.branch)d.branch=v.branch}   // the branch the general manager works as
     try{await db.doc('sessions/'+S.uid).set(d);return true}catch(e){return false}
   },
   async saveCodeLen(n){
@@ -579,7 +584,9 @@ function renderWho(authed){
   const el=document.getElementById('who');
   const lo=document.getElementById('logoutBox');
   if(!authed){el.innerHTML='';lo.innerHTML='';return}
-  el.innerHTML=`<div class="who"><span>${S.userName?`<b>${esc(S.userName)}</b> · `:''}${esc(roleL(S.role))}${S.role==='branch'?`: <b>${esc(S.branch||'')}</b>`:''}</span></div>`;
+  if(S.realRole==='owner'){const cur=S.role==='branch'?'branch:'+S.branch:S.role;
+    el.innerHTML=`<div class="who ow"><span>${S.userName?`<b>${esc(S.userName)}</b>`:esc(roleL('owner'))}</span><select class="ow-sel" id="ownerView" aria-label="${esc(t('ow_view'))}">${['manager','warehouse','hr','admin'].map(r=>`<option value="${r}" ${cur===r?'selected':''}>${esc(roleL(r))}</option>`).join('')}${S.branches.map(b=>`<option value="branch:${esc(b)}" ${cur==='branch:'+b?'selected':''}>${esc(roleL('branch'))}: ${esc(b)}</option>`).join('')}</select></div>`}
+  else el.innerHTML=`<div class="who"><span>${S.userName?`<b>${esc(S.userName)}</b> · `:''}${esc(roleL(S.role))}${S.role==='branch'?`: <b>${esc(S.branch||'')}</b>`:''}</span></div>`;
   lo.innerHTML=`<button class="logout-btn" data-act="logout">${esc(t('logout'))}</button>`;
 }
 function pinPad(){
@@ -1120,7 +1127,7 @@ function loginOk(r,h,br,user,name){
   if(r==='branch'){S.branch=br;LS.set('mk.branch',br)}
   S.userId=user||null;S.userName=name||null;if(name)S.me=name;
   const a=r==='branch'?{role:r,branch:br,h}:{role:r,h};if(user){a.user=user;a.name=name||''}
-  S.role=r;LS.set('mk.role',r);setAuth(a);S.pad={val:'',step:'enter',first:'',err:''};S.tab=null;
+  S.role=r;S.realRole=null;LS.set('mk.role',r);setAuth(a);if(r==='owner')applyOwnerView();S.pad={val:'',step:'enter',first:'',err:''};S.tab=null;
   if(S.fb)Store.fbStart();else xLoadDemo();
 }
 function findLocal(pin){
@@ -1194,7 +1201,7 @@ const A={
   menuOpen(){S.menuOpen=true;render()},
   menuClose(){S.menuOpen=false;render()},
   tab(el){S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
-  logout(){if(S.fb){Store.fbSignOut();return}S.userId=null;S.userName=null;S.role=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
+  logout(){if(S.fb){Store.fbSignOut();return}S.userId=null;S.userName=null;S.role=null;S.realRole=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
   pinDel(){cancelCheck();S.pad.val=S.pad.val.slice(0,-1);S.pad.err='';render()},

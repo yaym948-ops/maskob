@@ -7,7 +7,7 @@
    sessions/{uid} gets {user, name} as well; firestore.rules accepts the session only while the
    account exists, is active, and still has that code and role.
    log/{id}:    {at, uid, user, name, role, branch, op, col, doc}  — read by the system admin only. */
-const USER_ROLES=['manager','warehouse','branch','hr','admin'];
+const USER_ROLES=['owner','manager','warehouse','branch','hr','admin'];
 const usersList=()=>[...(S.users||[])].sort((a,b)=>(+(b.active!==false)-+(a.active!==false))||String(a.name).localeCompare(String(b.name),'ar'));
 const userRoleL=u=>roleL(u.role)+(u.role==='branch'&&u.branch?': '+u.branch:'');
 
@@ -15,7 +15,7 @@ function usersView(){
   const list=usersList();
   const shared=pinEntries().filter(e=>!e.user).length;
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_users')}</h2><button class="btn btn-sun" data-act="usNew">+ ${t('us_add')}</button></div>
-  <p class="hint">${esc(t('us_hint'))}</p>
+  <p class="hint">${esc(t('us_hint'))}</p><p class="hint">${esc(t('ow_hint'))}</p>
   ${shared&&list.some(u=>u.active!==false)?`<div class="note-bar" style="margin:8px 0">${esc(t('us_sharedLeft',{n:shared}))}</div>`:''}
   <div class="list" style="margin-top:10px">${list.length?list.map(u=>`<button class="oc ${u.active===false?'cat-off':''}" data-act="usOpen" data-id="${esc(u.id)}">
     <span style="min-width:0"><span class="t">${esc(u.name)}</span><span class="s">${esc(userRoleL(u))}</span></span>
@@ -39,7 +39,7 @@ const logSeen={};
 function logAct(op,col,doc){
   if(!S.role||LOG_SKIP.has(col))return;
   const k=op+'|'+col+'|'+doc;if(logSeen[k]&&Date.now()-logSeen[k]<60000)return;logSeen[k]=Date.now();
-  const e={at:nowIso(),uid:S.uid||'',user:S.userId||'',name:S.userName||'',role:S.role,branch:S.role==='branch'?(S.branch||''):'',op,col,doc:String(doc||'')};
+  const e={at:nowIso(),uid:S.uid||'',user:S.userId||'',name:S.userName||'',role:S.realRole||S.role,branch:S.role==='branch'?(S.branch||''):'',op,col,doc:String(doc||'')};
   if(S.fb){db.collection('log').add(e).catch(()=>{});return}
   MEMSET('log',[e,...MEM('log')].slice(0,500));
 }
@@ -101,3 +101,14 @@ A.delShared=function(el){
   const p=Object.assign({},S.pins);if(key.startsWith('branch:'))p.br=Object.assign({},S.pins.br||{},{[key.slice(7)]:off});else p[key]=off;
   guard(async()=>{await Store.savePins(p);S.pins=p;S.confirm=null;if(S.fb&&oldH)await db.doc('codes/'+oldH).delete().catch(()=>{})},()=>t('us_sharedRemoved'));
 };
+
+document.addEventListener('change',async ev=>{
+  const el=ev.target;if(el.id!=='ownerView'||S.realRole!=='owner')return;
+  const v=el.value.startsWith('branch:')?{role:'branch',branch:el.value.slice(7)}:{role:el.value};
+  LS.set('mk.ownerView',v);S.role=v.role;if(v.branch)S.branch=v.branch;S.tab=null;S.open=null;S.menuOpen=false;
+  if(S.fb){const a=Object.assign({},S.auth||{},{role:'owner',at:nowIso()});delete a.branch;if(v.branch)a.branch=v.branch;
+    try{await db.doc('sessions/'+S.uid).set(a);S.auth=a}catch(e){toast(t('noPerm'))}
+    Store.fbStart()}
+  else xLoadDemo();
+  render();window.scrollTo(0,0);
+});
