@@ -206,6 +206,7 @@ function salesView(){
     </div>
     <div class="row" style="justify-content:space-between"><span class="hint">${f.sales&&f.invoices&&+f.invoices>0?esc(t('sl_avg'))+': <b class="num">'+esc(sar2(+f.sales/+f.invoices))+'</b> '+t('sar'):''}</span>
     <button class="btn btn-sun" data-act="saveSales">${ex?t('sl_update'):t('sl_save')}</button></div>
+    ${typeof phBlock==='function'?phBlock('sales',S.branch+'_'+day,{title:'ph_sales',required:'ph_salesNeed',branch:S.branch}):''}
   </div>
   <div class="stats">
     ${kpi(t('sl_month'),sar(st.sales)+' '+t('sar'))}${kpi(t('sl_invCount'),sar(st.inv))}${kpi(t('sl_avg'),sar2(st.avg)+' '+t('sar'))}
@@ -319,6 +320,7 @@ function checksView(){
   return`<h2>${t('tab_checks')}</h2><p class="hint">${esc(dateLabel(today))}</p>
   <div class="prog" style="margin-top:10px"><span class="num">${esc(t('ck_done',{d:done,n:items.length}))}</span><div class="bar"><i style="width:${items.length?Math.round(done/items.length*100):0}%"></i></div></div>
   <div class="lines">${items.map(x=>{const on=!!marks[itemKey(x)];return`<div class="ln has-chk ${on?'done':''}"><button class="chk ${on?'on':''}" data-act="ckToggle" data-k="${esc(itemKey(x))}" aria-pressed="${on}">✓</button><div class="nm" dir="auto">${esc(x)}</div><span></span></div>`}).join('')}</div>
+  ${typeof phBlock==='function'?phBlock('checks',id,{instant:true,branch:S.branch,title:'ph_checks'}):''}
   <div class="rp-sec"><h3>${t('ck_week')}</h3><div class="ck-week">${hist.map(h=>`<div class="ck-day"><div class="ck-col"><i style="height:${Math.round(h.p*100)}%"></i></div><span>${esc(weekdayName(fromKey(h.k).getDay()))}</span><b class="num">${h.has?Math.round(h.p*100)+'%':'—'}</b></div>`).join('')}</div></div>`;
 }
 
@@ -344,7 +346,11 @@ Object.assign(A,{
     if(!(sales>0)||!(inv>0)){toast(t('sl_need'));return}
     if(day>dayKey(Date.now())){toast(t('sl_future'));return}
     const id=S.branch+'_'+day;
-    guard(()=>X.put('sales',id,{branch:S.branch,date:day,sales,invoices:inv,at:nowIso()}),()=>t('sl_saved'));
+    /* the photo of the cashier's closing report must come with the figures */
+    const pn=typeof phCount==='function'?phCount('sales',id):null;
+    if(pn===0){toast(t('ph_salesNeed'));return}
+    const data={branch:S.branch,date:day,sales,invoices:inv,at:nowIso()};if(pn!=null)data.photos=pn;
+    guard(async()=>{await X.put('sales',id,data);if(typeof phCommit==='function')await phCommit('sales',id,id,S.branch);},()=>t('sl_saved'));
   },
   slEdit(el){S.slDay=el.dataset.d;S.slForm=null;render();window.scrollTo(0,0)},
   slMetric(el){S.slMetric=el.dataset.k;render()},

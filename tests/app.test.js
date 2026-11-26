@@ -516,3 +516,43 @@ test('invoice reading: ZATCA QR, invoice text, prefilled form saved with its pho
   assert.equal(w.eval('S.supInv').length, 1, 'duplicate held back');
   d.click('[data-act="close"]');
 });
+
+test('attached photos: kept with an expense, removed again, required with the daily sales', async () => {
+  const d = driver(w), S = w.eval('S'), img = 'data:image/jpeg;base64,/9j/PHOTO';
+  const addPhoto = (key) => { const p = S.phs[key]; assert.ok(p, 'photo strip for ' + key); p.list.push({ pid: 'p' + p.list.length, data: img, saved: false }); w.eval('render()'); };
+  // finance: an expense with two photos
+  await d.signIn('6060');
+  w.eval('MEMSET')('expenses', []); w.eval('xLoadDemo()');
+  d.click('[data-act="tab"][data-k="expenses"]'); d.click('[data-act="exNew"]'); await sleep(20);
+  assert.ok(w.document.querySelector('.ph-block .ph-add input[type="file"][accept="image/*"][multiple]'), 'add-photo button (camera or gallery)');
+  addPhoto('expenses/new'); addPhoto('expenses/new');
+  assert.equal(w.document.querySelectorAll('.ph-th').length, 2);
+  d.setVal('hr-amount', '115'); d.click('[data-act="exSave"]'); await sleep(300);
+  const ex = w.eval('S.expenses')[0];
+  assert.equal(ex.photos, 2);
+  assert.equal((await w.eval('PH_STORE').list('expenses', ex.id)).length, 2, 'photos stored with the record');
+  // opened again: the photos load; one is removed on save
+  w.eval('A.exOpen')({ dataset: { id: ex.id } }); w.eval('render()'); await sleep(50);
+  assert.equal(w.document.querySelectorAll('.ph-th').length, 2, 'photos shown again');
+  d.click('.ph-x'); d.click('[data-act="exSave"]'); await sleep(300);
+  assert.equal(w.eval('S.expenses')[0].photos, 1);
+  assert.equal((await w.eval('PH_STORE').list('expenses', ex.id)).length, 1);
+  // the large view opens and closes
+  w.eval('A.exOpen')({ dataset: { id: ex.id } }); w.eval('render()'); await sleep(50);
+  d.click('[data-act="phView"]'); assert.ok(w.document.getElementById('phBox'), 'large view');
+  d.click('#phBox [data-act="phClose"]'); assert.ok(!w.document.getElementById('phBox'));
+  d.click('[data-act="close"]');
+  // a branch cannot save the day's sales without the closing report photo
+  await d.signIn('9191'); d.setVal('ownerBranch', 'branch:القطيف'); await sleep(200);
+  d.click('[data-act="tab"][data-k="sales"]');
+  const day = w.eval('dayKey(Date.now())'), sid = 'القطيف_' + day;
+  w.eval('MEMSET')('sales', []); w.eval('xLoadDemo()'); S.slForm = { day, sales: '5000', invoices: '120' }; w.eval('render()'); await sleep(50);
+  assert.ok(w.document.querySelector('.ph-block.need'), 'photo asked for');
+  d.click('[data-act="saveSales"]'); await sleep(200);
+  assert.equal(w.eval('S.sales').filter((r) => r.id === sid).length, 0, 'not saved without a photo');
+  addPhoto('sales/' + sid);
+  d.click('[data-act="saveSales"]'); await sleep(300);
+  const row = w.eval('S.sales').find((r) => r.id === sid);
+  assert.ok(row, 'saved with the photo'); assert.equal(row.photos, 1);
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});

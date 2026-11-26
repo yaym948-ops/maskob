@@ -126,6 +126,7 @@ function branchLeaveView(embedded){
       ${li('from',t('lv_from'),'date','')}${li('to',t('lv_to'),'date','')}</div>
     <div class="hint" id="lrDays" style="margin:6px 0">${n?esc(t('hr_days',{n})):''}</div>
     <label style="display:block"><span class="hint">${t('lr_reason')}</span><textarea class="field" id="lr-note" rows="2" dir="auto" data-in="lrF" data-f="note">${esc(d.note||'')}</textarea></label>
+    ${typeof phBlock==='function'?phBlock('leaveReqs',null,{title:'ph_leave',branch:S.branch}):''}
     <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn btn-sun" data-act="lrSend" ${S.busy?'disabled':''}>${t('lr_send')}</button></div>
   </div>
   <div class="rp-sec"><h3>${t('lr_mine')}</h3><div class="list" style="margin-top:10px">${list.length?list.map(r=>`<div class="oc lr-card">
@@ -159,7 +160,7 @@ function lrSheet(){
   ${d.emp?'':`<p class="hint">${esc(t('lr_noMatch'))}</p>`}
   <label style="display:block;margin-top:10px"><span class="hint">${t('lr_hrNote')}</span><textarea class="field" id="hr-hrNote" rows="2" dir="auto" data-in="hrF" data-f="hrNote">${esc(d.hrNote||'')}</textarea></label>`;
   const foot=`<button class="btn btn-bad" data-act="lrDecide" data-k="rejected" ${S.busy?'disabled':''}>${t('lv_reject')}</button><span class="spacer"></span><button class="btn btn-sun" data-act="lrDecide" data-k="approved" ${S.busy?'disabled':''}>${t('lv_approve')}</button>`;
-  return hrSheetWrap(t('lr_title'),body,foot);
+  return hrSheetWrap(t('lr_title'),body+(r.photos&&typeof phBlock==='function'?phBlock('leaveReqs',r.id,{readOnly:true,title:'ph_leave'}):''),foot);
 }
 Object.assign(A,{
   lrSend(){
@@ -168,8 +169,8 @@ Object.assign(A,{
     if(d.to<d.from){toast(t('lv_badDates'));return}
     const id=hrId('LR');const tm=nowIso();
     const data={branch:S.branch,staffId:d.staffId||'',empName,empNo:String(d.empNo||'').trim(),type:LEAVE_TYPES.includes(d.type)?d.type:'annual',from:d.from,to:d.to,days:lrDays(d),
-      note:String(d.note||'').trim(),status:'pending',createdAt:tm};
-    guard(async()=>{await X.put('leaveReqs',id,data);S.lrDraft=null},()=>t('lr_sent'));
+      note:String(d.note||'').trim(),status:'pending',createdAt:tm};if(typeof phCount==='function'){const _n=phCount('leaveReqs',null);if(_n!=null)data.photos=_n}
+    guard(async()=>{await X.put('leaveReqs',id,data);if(typeof phCommit==='function')await phCommit('leaveReqs',null,id,S.branch);S.lrDraft=null},()=>t('lr_sent'));
   },
   lrCancel(el){const id=el.dataset.id;if(S.confirm!=='lrCancel:'+id){S.confirm='lrCancel:'+id;render();return}
     guard(async()=>{await X.del('leaveReqs',id);S.confirm=null},()=>t('lr_cancelled'))},

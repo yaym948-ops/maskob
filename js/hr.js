@@ -124,7 +124,7 @@ function leaveSheet(){
   <div class="kind" style="margin-bottom:10px">${['pending','approved','rejected'].map(s=>`<button aria-pressed="${(d.status||'pending')===s}" data-act="lvStatus" data-k="${s}">${esc(t('ls_'+s))}</button>`).join('')}</div>
   <label style="display:block"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>`;
   const foot=`${isNew?'':`<button class="btn btn-bad" data-act="lvDel">${S.confirm==='lvDel'?t('lv_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="lvSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
-  return hrSheetWrap(isNew?t('lv_add'):t('tab_leaves')+': '+empName(l.emp),body,foot);
+  return hrSheetWrap(isNew?t('lv_add'):t('tab_leaves')+': '+empName(l.emp),body+(typeof phBlock==='function'?phBlock('leaves',isNew?null:S.openLeave,{title:'ph_leave'}):''),foot);
 }
 /* ---------- allowances and pay ---------- */
 const ALLOWANCES=['alHousing','alTransport','alFood','alOther'];
@@ -627,7 +627,8 @@ Object.assign(A,{
     const id=S.openLeave==='new'?hrId('L'):S.openLeave;const tm=nowIso();
     const data={emp:d.emp,type:LEAVE_TYPES.includes(d.type)?d.type:'annual',from:d.from,to:d.to,days:leaveDays(d),status:['approved','rejected'].includes(d.status)?d.status:'pending',note:String(d.note||'').trim(),updatedAt:tm,
       createdAt:((S.leaves||[]).find(x=>x.id===id)||{}).createdAt||tm};
-    guard(async()=>{await X.put('leaves',id,data);S.openLeave=null;S.hrDraft=null},()=>t('lv_saved'));
+    const phId=S.openLeave==='new'?null:S.openLeave;if(typeof phCount==='function'){const _n=phCount('leaves',phId);if(_n!=null)data.photos=_n}
+    guard(async()=>{await X.put('leaves',id,data);if(typeof phCommit==='function')await phCommit('leaves',phId,id,'');S.openLeave=null;S.hrDraft=null},()=>t('lv_saved'));
   },
   lvDel(){const id=S.openLeave;if(!id||id==='new')return;
     if(S.confirm!=='lvDel'){S.confirm='lvDel';render();return}

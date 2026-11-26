@@ -741,3 +741,23 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
 .fc-card.fc-sug{border:1px solid var(--sun);box-shadow:0 2px 10px rgba(239,138,34,.18)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sidenav{background:rgba(13,38,71,.92)}}
 :root[data-theme="dark"] .sidenav{background:rgba(13,38,71,.92)}
+/* ---------- attached photos (photos.js) ---------- */
+.ph-block{margin-top:14px;padding:12px;border:1px dashed var(--line);border-radius:var(--r);background:var(--card)}
+.ph-block.need{border-color:var(--sun);background:var(--sun-soft)}
+.ph-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.ph-h b{display:inline-flex;align-items:center;gap:6px;color:var(--navy)}
+.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.ph-th{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--soft)}
+.ph-img{all:unset;cursor:zoom-in;display:block;width:100%;height:100%}
+.ph-img img{width:100%;height:100%;object-fit:cover;display:block}
+.ph-x{position:absolute;top:4px;inset-inline-end:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(11,37,69,.72);color:#fff;display:grid;place-items:center;cursor:pointer;padding:0}
+.ph-x .ic{width:14px;height:14px}
+.ph-add{aspect-ratio:1;border:1.5px dashed var(--navy);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--navy);font-size:12.5px;font-weight:700;cursor:pointer;position:relative;text-align:center;padding:4px;background:var(--lav-soft)}
+.ph-add .ic{width:22px;height:22px}
+.ph-add.busy{opacity:.6;cursor:progress}
+.ph-add input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.ph-box{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+.ph-bg{position:absolute;inset:0;border:0;background:rgba(4,20,40,.88);cursor:zoom-out}
+.ph-box img{position:relative;max-width:min(96vw,1100px);max-height:80vh;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.4);background:#fff}
+.ph-bar{position:relative;display:flex;align-items:center;gap:10px;color:#fff}
+.ph-bar .btn{min-height:40px}.ph-bar .btn-ghost{background:rgba(255,255,255,.14);color:#fff;border-color:transparent}

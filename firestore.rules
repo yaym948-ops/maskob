@@ -261,6 +261,35 @@ service cloud.firestore {
       allow read, write: if isRole('finance');
       match /files/{f} { allow read, write: if isRole('finance'); }   // the invoice photo
     }
+    // ---- photos attached to records: {collection}/{id}/photos/{p} {data, branch, at} — same people as the record ----
+    match /expenses/{id}/photos/{p} { allow read, write: if isRole('finance'); }
+    match /supInvoices/{id}/photos/{p} { allow read, write: if isRole('finance'); }
+    match /vouchers/{id}/photos/{p} { allow read, write: if isRole('hr') || isRole('finance'); }
+    match /leaves/{id}/photos/{p} {
+      allow read: if isRole('hr') || isRole('finance');
+      allow write: if isRole('hr');
+    }
+    // a branch attaches photos to its own forms, leave requests, daily sales and daily checklist
+    match /forms/{id}/photos/{p} {
+      allow read: if isRole('hr') || isRole('finance') || (isBranch() && resource.data.branch == myBranch());
+      allow create: if isRole('hr') || (isBranch() && request.resource.data.branch == myBranch());
+      allow delete: if isRole('hr');
+    }
+    match /leaveReqs/{id}/photos/{p} {
+      allow read: if isRole('hr') || (isBranch() && resource.data.branch == myBranch());
+      allow create: if isBranch() && request.resource.data.branch == myBranch();
+      allow delete: if isRole('hr') || (isBranch() && resource.data.branch == myBranch());
+    }
+    match /sales/{id}/photos/{p} {
+      allow read: if isMgr() || isRole('finance') || (isBranch() && resource.data.branch == myBranch());
+      allow create, update: if isMgr() || (isBranch() && request.resource.data.branch == myBranch());
+      allow delete: if isMgr() || (isBranch() && resource.data.branch == myBranch());
+    }
+    match /checks/{id}/photos/{p} {
+      allow read: if isMgr() || (isBranch() && resource.data.branch == myBranch());
+      allow create, update: if isBranch() && request.resource.data.branch == myBranch();
+      allow delete: if isMgr() || (isBranch() && resource.data.branch == myBranch());
+    }
     // supplier cards (name, VAT number, mobile, bank, usual credit term)
     match /suppliers/{id} {
       allow read, write: if isRole('finance');

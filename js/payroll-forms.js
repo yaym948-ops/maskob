@@ -178,7 +178,7 @@ function voucherSheet(){
   <div class="hint" id="vcWords" style="margin-top:8px">${+d.amount>0?esc(tafqeet(num(d.amount))):''}</div>
   <label style="display:block;margin-top:10px"><span class="hint">${t('vc_purpose')}</span><textarea class="field" id="hr-purpose" rows="2" dir="auto" data-in="hrF" data-f="purpose">${esc(d.purpose||'')}</textarea></label>`;
   const foot=`${isNew?'':`<button class="btn btn-bad" data-act="vcDel">${S.confirm==='vcDel'?t('li_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-ghost" data-act="vcSave" data-k="1" ${S.busy?'disabled':''}>${t('vc_savePrint')}</button><button class="btn btn-sun" data-act="vcSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
-  return hrSheetWrap(isNew?t('vc_add'):t('vc_title')+' #'+(d.no||''),body,foot);
+  return hrSheetWrap(isNew?t('vc_add'):t('vc_title')+' #'+(d.no||''),body+(typeof phBlock==='function'?phBlock('vouchers',isNew?null:S.openVc):''),foot);
 }
 /* ---------- printing ---------- */
 const PRINT_CSS=`@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:"IBM Plex Sans Arabic",Arial,sans-serif;color:#13233a;margin:0;font-size:13px;line-height:1.75}
@@ -282,12 +282,12 @@ function formSheet(){
       <label style="display:block;margin-top:10px"><span class="hint">${t('lr_hrNote')}</span><textarea class="field" id="hr-hrNote" rows="2" dir="auto" data-in="hrF" data-f="hrNote">${esc(d.hrNote||'')}</textarea></label>`:''}`;
     const foot=hr&&pending?`<button class="btn btn-bad" data-act="fmDecide" data-k="rejected">${t('lv_reject')}</button><span class="spacer"></span><button class="btn btn-sun" data-act="fmDecide" data-k="approved">${t('lv_approve')}</button>`
       :`${(hr||f.status==='pending')?`<button class="btn btn-bad" data-act="fmDel">${S.confirm==='fmDel'?t('li_delConfirm'):t('del')}</button>`:''}<span class="spacer"></span>${hr&&f.type==='reward'&&f.status==='approved'&&+f.amount&&!f.voucher?`<button class="btn btn-ghost" data-act="fmVoucher">${t('fm_toVoucher')}</button>`:''}${f.status!=='rejected'?`<button class="btn btn-sun" data-act="fmPrint">${t('fm_print')}</button>`:''}`;
-    return hrSheetWrap(t('fm_'+f.type)+': '+f.empName,body,foot);
+    return hrSheetWrap(t('fm_'+f.type)+': '+f.empName,body+(f.photos&&typeof phBlock==='function'?phBlock('forms',f.id,{readOnly:true,title:'ph_proof'}):''),foot);
   }
   const opts=S.role==='hr'?[['',t('hr_pickEmp')],...(S.emps||[]).filter(e=>e.status!=='left').sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar')).map(e=>['e:'+e.id,e.name+(e.no?' #'+e.no:'')+' — '+placeL(e.branch)])]
     :[['',t('hr_pickEmp')],...activeStaff().map(st=>['s:'+st.id,st.name+(st.no?' #'+st.no:'')])];
   const foot=`<span class="spacer"></span><button class="btn btn-sun" data-act="fmSend" ${S.busy?'disabled':''}>${t(S.role==='hr'?'waSave':'fm_send')}</button>`;
-  return hrSheetWrap(t('fm_new'),formFields(d,opts)+(S.role==='branch'&&!activeStaff().length?`<p class="hint">${esc(t('sh_noStaff'))}</p>`:''),foot);
+  return hrSheetWrap(t('fm_new'),formFields(d,opts)+(S.role==='branch'&&!activeStaff().length?`<p class="hint">${esc(t('sh_noStaff'))}</p>`:'')+(typeof phBlock==='function'?phBlock('forms',null,{title:'ph_proof'}):''),foot);
 }
 /* ---------- HR: forms tab ---------- */
 function hrFormsView(){
@@ -319,8 +319,9 @@ Object.assign(A,{
     const id=S.openVc==='new'?hrId('V'):S.openVc;const old=(S.vouchers||[]).find(x=>x.id===id)||{};const tm=nowIso();
     const data={no:Math.round(num(d.no))||nextVoucherNo(),date:isDay(d.date)?d.date:dayKey(Date.now()),emp:d.emp||'',payee,amount,cat:VC_CATS.includes(d.cat)?d.cat:'other',method:PAY_METHODS.includes(d.method)?d.method:'cash',
       ref:String(d.ref||'').trim(),bank:String(d.bank||'').trim(),iban:normIban(d.iban),purpose:String(d.purpose||'').trim(),form:old.form||d.form||'',createdAt:old.createdAt||tm,updatedAt:tm};
+    const phId=S.openVc==='new'?null:S.openVc;if(typeof phCount==='function'){const _n=phCount('vouchers',phId);if(_n!=null)data.photos=_n}
     const win=el&&el.dataset.k?window.open('','_blank'):null;if(win)printVoucher(data,win);
-    guard(async()=>{await X.put('vouchers',id,data);if(data.form)await X.upd('forms',data.form,{voucher:id}).catch(()=>{});S.openVc=null;S.hrDraft=null},()=>t('vc_saved'))},
+    guard(async()=>{await X.put('vouchers',id,data);if(typeof phCommit==='function')await phCommit('vouchers',phId,id,'');if(data.form)await X.upd('forms',data.form,{voucher:id}).catch(()=>{});S.openVc=null;S.hrDraft=null},()=>t('vc_saved'))},
   vcDel(){const id=S.openVc;if(!id||id==='new')return;if(S.confirm!=='vcDel'){S.confirm='vcDel';render();return}
     guard(async()=>{await X.del('vouchers',id);S.openVc=null;S.confirm=null},()=>t('li_deleted'))},
   fmNew(){S.openForm='new';S.confirm=null;S.hrDraft={type:'deduction',pick:'',date:dayKey(Date.now()),level:'1',days:'',amount:'',reason:''};render()},
@@ -339,8 +340,9 @@ Object.assign(A,{
     const data={branch,staffId,emp,empName:who.name,empNo:String(who.no||''),type:ty,date:isDay(d.date)?d.date:dayKey(Date.now()),reason:String(d.reason).trim(),
       amount:ty!=='warning'&&num(d.amount)>0?num(d.amount):null,days:ty==='deduction'&&num(d.days)>0?num(d.days):null,level:ty==='warning'?String(d.level||'1'):null,
       status:hr?'approved':'pending',by:hr?'hr':'branch',createdAt:tm};
-    if(hr)data.decidedAt=tm;
-    guard(async()=>{await X.put('forms',hrId('F'),data);S.openForm=null;S.hrDraft=null},()=>t(hr?'fm_saved':'fm_sent'));
+    if(hr)data.decidedAt=tm;if(typeof phCount==='function'){const _n=phCount('forms',null);if(_n!=null)data.photos=_n}
+    const fid=hrId('F');
+    guard(async()=>{await X.put('forms',fid,data);if(typeof phCommit==='function')await phCommit('forms',null,fid,branch);S.openForm=null;S.hrDraft=null},()=>t(hr?'fm_saved':'fm_sent'));
   },
   fmDecide(el){const f=(S.forms||[]).find(x=>x.id===S.openForm);if(!f)return;const d=S.hrDraft||{};const st=el.dataset.k;
     if(st==='approved'&&!d.emp){toast(t('lr_pickFirst'));return}

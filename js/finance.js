@@ -132,6 +132,7 @@ function expenseSheet(){
     ${hrIn('amount',t('vc_amount')+' ('+t('sar')+')','number')}${hrIn('vat',t('ex_vat')+' ('+t('sar')+')','number')}
     ${hrIn('ref',t('ex_ref'),'text','dir="ltr"')}</div>${typeof supDatalist==='function'?supDatalist():''}
   ${vatBlock(d)}${inc?`<div class="sl-grid hr-grid">${hrSel('method',t('vc_method'),PAY_METHODS.map(k=>[k,t('pm_'+k)]))}</div>`:termsBlock(d)}
+  ${typeof phBlock==='function'?phBlock('expenses',isNew?null:S.openExp):''}
   ${!isNew&&expUnpaid((S.expenses||[]).find(x=>x.id===S.openExp)||{})?`<div class="tm-due"><span>${esc(t('tm_notPaid'))}${d.due?' · '+esc(t('si_due'))+': '+esc(dateLabel(d.due)):''}</span>${hrSel('method',t('vc_method'),PAY_METHODS.map(k=>[k,t('pm_'+k)]))}<button class="btn btn-navy" data-act="exPaid">${esc(t('tm_markPaid'))}</button></div>`:''}
   <h4 class="hr-sub">${t('ex_period')}</h4><div class="sl-grid hr-grid">${hrIn('periodFrom',t('ex_pFrom'),'month')}${hrIn('periodTo',t('ex_pTo'),'month')}</div><p class="hint">${esc(t('ex_periodHint'))}</p>
   <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>${window.docImgBlock?docImgBlock('expenses',isNew?null:Object.assign({id:S.openExp},(S.expenses||[]).find(x=>x.id===S.openExp))):''}`;
@@ -167,7 +168,7 @@ function supInvSheet(){
     ${hrIn('date',t('si_date'),'date')}
     ${hrIn('amount',t('si_amount')+' ('+t('sar')+')','number')}${hrIn('vat',t('ex_vat')+' ('+t('sar')+')','number')}</div>${typeof supDatalist==='function'?supDatalist():''}
   ${vatBlock(d)}${isNew?termsBlock(d):`<p class="hint">${esc(t('tm_'+(inv.terms||'credit')))}${inv.due&&inv.terms!=='cash'?' · '+esc(t('si_due'))+': '+esc(dateLabel(inv.due)):''}</p>${inv.terms==='cash'?'':`<div class="sl-grid hr-grid">${hrIn('due',t('si_due'),'date')}</div>`}`}
-  <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>${window.docImgBlock?docImgBlock('supInvoices',inv):''}${pays}`;
+  <label style="display:block;margin-top:10px"><span class="hint">${t('hr_note')}</span><textarea class="field" id="hr-note" rows="2" dir="auto" data-in="hrF" data-f="note">${esc(d.note||'')}</textarea></label>${window.docImgBlock?docImgBlock('supInvoices',inv):''}${typeof phBlock==='function'?phBlock('supInvoices',isNew?null:S.openSi):''}${pays}`;
   const foot=`${isNew?'':`<button class="btn btn-bad" data-act="siDel">${S.confirm==='siDel'?t('li_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="siSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
   return hrSheetWrap(isNew?t('si_add'):inv.supplier,body,foot);
 }
@@ -200,8 +201,9 @@ Object.assign(A,{
     if(data.terms==='credit'){data.termDays=d.termDays&&d.termDays!=='other'?+d.termDays:null;data.due=dueOf(d,data.date);data.paid=!!old.paid;data.paidDate=old.paidDate||''}
     else{data.termDays=null;data.due='';data.paid=true;data.paidDate=old.paidDate||data.date}
     if(typeof supFind==='function'){const s=supFind(data.payee,data.vatNo);data.supplierId=s?s.id:''}
+    const phId=S.openExp==='new'?null:S.openExp;if(typeof phCount==='function'){const _n=phCount('expenses',phId);if(_n!=null)data.photos=_n}
     const img=S.docImg;
-    guard(async()=>{await X.put('expenses',id,data);if(img&&typeof DOC_FILES!=='undefined'){await DOC_FILES.put('expenses',id,img);(S.docImgs||(S.docImgs={}))['expenses/'+id]=img}
+    guard(async()=>{await X.put('expenses',id,data);if(typeof phCommit==='function')await phCommit('expenses',phId,id,'');if(img&&typeof DOC_FILES!=='undefined'){await DOC_FILES.put('expenses',id,img);(S.docImgs||(S.docImgs={}))['expenses/'+id]=img}
       S.openExp=null;S.hrDraft=null;S.docImg=null;S.scanInfo=null},()=>t('st_saved'))},
   exDel(){const id=S.openExp;if(!id||id==='new')return;if(S.confirm!=='exDel'){S.confirm='exDel';render();return}
     guard(async()=>{if(typeof DOC_FILES!=='undefined')await DOC_FILES.del('expenses',id);await X.del('expenses',id);S.openExp=null;S.confirm=null},()=>t('li_deleted'))},
@@ -224,13 +226,14 @@ Object.assign(A,{
       note:String(d.note||'').trim(),payments:old.payments||[],createdAt:old.createdAt||tm,updatedAt:tm};
     if(typeof supFind==='function'){const s=(d.supplierId&&supById(d.supplierId))||supFind(supplier,data.vatNo);data.supplierId=s&&(s.name===supplier||(s.vatNo&&s.vatNo===data.vatNo))?s.id:''}
     data.status=supRemain(data)>0?'open':'paid';
+    if(typeof phCount==='function'){const _n=phCount('supInvoices',isNew?null:id);if(_n!=null)data.photos=_n}
     const img=S.docImg,method=PAY_METHODS.includes(d.method)?d.method:'bank';
     guard(async()=>{
       /* a cash invoice is paid when it is entered: the payment and its voucher are made with it */
       if(isNew&&terms==='cash'){const vid=hrId('V'),vno=nextVoucherNo();
         await X.put('vouchers',vid,{no:vno,date,emp:'',payee:supplier,amount,cat:'supplier',method,ref:'',purpose:t('si_payFor',{n:data.number||supplier}),createdAt:tm,updatedAt:tm});
         data.payments=[{date,amount,method,voucher:vid,vno}];data.status='paid'}
-      await X.put('supInvoices',id,data);if(img&&typeof DOC_FILES!=='undefined'){await DOC_FILES.put('supInvoices',id,img);(S.docImgs||(S.docImgs={}))['supInvoices/'+id]=img}
+      await X.put('supInvoices',id,data);if(typeof phCommit==='function')await phCommit('supInvoices',isNew?null:id,id,'');if(img&&typeof DOC_FILES!=='undefined'){await DOC_FILES.put('supInvoices',id,img);(S.docImgs||(S.docImgs={}))['supInvoices/'+id]=img}
       S.openSi=null;S.hrDraft=null;S.docImg=null;S.scanInfo=null;S.confirm=null},()=>t('st_saved'))},
   /* a payment is recorded on the invoice and as a payment voucher */
   siPay(){const inv=(S.supInv||[]).find(x=>x.id===S.openSi);if(!inv)return;const p=S.siPay||{};
