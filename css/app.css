@@ -726,3 +726,18 @@ span.sh-c{cursor:default}
 /* the general manager's two pickers: departments and branches */
 .who.ow{gap:6px;flex-wrap:wrap}
 .ow-sel.on{background:var(--sun);color:var(--navy-ink)}
+/* ---------- brand colours blended into the backgrounds (soft blue → orange) ---------- */
+:root{--grad-page:linear-gradient(165deg,#e3eefa 0%,#f1f6fc 38%,#f8f5f0 72%,#fdeedc 100%);
+  --grad-hdr:linear-gradient(120deg,#04427f 0%,#0758a7 55%,#1a6fc0 100%)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--grad-page:linear-gradient(165deg,#061830 0%,#071a33 45%,#1a1a24 80%,#2a1c12 100%);--grad-hdr:linear-gradient(120deg,#032f5c 0%,#0758a7 100%)}}
+:root[data-theme="dark"]{--grad-page:linear-gradient(165deg,#061830 0%,#071a33 45%,#1a1a24 80%,#2a1c12 100%);--grad-hdr:linear-gradient(120deg,#032f5c 0%,#0758a7 100%)}
+body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 100vh}
+.scene,.cartbar,.sheet-brand{background:var(--grad-hdr)}
+.scene{border-bottom:3px solid var(--sun);box-shadow:0 2px 14px rgba(4,66,127,.18)}
+.sidenav{background:rgba(255,255,255,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sidenav .tab[aria-selected="true"]{background:linear-gradient(90deg,var(--lav-soft),var(--sun-soft))}
+[dir="rtl"] .sidenav .tab[aria-selected="true"]{background:linear-gradient(270deg,var(--lav-soft),var(--sun-soft))}
+.banner,.fc-card{background:linear-gradient(120deg,var(--lav-soft),var(--sun-soft))}
+.fc-card.fc-sug{border:1px solid var(--sun);box-shadow:0 2px 10px rgba(239,138,34,.18)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sidenav{background:rgba(13,38,71,.92)}}
+:root[data-theme="dark"] .sidenav{background:rgba(13,38,71,.92)}

@@ -198,7 +198,21 @@ test('general manager (full access) works as any department or branch from one a
   assert.equal(w.document.getElementById('ownerBranch').value, 'branch:القطيف');
   assert.ok(![...w.document.getElementById('ownerView').options].some((o) => o.value.startsWith('branch:')), 'no branches in the departments picker');
   assert.ok(![...w.document.querySelectorAll('#tabsIn [data-act="tab"]')].some((b) => b.dataset.k === 'fc'), 'no forecast page in a branch');
-  assert.ok(!w.document.querySelector('.fc-card'), 'no forecast suggestion on the order screen');
+  // the forecast is still there: after 7 approved orders, on the usual ordering day an empty cart is filled once
+  {
+    const S = w.eval('S'), ids = w.eval('ITEMS').slice(0, 3).map((x) => x.id), day = 864e5, now = Date.now();
+    const saved = S.orders;
+    w.eval('A.clearDraft()'); w.eval('LS').set('mk.fcAuto.القطيف', null);
+    S.orders = Array.from({ length: 7 }, (_, i) => ({ id: 'FC' + i, branch: 'القطيف', kind: 'supply', status: 'received',
+      createdAt: new Date(now - (7 - i) * 3 * day).toISOString(), lines: ids.map((id) => ({ id, qty: 4, received: 4 })) }));
+    d.click('[data-act="tab"][data-k="new"]'); w.eval('render()');
+    assert.ok(w.document.querySelector('.fc-sug'), 'suggested order shown');
+    assert.equal(JSON.stringify(ids.map((id) => S.draft.lines[id])), '[4,4,4]', 'cart filled with the forecast');
+    d.click('.fc-sug [data-act="clearDraft"]'); w.eval('render()');
+    assert.equal(Object.values(S.draft.lines).filter((q) => q > 0).length, 0, 'emptied by the branch stays empty');
+    assert.ok(!w.document.querySelector('.fc-sug'));
+    S.orders = saved; w.eval('A.clearDraft()');
+  }
   // the same line icons in the menu and on buttons
   assert.ok(w.document.querySelector('#tabsIn .tab-ico svg.ic'), 'menu icons');
   await pick('hr');

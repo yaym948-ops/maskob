@@ -951,7 +951,8 @@ function popularity(){
 }
 function newOrder(){
   const d=S.draft,qq=S.q.trim(),q=qq.toLowerCase();
-  const fc=null;  /* forecasts were taken out of the branch screens */
+  const fc=d.kind==='supply'?forecastBranch(S.branch):null;
+  if(fc)fcAutoFill(fc);
   const match=it=>!q||[it.ar,it.bn,it.ur].some(s=>s&&s.includes(qq))||it.en.toLowerCase().includes(q)||it.sku.toLowerCase().includes(q);
   const pop=popularity();
   const cats=pop.cats.filter(x=>S.cat==='all'||x.c.k===S.cat).map(x=>Object.assign({},x.c,{list:x.list}));
@@ -968,7 +969,18 @@ function newOrder(){
   <div class="row" style="margin-top:14px"><label class="search"><input id="q" type="search" placeholder="${esc(t('searchPh'))}" value="${esc(S.q)}" data-in="q" autocomplete="off"></label></div>
   <div class="chips">${chips}</div>${body}`;
 }
+/* the suggested order: from the 7th approved order on, when the branch's usual ordering day comes, an empty
+   cart is filled once with the forecast; the branch checks the quantities, then sends it as it is or changed.
+   Emptying the cart keeps it empty until the next cycle (the next approved order). */
+const fcDue=fc=>fc.ready&&fc.items.length&&Date.now()>=Date.parse(fc.next)-864e5;
+function fcAutoFill(fc){
+  const d=S.draft,key='mk.fcAuto.'+S.branch;
+  if(!fcDue(fc)||Object.values(d.lines||{}).some(q=>q>0)||LS.get(key,null)===fc.last)return;
+  fc.items.forEach(x=>{if(ITEM[x.id])d.lines[x.id]=x.f});d.fromFc=fc.last;LS.set(key,fc.last);saveDraft();
+}
 function fcCard(fc){
+  if(fc.ready&&S.draft.fromFc===fc.last&&Object.values(S.draft.lines||{}).some(q=>q>0))
+    return`<div class="fc-card fc-sug"><div class="row"><div style="flex:1;min-width:0"><b>${t('fcSugTitle')}</b><div class="hint">${esc(t('fcSugHint',{n:fc.items.length}))}</div></div><button class="btn btn-ghost" data-act="clearDraft">${t('fcSugClear')}</button></div></div>`;
   if(!fc.ready)return`<div class="fc-card muted"><div class="row"><div style="flex:1;min-width:0"><b>${t('fcTitle')}</b><div class="hint">${esc(t('fcNeed',{m:FC_MIN,n:fc.n}))}</div><div class="bar"><i style="width:${Math.round(fc.n/FC_MIN*100)}%"></i></div></div></div></div>`;
   return`<div class="fc-card"><div class="row"><div style="flex:1;min-width:0"><b>${t('fcTitle')}</b><div class="hint">${esc(t('fcReady',{n:fc.items.length,d:whenDay(fc.next)}))}</div></div><button class="btn btn-sun" data-act="useFc" ${fc.items.length?'':'disabled'}>${t('fcUse')}</button></div></div>`;
 }
