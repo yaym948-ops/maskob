@@ -26,7 +26,8 @@ function parseZatcaQR(raw){
   return out;
 }
 /* ---------- text recognised from the photo ---------- */
-function parseInvoiceText(text){
+/* opts.loose: when no labelled invoice number is found, guess the longest number standing alone (last resort) */
+function parseInvoiceText(text,opts){
   const T=toLatinDigits(text).replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069\u061C\uFEFF]/g,'').replace(/[٫]/g,'.').replace(/[،]/g,',').replace(/[|]/g,' ');
   const lines=T.split(/\n+/).map(l=>l.replace(/\s+/g,' ').trim()).filter(Boolean);
   const out={};
@@ -47,12 +48,18 @@ function parseInvoiceText(text){
   /* label read badly ("No. فاتورة ضريبية 2602005403"): a long run of digits on an invoice/No. line, not a phone, VAT number or date */
   if(!out.number)for(const l of lines){if(!/(invoice|\bNo\b\.?|[فق]ا[تنث]ور|رقم)/i.test(l)||CUST.test(l)||/(VAT|ضريب[يى]\b|الرقم الضريبي|date|التاريخ|page)/i.test(l.replace(/[فق]ا[تنث]ور[ةه]\s*ضري[بن][يةه]+/,'')))continue;
     const m=[...l.matchAll(/(?<![\d\/\-.:])((?:[A-Z]{1,4}[\-\/]?)?\d{5,14})(?![\d\/\-.:])/gi)].map(x=>x[1]).find(v=>!/^0?5\d{8}$/.test(v)&&!/^01\d{8}$/.test(v));if(m){out.number=m;break}}
+  /* labels not read at all (receipts print them in a column of their own): the longest number standing on its own,
+     that is not a phone or fax, a VAT number, a 10-digit commercial registration or a customer number */
+  if(!out.number&&opts&&opts.loose){let best='';for(const l of lines){if(/(فاكس|fax|هات[فن]|tel|phone|جوال|تلفون|mob|العميل|customer|السجل|C\.?R\b|حساب|ايبان|إيبان|آيبان|IBAN|account|بنك|bank|ضري[بن]ي|VAT|TRN|tax\s*(?:no|number|id))/i.test(l))continue;
+      for(const x of l.matchAll(/(?<![\d.,\/\-:])(\d{8,20})(?![\d.,\/\-:])/g)){const v=x[1];
+        if(/^\d?5\d{8}$/.test(v)||/^0\d{8,9}$/.test(v)||/^3\d{13}3$/.test(v)||/^[1-7]\d{9}$/.test(v)||/^3\d{9,14}$/.test(v)||v.length===15)continue;if(v.length>best.length)best=v}}
+    if(best)out.number=best}
   const today=new Date(),okD=(y,m,d)=>{const x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&Math.abs(x-today)<2*365*864e5};
   for(const m of T.matchAll(/(\d{4})\s?[\/\-.]\s?(\d{1,2})\s?[\/\-.]\s?(\d{1,2})|(\d{1,2})\s?[\/\-.]\s?(\d{1,2})\s?[\/\-.]\s?(\d{4})/g)){
     const y=+(m[1]||m[6]),mo=+(m[2]||m[5]),d=+(m[3]||m[4]);if(okD(y,mo,d)){out.date=y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');break}
     if(m[4]&&okD(y,d,mo)){out.date=y+'-'+String(d).padStart(2,'0')+'-'+String(mo).padStart(2,'0');break}}
-  const nums=l=>[...l.replace(/(\d)\s+(?=[.,]\d)/g,'$1').replace(/([.,])\s+(?=\d)/g,'$1').matchAll(/(\d{1,3}(?:,\d{3})+|\d+)(?:[.,](\d{1,2}))?(?!\d)/g)]
-    .map(m=>+(m[1].replace(/,/g,'')+(m[2]?'.'+m[2]:''))).filter(n=>n>0&&n<1e8);
+  const nums=l=>[...l.replace(/(\d)\s+(?=[.,]\d)/g,'$1').replace(/([.,])\s+(?=\d)/g,'$1').matchAll(/(\d{1,3}(?:,\d{3})+|\d+)(?:[.,](\d{1,2})(\d{0,2}))?(?!\d)/g)]  /* receipts print 4 decimals: 567.3910 */
+    .map(m=>Math.round(+(m[1].replace(/,/g,'')+(m[2]?'.'+m[2]+m[3]:''))*100)/100).filter(n=>n>0&&n<1e8);
   const TOTAL=/(الإجمالي|الاجمالي|الإجمالى|الاجمالى|المجموع|المبلغ المستحق|الصافي|صافي|إجمالي|اجمالي|Total|Amount\s*Due|Net\s*Amount|Balance\s*Due)/i;
   const NOTTOT=/(قبل|بدون|غير|excl|exc[il1]usive|before|sub|خصم|discount|كمية|qty|quantity|words|كتابة|تفقيط)/i;
   /* the VAT line: "Total VAT 15%", "مجموع ضريبة القيمة المضافة", "ضريبة القيمة المضافة 15%" … but not the VAT number or the total with VAT */
@@ -70,12 +77,14 @@ function parseInvoiceText(text){
   if(total!=null)out.amount=total;
   /* Saudi VAT is 15% of the price: a read VAT that does not fit the total is a misread, so work it out instead */
   const fit=total!=null?Math.round(total*15/115*100)/100:null;
-  if(vatAmt!=null&&(fit==null||Math.abs(vatAmt-fit)<=Math.max(1,fit*0.02)))out.vat=vatAmt;
+  /* a few halalas off is rounding (keep what is printed); a bit more is one misread digit (use the worked-out figure) */
+  if(vatAmt!=null&&(fit==null||Math.abs(vatAmt-fit)<=0.05))out.vat=vatAmt;
+  else if(vatAmt!=null&&fit!=null&&Math.abs(vatAmt-fit)<=Math.max(1,fit*0.02))out.vat=fit;
   else if(fit!=null&&(vatAmt!=null||lines.some(l=>/(15\s*%|%\s*15|VAT|ضريب)/i.test(l))))out.vat=fit;
   /* supplier: a line naming a company, else the first real text line */
   const isName=l=>/[A-Za-z؀-ۿ]{3,}/.test(l)&&!/(فاتورة|فاتوره|invoice|tax|ضريبي|ضريبة|الرقم|رقم|التاريخ|date|العميل|customer|المشتري|buyer|هاتف|جوال|phone|tel|www|http|@)/i.test(l);
   const co=lines.find(l=>/(شركة|شركه|مؤسسة|مؤسسه|مصنع|مخبز|مطبعة|متجر|مجموعة|Company|\bCo\b\.?|\bEst\b\.?|Establishment|Trading|Factory|LLC|Ltd)/i.test(l)&&isName(l));
-  /* from a noisy line keep just the name: "الا Malath Company LTD. vv سدت" → "Malath Company LTD." */
+  /* from a noisy line keep just the name: "الا Nakheel Company LTD. vv سدت" → "Nakheel Company LTD." */
   const nameIn=l=>{const en=l.match(/(?:[A-Z][A-Za-z&'\-]+\.?\s+){0,4}(?:Company|Co\.|Est\.|Establishment|Trading|Factory|Group)(?:\s+(?:LTD|LLC|Ltd|Limited|Co)\.?)?|(?:[A-Z][A-Za-z&'\-]+\s+){1,4}(?:LTD|LLC|Ltd)\.?/);
     const ar=l.match(/(?:شركة|شركه|مؤسسة|مؤسسه|مصنع|مخبز|مطبعة|متجر|مجموعة)(?:\s+[؀-ۿ]{2,}){1,4}/);return(ar&&ar[0])||(en&&en[0])||null};
   const first=co?(nameIn(co)||co):lines.slice(0,8).find(isName);
@@ -103,7 +112,8 @@ async function readQR(img){
   await loadScript(SCAN_LIBS.jsqr);if(!window.jsQR)return null;
   const tryC=c=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height);const r=jsQR(d.data,c.width,c.height,{inversionAttempts:'attemptBoth'});return r&&r.data||null};
   const until=Date.now()+9000;  /* phones are slow: stop looking after ~9 s and go on to the text */
-  for(const max of [1200,1800])for(const cr of QR_CROPS){if(Date.now()>until)return null;const c=canvasOf(img,max,cr);const v=tryC(c)||tryC(enhance(canvasOf(img,max,cr),'red'))||tryC(enhance(c));if(v)return v;await new Promise(r=>setTimeout(r))}
+  let crops=QR_CROPS;try{const b=paperBox(img);if(b)crops=[b,...QR_CROPS]}catch(e){}
+  for(const max of [1200,1800])for(const cr of crops){if(Date.now()>until)return null;const c=canvasOf(img,max,cr);const v=tryC(c)||tryC(enhance(canvasOf(img,max,cr),'red'))||tryC(enhance(c));if(v)return v;await new Promise(r=>setTimeout(r))}
   for(const cr of [null,[0,.45,1,.55]]){const v=tryC(enhance(canvasOf(img,800,cr)));if(v)return v}
   return null;
 }
@@ -117,14 +127,53 @@ async function readText(img,onStep,mode){
   try{await worker.setParameters({preserve_interword_spaces:'1'})}catch(e){}
   const {data}=await worker.recognize(enhance(canvasOf(img,2400,[0,0,1,1]),mode));return data.text||'';
 }
-/* read the text in red first; if the invoice number or the total is still missing, read again in grey and fill the gaps */
+/* turn a photo by 90, 180 or 270 degrees */
+function rotated(src,deg){if(!deg)return src;const c=document.createElement('canvas');const w=src.width,h=src.height;
+  c.width=deg%180?h:w;c.height=deg%180?w:h;const g=c.getContext('2d');g.translate(c.width/2,c.height/2);g.rotate(deg*Math.PI/180);g.drawImage(src,-w/2,-h/2);return c}
+/* do the lines of text run across or up and down? Looks only at ink on light paper (not a wooden table),
+   then compares how sharply the amount of ink changes from row to row and from column to column. */
+function textRunsSideways(img){
+  const c=canvasOf(img,600),W=c.width,H=c.height,p=c.getContext('2d').getImageData(0,0,W,H).data,L=new Float32Array(W*H);
+  for(let i=0;i<W*H;i++)L[i]=Math.min(p[i*4],(p[i*4]+p[i*4+1]+p[i*4+2])/3);
+  const I=new Float64Array((W+1)*(H+1));
+  for(let y=0;y<H;y++){let s=0;for(let x=0;x<W;x++){s+=L[y*W+x];I[(y+1)*(W+1)+x+1]=I[y*(W+1)+x+1]+s}}
+  const r=10,rows=new Float32Array(H),cols=new Float32Array(W);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const x0=Math.max(0,x-r),x1=Math.min(W,x+r+1),y0=Math.max(0,y-r),y1=Math.min(H,y+r+1);
+    const m=(I[y1*(W+1)+x1]-I[y0*(W+1)+x1]-I[y1*(W+1)+x0]+I[y0*(W+1)+x0])/((x1-x0)*(y1-y0));
+    if(m>150&&L[y*W+x]<m-35){rows[y]++;cols[x]++}}
+  const osc=a=>{let s=0,t=0;for(let i=1;i<a.length;i++){s+=Math.abs(a[i]-a[i-1]);t+=a[i]}return t?s/t:0};
+  return osc(cols)>osc(rows)*1.15;
+}
+/* where the paper is in the photo, as [x,y,w,h] fractions, or null when it fills most of it.
+   Reading only the paper is several times faster and avoids "text" found in a table top or a cloth. */
+function paperBox(img){
+  const c=canvasOf(img,300),W=c.width,H=c.height,p=c.getContext('2d').getImageData(0,0,W,H).data,B=new Uint8Array(W*H);
+  for(let i=0;i<W*H;i++)B[i]=Math.min(p[i*4],p[i*4+1],p[i*4+2])>135?1:0;
+  const run=(n,f)=>{const runs=[];let s=-1;for(let i=0;i<=n;i++){const ok=i<n&&f(i)>0.25;if(ok&&s<0)s=i;if(!ok&&s>=0){runs.push([s,i]);s=-1}}
+    const m=[];for(const r of runs){const l=m[m.length-1];if(l&&r[0]-l[1]<n*0.12)l[1]=r[1];else m.push(r.slice())}
+    return m.reduce((a,b)=>b[1]-b[0]>a[1]-a[0]?b:a,[0,0])};
+  const [x0,x1]=run(W,x=>{let k=0;for(let y=0;y<H;y++)k+=B[y*W+x];return k/H});if(x1-x0<W*0.15)return null;
+  const [y0,y1]=run(H,y=>{let k=0;for(let x=x0;x<x1;x++)k+=B[y*W+x];return k/(x1-x0)});if(y1-y0<H*0.15)return null;
+  const m=0.03,bx=Math.max(0,x0/W-m),by=Math.max(0,y0/H-m),bw=Math.min(1-bx,(x1-x0)/W+2*m),bh=Math.min(1-by,(y1-y0)/H+2*m);
+  return bw*bh<0.6?[bx,by,bw,bh]:null;
+}
+const scanScore=o=>['number','amount','vatNo','date'].filter(k=>o[k]!=null&&o[k]!=='').length;
+/* read the text in red first; if the invoice number or the total is still missing, read again in grey and fill the gaps.
+   A photo taken sideways is turned first: both ways are tried and the one that makes sense is kept. */
 async function readInvoiceText(img,onStep,known){
-  const a=parseInvoiceText(await readText(img,p=>onStep&&onStep(Math.round(p/2)),'red'));
+  try{const b=paperBox(img);if(b)img=canvasOf(img,Math.max(img.width*b[2],img.height*b[3]),b)}catch(e){}
+  let turns=[0];try{if(textRunsSideways(img))turns=[90,270]}catch(e){}
+  let a=null,src=img,txt='';
+  for(let i=0;i<turns.length;i++){const im=rotated(img,turns[i]),n=turns.length;
+    const tx=await readText(im,p=>onStep&&onStep(Math.round((i*100+p)/(n+1))),'red'),r=parseInvoiceText(tx);
+    if(!a||scanScore(r)>scanScore(a)){a=r;src=im;txt=tx}if(scanScore(a)>=2)break}
   const has=k=>(a[k]!=null&&a[k]!=='')||(known&&known[k]!=null&&known[k]!=='');
-  if(has('number')&&has('amount')&&has('vatNo'))return a;
-  const b=parseInvoiceText(await readText(img,p=>onStep&&onStep(50+Math.round(p/2))));
+  if(has('number')&&has('amount'))return a;  /* a second read takes as long again: only for the key fields */
+  const tx2=await readText(src,p=>onStep&&onStep(Math.round(100*turns.length/(turns.length+1)+p/(turns.length+1))));
+  const b=parseInvoiceText(tx2);
   for(const k of Object.keys(b))if(a[k]==null||a[k]==='')a[k]=b[k];
   if(a.amount!=null&&b.vat!=null&&a.vat==null)a.vat=b.vat;
+  if(!a.number)a.number=parseInvoiceText(txt,{loose:true}).number||parseInvoiceText(tx2,{loose:true}).number;
   return a;
 }
 function photoForStore(img){let c=canvasOf(img,1600),q=0.8,d=c.toDataURL('image/jpeg',q);while(d.length>850000&&q>0.35){q-=0.1;d=c.toDataURL('image/jpeg',q)}

@@ -392,9 +392,18 @@ test('invoice reading: ZATCA QR, invoice text, prefilled form saved with its pho
   const P3 = w.eval('parseInvoiceText')('ALMARAI COMPANY\nTax Invoice\nInvoice No. 88-1043\nVAT No 300555666700003\nDate 2026/11/02\nSubtotal 400.00\nVAT 15% 60.00\nTotal Amount 460.00 SAR');
   // a real supplier invoice (dot-matrix on pink paper) as the text reader returns it: badly read labels,
   // the customer's VAT number next to the supplier's, "Total Vat" line, total without VAT
-  const P4 = w.eval('parseInvoiceText')('‎TAM Malath Company LTD. 7 ‏نسدد« ص‎ —\nVAT: 311529670600003 711814511765660 : لرظهم الضريبي\nTax Invoice فاتورة ضريبة Page 1 1\n© No. فاتورة ضربية 2602005403 Jal) Credit Moble جوال 0535111802\n[Date 06/05/2026 11:23:57 | Customer VAT ز قم الضريبي العميل 311652583900003\n973.91 Tot Amount{exciusive vat) الإجمالي غير الغريبة\n146.09 TotalVat 15% ا | مجموم ضريية القمة المضافة\n1,120.00 Total المستحق');
-  assert.equal(P4.number, '2602005403'); assert.equal(P4.vatNo, '311529670600003'); assert.equal(P4.date, '2026-05-06');
-  assert.equal(P4.amount, 1120); assert.equal(P4.vat, 146.09); assert.match(P4.supplier, /Malath Company LTD\./);
+  const P4 = w.eval('parseInvoiceText')('‎TAM Nakheel Company LTD. 7 ‏نسدد« ص‎ —\nVAT: 310000111200003 712345678901234 : لرظهم الضريبي\nTax Invoice فاتورة ضريبة Page 1 1\n© No. فاتورة ضربية 7700112233 Jal) Credit Moble جوال 0500000001\n[Date 06/05/2026 11:23:57 | Customer VAT ز قم الضريبي العميل 310999888700003\n973.91 Tot Amount{exciusive vat) الإجمالي غير الغريبة\n146.09 TotalVat 15% ا | مجموم ضريية القمة المضافة\n1,120.00 Total المستحق');
+  assert.equal(P4.number, '7700112233'); assert.equal(P4.vatNo, '310000111200003'); assert.equal(P4.date, '2026-05-06');
+  assert.equal(P4.amount, 1120); assert.equal(P4.vat, 146.09); assert.match(P4.supplier, /Nakheel Company LTD\./);
+  // a thermal receipt as read after turning the sideways photo: number before its label, total without a decimal part
+  const P5 = w.eval('parseInvoiceText')('شركة مخازن النور التجارية\nالرقم الضريبيللفرع 310555444300003\nقاتورةضريبية\nرقم العميل 5000001\n900100200301 رقم الغانورة\n17/04/2025\n3100000009 الرقم الضريبي\n0500000002 تلفون المندوب\n3,782.6100 اجمالي القيمة\n567.3910 الضريبة\n4,350 الاجمالي');
+  assert.equal(P5.number, '900100200301'); assert.equal(P5.vatNo, '310555444300003'); assert.equal(P5.date, '2025-04-17');
+  assert.equal(P5.amount, 4350); assert.equal(P5.vat, 567.39); assert.match(P5.supplier, /^شركة مخازن النور/);
+  // the same receipt when its labels column is not read: the invoice number is the long number standing alone
+  const P6 = w.eval('parseInvoiceText')('الفاكس وكير :8000001\nالرقم الضريبي وبع:310555444300003\nفاتورةضريبية\nels |5000001\nوه900100200301\nyuk: 58 3100000009\nSst |4000000001\nvera 88 0500000002\nالرقم بنك الراجحي 1111222233334444\n567.31 الضريبة\n4,350 الاجمالي', { loose: true });
+  assert.equal(P6.number, '900100200301'); assert.equal(P6.vat, 567.39, 'one misread digit in the VAT: worked out from the total');
+  // a misread VAT number in the header is not taken for the invoice number
+  assert.equal(w.eval('parseInvoiceText')('Nakheel Company LTD.\nVAT: 310000111200003 712345678901234 : لرظهم الضريبي\n1,120.00 Total').number, undefined);
   assert.equal(P3.number, '88-1043'); assert.equal(P3.amount, 460); assert.equal(P3.vat, 60); assert.equal(P3.supplier, 'ALMARAI COMPANY');
   // the prefilled form saves the invoice together with its photo
   const d = driver(w), S = w.eval('S');
