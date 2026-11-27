@@ -814,3 +814,20 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
 .arc-type.pdf{background:#fdecea;color:#c0392b}
 .arc-type .ic{width:20px;height:20px}
 .arc-file{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+/* ---------- correspondence ---------- */
+.ml-row{display:flex;align-items:center;gap:12px}
+.ml-av{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:var(--lav-soft);color:var(--navy);flex:none}
+.ml-av .ic{width:19px;height:19px}
+.ml-new{border-color:var(--navy);background:var(--lav-soft)}
+.ml-new .t{font-weight:700}
+.ml-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--sun);margin-inline-end:6px;vertical-align:middle}
+.ml-to{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ml-att{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ml-x{border:0;background:transparent;color:inherit;cursor:pointer;font-size:15px;padding:0 2px}
+.ml-thread{display:flex;flex-direction:column;gap:10px;max-height:46vh;overflow:auto;padding:4px}
+.ml-msg{padding:10px 12px;border-radius:12px;background:var(--soft);border:1px solid var(--line);max-width:92%;align-self:flex-start}
+.ml-msg.me{background:var(--lav-soft);border-color:color-mix(in srgb,var(--navy) 25%,var(--line));align-self:flex-end}
+.ml-meta{font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.ml-text{white-space:normal;line-height:1.7}
+.ml-file{cursor:pointer;border:0}

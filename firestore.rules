@@ -294,6 +294,22 @@ service cloud.firestore {
     match /appPays/{id} {
       allow read, write: if isRole('finance');
     }
+    // ---- correspondence: only the parties of a thread (hr, ops, fin, gm, br:<branch>) ----
+    function mailParty(p) { return (p.hasAny(['hr']) && isRole('hr')) || (p.hasAny(['ops']) && isRole('manager')) || (p.hasAny(['fin']) && isRole('finance'))
+                              || isRole('owner') || (isBranch() && p.hasAny(['br:' + myBranch()])); }
+    function mailOf(id) { return get(/databases/$(db)/documents/mail/$(id)).data; }
+    match /mail/{id} {
+      allow read: if mailParty(resource.data.parties);
+      allow create: if mailParty([request.resource.data.from]) && request.resource.data.parties.hasAll([request.resource.data.from]);
+      allow update: if mailParty(resource.data.parties) && request.resource.data.parties == resource.data.parties && request.resource.data.from == resource.data.from;
+      match /msgs/{m} {
+        allow read: if mailParty(mailOf(id).parties);
+        allow create: if mailParty(mailOf(id).parties) && mailParty([request.resource.data.from]) && mailOf(id).parties.hasAll([request.resource.data.from]);
+      }
+      match /parts/{p} {
+        allow read, create: if mailParty(mailOf(id).parties);
+      }
+    }
     // ---- archive: HR, operations (manager) and finance, each only its own documents ----
     function arcOk(d) { return (d == 'hr' && isRole('hr')) || (d == 'ops' && isRole('manager')) || (d == 'fin' && isRole('finance')); }
     match /archive/{id} {

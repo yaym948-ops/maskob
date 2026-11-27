@@ -70,6 +70,7 @@ const LINE_ICONS={
   register:'<rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7h10v4"/><path d="M9 3h6v4H9z"/><path d="M7 15h2"/><path d="M11 15h2"/><path d="M15 15h2"/><path d="M7 18h10"/>',
   bike:'<circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>',
   folder:'<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
+  mail:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
   hash:'<path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="M16 3l-2 18"/>'
 };
 const ico=(name,cls)=>`<svg class="ic${cls?' '+cls:''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LINE_ICONS[name]||LINE_ICONS.dot}</svg>`;
@@ -78,7 +79,7 @@ const ico=(name,cls)=>`<svg class="ic${cls?' '+cls:''}" viewBox="0 0 24 24" fill
 const NAV_ICON={rep:'pie',new:'cart',tasks:'inbox',orders:'clipboard',sales:'register',maint:'wrench',checks:'listCheck',lr:'calClock',forms:'filePen',
   pending:'clock',report:'fileText',all:'list',salesAll:'bars',maintAll:'wrench',stock:'box',prep:'clipCheck',sched:'cal',incoming:'truck',done:'history',
   branches:'sliders',users:'users',actlog:'activity',catalog:'tag',emps:'users',docs:'idCard',leaves:'calCheck',custody:'key',advances:'wallet',lic:'shield',
-  payroll:'cash',vouchers:'receipt',dash:'dash',fsum:'dash',expenses:'receipt',supinv:'fileSheet',suppliers:'truck',pnl:'trend',be:'target',supst:'book',salesLog:'register',apps:'bike',archive:'folder',
+  payroll:'cash',vouchers:'receipt',dash:'dash',fsum:'dash',expenses:'receipt',supinv:'fileSheet',suppliers:'truck',pnl:'trend',be:'target',supst:'book',salesLog:'register',apps:'bike',archive:'folder',mail:'mail',
   costs:'tag',assets:'archive'};
 
 /* pages about money get the warm (orange) square; the rest blue */

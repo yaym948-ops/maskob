@@ -284,7 +284,7 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   await d.signIn('6060');
   assert.equal(w.eval('S.role'), 'finance');
   const tabs = [...w.document.querySelectorAll('#tabsIn [data-act="tab"]')].map((b) => b.dataset.k);
-  assert.deepEqual(tabs, ['fsum', 'salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'expenses', 'suppliers', 'apps', 'vouchers', 'advances', 'costs', 'assets', 'archive']);
+  assert.deepEqual(tabs, ['fsum', 'salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'expenses', 'suppliers', 'apps', 'vouchers', 'advances', 'costs', 'assets', 'archive', 'mail']);
   // the reports sit in one group of the side menu, closed until opened
   const grp = w.document.querySelector('#tabsIn [data-act="navGrp"]');
   assert.ok(grp, 'reports group shown');
@@ -731,5 +731,39 @@ test('archive: each department keeps its own documents in sections, with branch,
   // HR does not see the finance archive
   await d.signIn('9191'); d.setVal('ownerView', 'hr'); await sleep(200);
   assert.equal(w.eval('S.archive').length, 0, 'HR has its own (empty) archive');
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});
+
+test('correspondence: finance writes to operations and a branch with an attachment; read receipt, reply, badge; HR cannot see it', async () => {
+  const d = driver(w), S = w.eval('S');
+  w.eval('MEMSET')('mail', []); S._demoMsgs = {}; S._demoMail = {};
+  // finance writes
+  await d.signIn('6060'); w.eval('xLoadDemo()'); w.eval('render()');
+  d.click('[data-act="tab"][data-k="mail"]');
+  d.click('[data-act="mlNew"]'); await sleep(20);
+  d.click('[data-act="mlTo"][data-k="ops"]'); d.click('[data-act="mlTo"][data-k="br:القطيف"]');
+  d.setVal('ml-subject', 'تعميم أسعار الموردين'); d.setVal('ml-body', 'نرفق لكم قائمة الأسعار الجديدة');
+  S.mlDraft.files.push({ name: 'prices.pdf', type: 'application/pdf', size: 900, data: 'data:application/pdf;base64,JVBERi0=' });
+  d.click('[data-act="mlSend"]'); await sleep(300);
+  const m = w.eval('S.mail')[0];
+  assert.equal(m.subject, 'تعميم أسعار الموردين'); assert.equal(JSON.stringify(m.parties), JSON.stringify(['fin', 'ops', 'br:القطيف']));
+  // operations: unread badge, opens it (read receipt), replies
+  await d.signIn('9191'); d.setVal('ownerView', 'manager'); await sleep(200);
+  assert.equal(w.eval('mailUnreadN()'), 1, 'unread for operations');
+  assert.ok(w.document.querySelector('#tabsIn [data-k="mail"] .badge'), 'menu badge');
+  d.click('[data-act="tab"][data-k="mail"]');
+  d.click(`[data-act="mlOpen"][data-id="${m.id}"]`); await sleep(100);
+  assert.ok(w.document.querySelector('.ml-file'), 'attachment shown');
+  assert.equal(await w.eval('MAILS').file(m.id, w.eval('S.mlMsgs').list[0].att[0]), 'data:application/pdf;base64,JVBERi0=');
+  assert.ok(w.eval('S.mail')[0].readBy.ops, 'read receipt stored');
+  d.setVal('ml-body', 'تم الاستلام، شكراً'); d.click('[data-act="mlReply"]'); await sleep(300);
+  assert.equal(w.eval('S.mail')[0].n, 1); assert.equal(w.eval('S.mail')[0].lastFrom, 'ops');
+  d.click('[data-act="close"]');
+  // HR is not a party
+  d.setVal('ownerView', 'hr'); await sleep(200);
+  assert.equal(w.eval('S.mail').length, 0, 'HR does not see it');
+  // finance sees the reply as unread
+  d.setVal('ownerView', 'finance'); await sleep(200);
+  assert.equal(w.eval('mailUnreadN()'), 1, 'reply unread for finance');
   d.setVal('ownerView', 'dash'); await sleep(200);
 });

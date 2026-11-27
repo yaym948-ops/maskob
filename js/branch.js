@@ -89,6 +89,7 @@ function xLoadDemo(){
   if(S.role==='finance'){S.emps=MEM('employees');S.leaves=MEM('leaves');S.forms=MEM('forms');S.advances=MEM('advances');S.payroll=MEM('payroll');S.vouchers=MEM('vouchers');S.expenses=MEM('expenses');S.supInv=MEM('supInvoices');S.suppliers=MEM('suppliers');S.appPays=MEM('appPays');S.sales=MEM('sales')}
   if(S.role==='dash'){S.emps=MEM('employees');S.leaveReqs=MEM('leaveReqs');S.forms=MEM('forms');S.licenses=MEM('licenses');S.leaves=MEM('leaves')}
   if(typeof arcLoadDemo==='function')arcLoadDemo();
+  if(typeof mailLoadDemo==='function')mailLoadDemo();
 }
 /* live subscriptions per role */
 function xStart(){
@@ -156,6 +157,8 @@ function xStart(){
   }
   // each department's archive (HR, operations, finance)
   if(typeof arcStart==='function')arcStart(u,onErr);
+  // correspondence between departments, branches and the general manager
+  if(typeof mailStart==='function')mailStart(u,onErr);
 }
 function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.stock={};S.stockMoves=[];S.expenses=[];S.supInv=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
