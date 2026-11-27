@@ -677,3 +677,17 @@ test('daily closing: a real blurred till photo as the reader gave it, noise drop
   assert.equal(D.f.keeta, '94'); assert.ok(D.f.other == null, 'moved out of "other"');
   S.dsr = null;
 });
+
+test('daily closing: the actual column is filled from the report; a figure the branch typed is kept on a new photo', () => {
+  const S = w.eval('S'), apply = w.eval('dsrApply');
+  const D = w.eval('dsrBlank')(); D.key = 'y'; S.dsr = D;
+  const rep = { pay: { cash: 23, mada: 3873, hunger: 35 }, closing: 23, opening: 0, unknown: [] };
+  apply(D, rep, 'pm');
+  assert.equal(D.a.cash_pm, '23', 'cash: counted'); assert.equal(D.a.mada_pm, '3873'); assert.equal(D.a.hunger, '35');
+  assert.ok(D.auto.mada_pm && D.auto.hunger, 'copied figures marked');
+  // the branch corrects Mada from the terminal settlement, then photographs again with a different HungerStation figure
+  D.a.mada_pm = '3870'; delete D.auto.mada_pm;
+  apply(D, { pay: { cash: 23, mada: 3873, hunger: 40 }, closing: 23, opening: 0, unknown: [] }, 'pm');
+  assert.equal(D.a.mada_pm, '3870', 'typed figure kept'); assert.equal(D.a.hunger, '40', 'copied figure follows the new photo');
+  S.dsr = null;
+});

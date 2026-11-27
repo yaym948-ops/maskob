@@ -170,6 +170,12 @@ function dsrSumApps(d){for(const k of [...DSR_APPS,...DSR_ADJ]){const v=DSR_SHIF
 function dsrUnkBox(d){const items=[];DSR_SHIFTS.forEach(s=>((d.fs[s]||{}).unk||[]).forEach((v,i)=>items.push({s,i,v})));if(!items.length)return'';
   return`<div class="dsr-unk"><b>${esc(t('dsr_unkTitle'))}</b><p class="hint">${esc(t('dsr_unkHint'))}</p>${items.map(x=>`<label class="row" style="gap:8px;align-items:center;margin-top:6px"><span class="num" dir="ltr"><b>${esc(sar2(x.v))}</b></span>
     <select class="field" data-in="dsrUnk" data-s="${x.s}" data-i="${x.i}" style="width:auto"><option value="">${esc(t('dsr_unkPick'))}</option>${DSR_APPS.filter(k=>k!=='other').map(k=>`<option value="${k}">${esc(t('dsr_'+k))}</option>`).join('')}</select></label>`).join('')}</div>`}
+/* actual = the report's figure (cash: the counted cash) for every row the branch has not typed itself;
+   such copied figures are marked (d.auto) until the branch confirms or changes them */
+function dsrSyncActual(d){const A=d.auto||(d.auto={});
+  for(const k of DSR_KEYS){if(/^cash_/.test(k))continue;const has=dsrHas(d.f[k]);
+    if(has&&(!dsrHas(d.a[k])||A[k])){d.a[k]=d.f[k];A[k]=true}
+    else if(!has&&A[k]){delete d.a[k];delete A[k]}}}
 function dsrApply(d,r,s){
   const fs=d.fs[s]=d.fs[s]||{};
   if(Object.keys(r.pay).length){for(const k of [...DSR_PAY,...DSR_APPS])delete fs[k];Object.assign(fs,r.pay)}
@@ -179,14 +185,15 @@ function dsrApply(d,r,s){
   dsrSumApps(d);
   const ord=DSR_SHIFTS.reduce((t0,x)=>t0+(+((d.fs[x]||{}).orders)||0),0);if(ord)d.inv=String(ord);
   if(r.closing!=null){const till=d.till[s]={opening:r.opening||0,closing:r.closing,estimated:r.estimated,short:r.short||0,over:r.over||0};
-    if(!dsrHas(d.a['cash_'+s]))d.a['cash_'+s]=String(Math.round((r.closing-(r.opening||0)-(r.payIn||0)+(r.payOut||0)+(r.drops||0))*100)/100);void till}
+    const ck='cash_'+s,A=d.auto||(d.auto={});if(!dsrHas(d.a[ck])||A[ck]){A[ck]=true;d.a[ck]=String(Math.round((r.closing-(r.opening||0)-(r.payIn||0)+(r.payOut||0)+(r.drops||0))*100)/100)}void till}
+  dsrSyncActual(d);
   if(r.user&&!d.cashier[s])d.cashier[s]=r.user;
   if(r.net!=null)d.net=Math.round(((d.netBy||(d.netBy={}))[s]=r.net,DSR_SHIFTS.reduce((t0,x)=>t0+(+(d.netBy[x]||0)),0))*100)/100;
   if(r.tax!=null)d.tax=Math.round(((d.taxBy||(d.taxBy={}))[s]=r.tax,DSR_SHIFTS.reduce((t0,x)=>t0+(+(d.taxBy[x]||0)),0))*100)/100;
 }
 function dsrRow(d,k,ro){
   const df=dsrDiffOf(d,k),inp=(c)=>ro?`<td class="n">${dsrHas(d[c][k])?esc(sar2(dsrNum(d[c][k]))):'—'}</td>`
-    :`<td><input class="field num dsr-in" id="dsr-${c}-${k}" data-in="dsr" data-c="${c}" data-k="${k}" inputmode="decimal" dir="ltr" value="${esc(d[c][k]??'')}" placeholder="0"></td>`;
+    :`<td><input class="field num dsr-in${c==='a'&&d.auto&&d.auto[k]?' dsr-auto':''}" id="dsr-${c}-${k}" data-in="dsr" data-c="${c}" data-k="${k}" inputmode="decimal" dir="ltr" value="${esc(d[c][k]??'')}" placeholder="0"></td>`;
   return`<tr class="${df?'dsr-off':''}" id="dsr-r-${k}"><th scope="row">${esc(dsrLabel(k))}</th>${inp('a')}${inp('f')}<td class="n dsr-d" id="dsr-d-${k}">${df?esc(sar2(df)):''}</td></tr>`;
 }
 function dsrTable(d,ro){
@@ -261,12 +268,12 @@ Object.assign(A,{
   }
 });
 document.addEventListener('input',ev=>{const el=ev.target,k=el.dataset&&el.dataset.in;if(!S.dsr||!k)return;
-  if(k==='dsr'){S.dsr[el.dataset.c][el.dataset.k]=el.value;dsrPaint()}
+  if(k==='dsr'){S.dsr[el.dataset.c][el.dataset.k]=el.value;if(el.dataset.c==='a'&&S.dsr.auto){delete S.dsr.auto[el.dataset.k];el.classList.remove('dsr-auto')}dsrPaint()}
   else if(k==='dsrX'){const f=el.dataset.k;if(f==='inv')S.dsr.inv=el.value;else S.dsr.cashier[f.slice(8)]=el.value}});
 document.addEventListener('change',ev=>{const el=ev.target;if(!(S.dsr&&el.dataset&&el.dataset.in==='dsrUnk'&&el.value))return;
   const d=S.dsr,fs=d.fs[el.dataset.s]||{},i=+el.dataset.i,v=(fs.unk||[])[i];if(v==null)return;
   fs.unk.splice(i,1);fs[el.value]=Math.round(((+fs[el.value]||0)+v)*100)/100;fs.other=Math.round(((+fs.other||0)-v)*100)/100;if(!(fs.other>0))delete fs.other;
-  if(!fs.unk.length)delete fs.unk;dsrSumApps(d);if(d.f.other!=null&&!DSR_SHIFTS.some(x=>(d.fs[x]||{}).other!=null))delete d.f.other;render()});
+  if(!fs.unk.length)delete fs.unk;dsrSumApps(d);if(d.f.other!=null&&!DSR_SHIFTS.some(x=>(d.fs[x]||{}).other!=null))delete d.f.other;dsrSyncActual(d);render()});
 document.addEventListener('change',ev=>{const el=ev.target;if(!el.classList||!el.classList.contains('dsr-scan-in'))return;const f=el.files&&el.files[0];el.value='';if(f)dsrScan(f,el.dataset.s)});
 
 /* ---------- finance and operations: a month by payment method, and the DSR sheet in Excel ---------- */

@@ -785,3 +785,6 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
   .dsr-tbl .dsr-in{min-width:0;padding:5px 6px;font-size:14px}
   .dsr-tbl td,.dsr-tbl th{padding:3px 4px}
 }
+
+/* actual figures copied from the report, not yet confirmed by the branch */
+.dsr-tbl .dsr-in.dsr-auto{background:var(--sun-soft);border-color:color-mix(in srgb,var(--sun) 55%,var(--line))}
