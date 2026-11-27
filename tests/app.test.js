@@ -654,3 +654,26 @@ test('delivery apps in finance: sales per app, commission, transfers and balance
   const P = w.eval('pnlCalc')(mk, mk);
   assert.equal(Math.round(P.P['القطيف'].exp.delivery), 200); assert.equal(Math.round(P.C.exp.delivery), 300);
 });
+
+test('daily closing: a real blurred till photo as the reader gave it, noise dropped, an unread app chosen by the branch', async () => {
+  const S = w.eval('S'), parse = w.eval('parseFoodicsReport');
+  const txt = "Cash      Nn 13.\nMada   A 3 873.00\n\n4\n\n' yUngerstation       & 35.00\n\n<\n\n3       A 94.00\nKoinz Pay       A 47 00\na!       A 82.50\nTotal Payments:    ® 4.154 50\nTotal Returns:         * 0.00\n\nSO  Net Payments:    HA 154 -30\nDrawer Operations        a\n\nTotal Pay In:         * 0.00\n\nTotal Pay Out:        % 0.00\n\nTotal Cash Drops:         % 0.00\n\nTotal Payment Operations:      % 23.00\nTotal Return Operations:       # 0.00\nCount of Open Drawers: lod alls  0\na          Opening Amount:         % 0.00\nClosing Amount:       * 23.00\nEstimated Cash In Register:       % 23.00\nCash Shortage: # 0.00\n";
+  const r = parse(txt);
+  assert.equal(r.kind, 'till'); assert.equal(r.totalPay, 4154.5);
+  assert.equal(r.pay.cash, 23, 'cash from Total Payment Operations'); assert.equal(r.pay.mada, 3873, '"3 873.00" read whole');
+  assert.equal(r.pay.hunger, 35); assert.equal(r.pay.koinz, 47, '"47 00" read as 47.00');
+  assert.equal(JSON.stringify(r.unknown), JSON.stringify([94, 82.5]), 'the stray "4" dropped: the rest adds up to the total');
+  // the Arabic reader names one of them; the other is chosen by the branch
+  const ar = parse('Payments\n‏زهإنينجا‎ 82.50\nTotal Payments: 4,154.50');
+  assert.equal(ar.pay.ninja, 82.5);
+  const D = w.eval('dsrBlank')(); D.key = 'x'; S.dsr = D;
+  r.pay.ninja = 82.5; r.unknown = [94]; r.pay.other = 94;
+  w.eval('dsrApply')(D, r, 'pm');
+  assert.equal(D.f.ninja, '82.5'); assert.equal(D.f.other, '94');
+  assert.ok(w.eval('dsrUnkBox')(D).includes('94'), 'the branch is asked which app');
+  const sel = w.document.createElement('select'); sel.dataset.in = 'dsrUnk'; sel.dataset.s = 'pm'; sel.dataset.i = '0';
+  const opt = w.document.createElement('option'); opt.value = 'keeta'; sel.appendChild(opt); sel.value = 'keeta'; w.document.body.appendChild(sel);
+  sel.dispatchEvent(new w.Event('change', { bubbles: true })); sel.remove();
+  assert.equal(D.f.keeta, '94'); assert.ok(D.f.other == null, 'moved out of "other"');
+  S.dsr = null;
+});

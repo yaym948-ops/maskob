@@ -31,38 +31,49 @@ function dsrTotals(D){
     cashA:part(D.a,['cash_am','cash_pm']),cashF:part(D.f,['cash_am','cash_pm']),cardA:part(D.a,['mada_am','mada_pm','apple_am','apple_pm']),cardF:part(D.f,['mada_am','mada_pm','apple_am','apple_pm']),
     appsA:part(D.a,DSR_APPS),appsF:part(D.f,DSR_APPS)};
 }
-const dsrDiffOf=(D,k)=>dsrHas(D.a[k])||dsrHas(D.f[k])?Math.round((dsrNum(D.a[k])-dsrNum(D.f[k]))*100)/100:0;
+/* a row's difference shows once its actual amount is typed (a Foodics figure alone is not yet a difference) */
+const dsrDiffOf=(D,k)=>dsrHas(D.a[k])?Math.round((dsrNum(D.a[k])-dsrNum(D.f[k]))*100)/100:0;
 
 /* ---------- reading a Foodics report ---------- */
-const DSR_METHOD=[[/apple/,'apple'],[/mada|visa|master|card|credit|atm|span|network/,'mada'],[/cash|naqd|نقد/,'cash'],[/hunger/,'hunger'],[/koin/,'koinz'],[/kee?ta|kita/,'keeta'],
-  [/ninja/,'ninja'],[/locate/,'locate'],[/mask[ou]?[bp]|app/,'maskob'],[/jah[ae]z|jahiz/,'jahez']];
+/* payment method names as printed (English or Arabic), forgiving the usual misreadings */
+const DSR_METHOD=[[/apple|ابل|أبل/,'apple'],[/m[a@4]d[a@4]|visa|master|card|credit|atm|span|network|مدى|مدي|شبكة/,'mada'],[/c[a@4][s5]h|naqd|نقد|كاش/,'cash'],
+  [/h?ung[ae]r|unger|stat[i1l]on|هنقر|هنجر/,'hunger'],[/k[o0]in|كوين/,'koinz'],[/ke+t|kita|كيت/,'keeta'],[/n[i1l]n[jy]|نينج|ننج/,'ninja'],[/locat|لوكيت/,'locate'],
+  [/mask[ou]?[bp]|مسكوب/,'maskob'],[/jah[ae]?z|jahiz|جاهز/,'jahez'],[/to\s?you|تويو/,'other']];
 function parseFoodicsReport(text){
   const T=toLatinDigits(text).replace(/[‎‏‪-‮⁦-⁩]/g,'');
   const lines=T.split(/\n+/).map(l=>l.replace(/\s+/g,' ').trim()).filter(Boolean);
-  const out={pay:{},raw:{}};
+  const out={pay:{},raw:{},unknown:[]};
+  out.kind=/drawer|closing\s*amount|estimated\s*cash|till/i.test(T)?'till':/orders\s*summary|gross\s*sales/i.test(T)?'orders':'other';
+  /* amounts: 1,653.00 / 1.653,00 / 136,00 — and in a till report (one amount per line, always two decimals)
+     also "3 873.00", "47 00" or "4.154 50" as a blurred photo gives them */
   const AMT=/-?\d{1,3}(?:[.,]\d{3})+[.,]\d{2}(?!\d)|-?\d+[.,]\d{2}(?!\d)/g;
   const norm=x=>{const neg=x.startsWith('-'),d=x.replace(/^-/,''),i=Math.max(d.lastIndexOf('.'),d.lastIndexOf(','));return(neg?'-':'')+d.slice(0,i).replace(/[.,]/g,'')+'.'+d.slice(i+1)};
   const money=l=>{const m=[...l.matchAll(AMT)];return m.length?norm(m[m.length-1][0]):null};
+  const tillAmt=l=>{const tail=l.includes(':')?l.slice(l.lastIndexOf(':')+1):l;const g=tail.match(/(\d[\d .,]*\d|\d)\s*$/);if(!g)return null;
+    const grp=g[1],dig=grp.replace(/\D/g,'');if(!dig)return null;const cents=/[ .,]\d{2}$/.test(grp)||/^0+$/.test(dig)&&dig.length>2;
+    return String(cents?+dig/100:+dig)};
+  const amt=l=>out.kind==='till'?(tillAmt(l)??money(l)):money(l);
   const qtyOf=l=>{const s=l.replace(AMT,' ');const m=s.match(/(?:^|\s)(\d{1,5})(?=\s|$)/);return m?+m[1]:null};
-  const lab=l=>l.replace(/([A-Za-z])0(?=[A-Za-z])/g,'$1o').replace(/([A-Za-z])1(?=[A-Za-z])/g,'$1l').replace(/([A-Za-z])5(?=[A-Za-z])/g,'$1s').replace(/^[^A-Za-z\u0600-\u06ff]+/,'').split(/[:;#\d]/)[0].toLowerCase().replace(/[^a-z؀-ۿ ]/g,' ').replace(/\s+/g,' ').trim();
+  /* the label: digits inside words read as letters (Cl0sing), the side of the colon that has letters (Arabic prints right to left) */
+  const lab=l=>{const x=l.replace(/([A-Za-z])0(?=[A-Za-z])/g,'$1o').replace(/([A-Za-z])1(?=[A-Za-z])/g,'$1l').replace(/([A-Za-z])5(?=[A-Za-z])/g,'$1s').replace(AMT,' ');
+    const parts=x.split(/[:;]/).map(p=>p.replace(/\d/g,' ').toLowerCase().replace(/[^a-z؀-ۿ ]/g,' ').replace(/\s+/g,' ').trim());
+    const lead=parts[0].replace(/^(?:[a-z]{1,2} )+/,'');return parts.length>1?(lead||parts.find(p=>p)||''):lead};
   const dm=T.match(/business\s*date\s*:?\s*(\d{4})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{1,2})/i);if(dm)out.date=dm[1]+'-'+dm[2].padStart(2,'0')+'-'+dm[3].padStart(2,'0');
   const om=T.match(/opened\s*at\s*:?\s*\d{4}\S*\s+(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm)?/i);
   if(om){let h=+om[1];if(om[3]){const pm=/pm/i.test(om[3]);if(pm&&h<12)h+=12;if(!pm&&h===12)h=0}out.openHour=h}
   const um=T.match(/user\s*:?\s*([^\n]{2,40})/i);if(um)out.user=um[1].replace(/[^؀-ۿA-Za-z ]/g,' ').replace(/\s+/g,' ').trim();
-  out.kind=/drawer|closing\s*amount|estimated\s*cash|till/i.test(T)?'till':/orders\s*summary|gross\s*sales/i.test(T)?'orders':'other';
+  const STOP=/drawer|operation|short|over|drop|register|open\w* am|clos\w* am|estim|pay in|pay out|^total|^net/;
+  const addPay=(L,m)=>{const hit=L&&DSR_METHOD.find(([re])=>re.test(L));if(hit){const k=hit[1];out.raw[k]=out.raw[k]!=null?String(dsrNum(out.raw[k])+dsrNum(m)):m}else out.unknown.push(dsrNum(m))};
   let inPay=false;
   for(const l of lines){
-    const L=lab(l),m=money(l);
+    const L=lab(l),m=amt(l);
     if(/^pay\s?m\w*$/.test(L)&&!m){inPay=true;continue}
-    if(inPay&&/^net payments?/.test(L)){if(m)out.netPay=m;inPay=false;continue}
+    if(inPay&&/^net pay/.test(L)){if(m)out.netPay=m;inPay=false;continue}
     if(inPay){
       if(!m||/^(name|quantity|amount)/.test(L))continue;
-      if(/^total payments?/.test(L)){out.totalPay=m;continue}
+      if(/^total pay\w*$|^total payments?/.test(L)&&!/oper/.test(L)){out.totalPay=m;continue}
       if(/^total returns?/.test(L)){out.returns=m;continue}
-      /* past the payment methods (drawer, totals, shortage…): back to the general lines */
-      if(/drawer|operation|short|over|drop|register|open\w* am|clos\w* am|estim|pay in|pay out|^total|^net/.test(L)){inPay=false}
-      else{const hit=DSR_METHOD.find(([re])=>re.test(L));const k=hit?hit[1]:'other';
-      out.raw[k]=out.raw[k]?String(dsrNum(out.raw[k])+dsrNum(m)):m;continue}}
+      if(STOP.test(L))inPay=false;else{addPay(L,m);continue}}
     if(!m&&!/guest count/.test(L))continue;
     if(/^gross sales without/.test(L))out.grossNet=m;
     else if(/^gross sales/.test(L)){out.gross=m;const q=qtyOf(l);if(q!=null)out.orders=q}
@@ -71,6 +82,8 @@ function parseFoodicsReport(text){
     else if(/^net sales/.test(L))out.net=m;
     else if(/^total tax/.test(L))out.tax=m;
     else if(/^guest count/.test(L)){const q=qtyOf(l);if(q!=null)out.guests=q}
+    else if(/^total payment oper/.test(L))out.payOps=m;
+    else if(/^total payments?$/.test(L))out.totalPay=m;
     else if(/^total returns?$/.test(L))out.returns=m;
     else if(/^open\w* am/.test(L))out.opening=m;
     else if(/^clos\w* am/.test(L))out.closing=m;
@@ -81,20 +94,26 @@ function parseFoodicsReport(text){
     else if(/^total pay out/.test(L))out.payOut=m;
     else if(/^total cash drops?/.test(L))out.drops=m;
   }
-  if(!Object.keys(out.raw).length){const ti=lines.findIndex(l=>/^total\s*paym/.test(lab(l)));
-    const NOT=/total|net|short|over|drop|register|operation|opening|closing|estimat|gift|house|third|count|gross|discount|tax|void|return/;
-    lines.slice(Math.max(0,ti<0?0:ti-10),ti<0?lines.length:ti).forEach(l=>{const L=lab(l),m=money(l);if(!m||!L||NOT.test(L))return;
-      const hit=DSR_METHOD.find(([re])=>re.test(L));if(!hit)return;out.raw[hit[1]]=out.raw[hit[1]]?String(dsrNum(out.raw[hit[1]])+dsrNum(m)):m});
-    if(ti>=0&&out.totalPay==null){const m=money(lines[ti]);if(m)out.totalPay=m}}
+  /* no "Payments" heading read: the lines just above "Total Payments" are the methods */
+  if(!Object.keys(out.raw).length&&!out.unknown.length){const ti=lines.findIndex(l=>/^total\s*paym/.test(lab(l))&&!/oper/.test(lab(l)));
+    const NOT=/total|net|short|over|drop|register|operation|opening|closing|estimat|gift|house|third|count|gross|discount|tax|void|return|printed|business|opened|closed|user|date/;
+    if(ti>=0){lines.slice(Math.max(0,ti-10),ti).forEach(l=>{const L=lab(l),m=amt(l);if(!m||NOT.test(L))return;addPay(L,m)});
+      if(out.totalPay==null){const m=amt(lines[ti]);if(m)out.totalPay=m}}}
+  /* in a till report "Total Payment Operations" is the cash taken: clearer than a blurred "Cash" line */
+  if(out.kind==='till'&&out.payOps!=null&&(out.raw.cash==null||Math.abs(dsrNum(out.raw.cash)-dsrNum(out.payOps))>=0.01))out.raw.cash=out.payOps;
   /* the riyal sign is sometimes read as a digit stuck to the amount (₼1,653.00 → 41,653.00):
      when the methods do not add up to the total, try each amount without its first digit */
   const keys=Object.keys(out.raw),tot=out.totalPay!=null?dsrNum(out.totalPay):null;
   const fix=s=>s.replace(/^(-?)\d(?=\d)/,'$1').replace(/^,/,'');
-  if(tot!=null&&keys.length&&keys.length<=8){const vals=keys.map(k=>out.raw[k]);
-    const ok=a=>Math.abs(a.reduce((s,v)=>s+dsrNum(v),0)-tot)<0.01;
-    if(!ok(vals)){for(let mask=1;mask<(1<<keys.length);mask++){const a=vals.map((v,i)=>mask&(1<<i)?fix(v):v);if(ok(a)){keys.forEach((k,i)=>out.raw[k]=a[i]);break}}}}
+  if(tot!=null&&keys.length&&keys.length<=8){const vals=keys.map(k=>out.raw[k]),extra=out.unknown.reduce((s0,v)=>s0+v,0);
+    const ok=a=>Math.abs(a.reduce((s0,v)=>s0+dsrNum(v),0)+extra-tot)<0.01;
+    if(!ok(vals)){for(let mask=1;mask<(1<<keys.length);mask++){const a2=vals.map((v,i)=>mask&(1<<i)?fix(v):v);if(ok(a2)){keys.forEach((k,i)=>out.raw[k]=a2[i]);break}}}}
   for(const k of keys)out.pay[k]=dsrNum(out.raw[k]);delete out.raw;
-  for(const k of ['totalPay','netPay','returns','gross','grossNet','disc','void','net','tax','opening','closing','estimated','short','over','payIn','payOut','drops'])if(out[k]!=null)out[k]=dsrNum(out[k]);
+  if(tot!=null&&out.unknown.length&&out.unknown.length<=10){const need=Math.round((tot-Object.values(out.pay).reduce((s0,v)=>s0+v,0))*100)/100,U=out.unknown;
+    let pick=null;for(let mask=0;mask<(1<<U.length);mask++){const sub=U.filter((v,i)=>mask&(1<<i));if(Math.abs(sub.reduce((s0,v)=>s0+v,0)-need)<0.01&&(!pick||sub.length>pick.length))pick=sub}
+    if(pick)out.unknown=pick}
+  if(out.unknown.length)out.pay.other=Math.round(out.unknown.reduce((s0,v)=>s0+v,0)*100)/100;
+  for(const k of ['totalPay','netPay','returns','gross','grossNet','disc','void','net','tax','opening','closing','estimated','short','over','payIn','payOut','drops','payOps'])if(out[k]!=null)out[k]=dsrNum(out[k]);
   return out;
 }
 /* the photo → text: only the paper, turned upright; first in black and white with shadows evened out and
@@ -123,9 +142,12 @@ async function readReportText(img,onStep){
   let best=null;const keep=(text,im)=>{const r=parseFoodicsReport(text),sc=reportScore(r);if(!best||sc>best.sc)best={r,sc,text,im};return sc};
   const step=(a,b)=>p=>onStep&&onStep(Math.round(a+(b-a)*p/100));
   for(let i=0;i<turns.length;i++){const im=rotated(img,turns[i]);
-    if(keep(await readEng(binarize(canvasOf(im,2200,[0,0,1,1])),6,step(i*40/turns.length,(i+1)*40/turns.length)),im)>=4)break}
+    if(keep(await readEng(binarize(canvasOf(im,2600,[0,0,1,1])),6,step(i*40/turns.length,(i+1)*40/turns.length)),im)>=4)break}
   if(best.sc<4)keep(await readEng(enhance(canvasOf(best.im,2200,[0,0,1,1]),'red'),4,step(40,70)),best.im);
   if(best.sc<4)keep(await readText(best.im,step(70,100),'red'),best.im);
+  else if(best.r.unknown&&best.r.unknown.length){const r2=parseFoodicsReport(await readText(best.im,step(70,100),'red')),r=best.r;
+    for(const k of Object.keys(r2.pay)){if(k==='other'||r.pay[k]!=null)continue;const i=r.unknown.findIndex(v=>Math.abs(v-r2.pay[k])<0.01);if(i>=0){r.pay[k]=r2.pay[k];r.unknown.splice(i,1)}}
+    if(r.unknown.length)r.pay.other=Math.round(r.unknown.reduce((s0,v)=>s0+v,0)*100)/100;else delete r.pay.other}
   S.dsrText=best.text;S.dsrTextScore=best.sc;
   return best.r;
 }
@@ -142,12 +164,19 @@ function dsrState(day,ex){
   d.key=key;S.dsr=d;return d;
 }
 /* a report read for a shift: Foodics figures of that shift, counted cash, orders, cashier */
+function dsrSumApps(d){for(const k of [...DSR_APPS,...DSR_ADJ]){const v=DSR_SHIFTS.reduce((t0,x)=>t0+(+((d.fs[x]||{})[k])||0),0);
+  if(DSR_SHIFTS.some(x=>(d.fs[x]||{})[k]!=null))d.f[k]=String(Math.round(v*100)/100)}}
+/* the branch says which app an unread amount belongs to */
+function dsrUnkBox(d){const items=[];DSR_SHIFTS.forEach(s=>((d.fs[s]||{}).unk||[]).forEach((v,i)=>items.push({s,i,v})));if(!items.length)return'';
+  return`<div class="dsr-unk"><b>${esc(t('dsr_unkTitle'))}</b><p class="hint">${esc(t('dsr_unkHint'))}</p>${items.map(x=>`<label class="row" style="gap:8px;align-items:center;margin-top:6px"><span class="num" dir="ltr"><b>${esc(sar2(x.v))}</b></span>
+    <select class="field" data-in="dsrUnk" data-s="${x.s}" data-i="${x.i}" style="width:auto"><option value="">${esc(t('dsr_unkPick'))}</option>${DSR_APPS.filter(k=>k!=='other').map(k=>`<option value="${k}">${esc(t('dsr_'+k))}</option>`).join('')}</select></label>`).join('')}</div>`}
 function dsrApply(d,r,s){
   const fs=d.fs[s]=d.fs[s]||{};
   if(Object.keys(r.pay).length){for(const k of [...DSR_PAY,...DSR_APPS])delete fs[k];Object.assign(fs,r.pay)}
   if(r.void!=null)fs.void=r.void;if(r.disc!=null)fs.disc=r.disc;if(r.orders!=null)fs.orders=r.orders;
   for(const p of DSR_PAY)if(fs[p]!=null||d.f[p+'_'+s]!=null)d.f[p+'_'+s]=fs[p]!=null?String(fs[p]):d.f[p+'_'+s];
-  for(const k of [...DSR_APPS,...DSR_ADJ]){const v=DSR_SHIFTS.reduce((t0,x)=>t0+(+((d.fs[x]||{})[k])||0),0);if(DSR_SHIFTS.some(x=>(d.fs[x]||{})[k]!=null))d.f[k]=String(Math.round(v*100)/100)}
+  fs.unk=(r.unknown||[]).slice();if(fs.unk.length)fs.other=Math.round(fs.unk.reduce((t0,v)=>t0+v,0)*100)/100;
+  dsrSumApps(d);
   const ord=DSR_SHIFTS.reduce((t0,x)=>t0+(+((d.fs[x]||{}).orders)||0),0);if(ord)d.inv=String(ord);
   if(r.closing!=null){const till=d.till[s]={opening:r.opening||0,closing:r.closing,estimated:r.estimated,short:r.short||0,over:r.over||0};
     if(!dsrHas(d.a['cash_'+s]))d.a['cash_'+s]=String(Math.round((r.closing-(r.opening||0)-(r.payIn||0)+(r.payOut||0)+(r.drops||0))*100)/100);void till}
@@ -182,6 +211,7 @@ function dsrForm(day,ex){
     <div class="row dsr-scan">${DSR_SHIFTS.map(s=>`<label class="btn btn-navy rp-btn io-imp">${ic('camera')}${esc(t('dsr_scan_'+s))}<input type="file" class="dsr-scan-in" data-s="${s}" accept="image/*" capture="environment" aria-label="${esc(t('dsr_scan_'+s))}"></label>`).join('')}</div>
     <div class="row" style="gap:6px;flex-wrap:wrap;margin:6px 0">${tillNote('am')}${tillNote('pm')}</div>
     ${S.dsrText!=null&&S.dsrTextScore<4?`<details class="dsr-raw"><summary>${esc(t('dsr_rawShow'))}</summary><p class="hint">${esc(t('dsr_rawHint'))}</p><textarea class="field" rows="8" readonly dir="ltr">${esc(S.dsrText)}</textarea></details>`:''}
+    ${dsrUnkBox(d)}
     ${dsrTable(d,false)}
     <div class="sl-grid hr-grid" style="margin-top:10px">
       <label><span class="hint">${t('dsr_orders')}</span><input class="field num" id="dsr-inv" data-in="dsrX" data-k="inv" inputmode="numeric" dir="ltr" value="${esc(d.inv||'')}" placeholder="0"></label>
@@ -233,6 +263,10 @@ Object.assign(A,{
 document.addEventListener('input',ev=>{const el=ev.target,k=el.dataset&&el.dataset.in;if(!S.dsr||!k)return;
   if(k==='dsr'){S.dsr[el.dataset.c][el.dataset.k]=el.value;dsrPaint()}
   else if(k==='dsrX'){const f=el.dataset.k;if(f==='inv')S.dsr.inv=el.value;else S.dsr.cashier[f.slice(8)]=el.value}});
+document.addEventListener('change',ev=>{const el=ev.target;if(!(S.dsr&&el.dataset&&el.dataset.in==='dsrUnk'&&el.value))return;
+  const d=S.dsr,fs=d.fs[el.dataset.s]||{},i=+el.dataset.i,v=(fs.unk||[])[i];if(v==null)return;
+  fs.unk.splice(i,1);fs[el.value]=Math.round(((+fs[el.value]||0)+v)*100)/100;fs.other=Math.round(((+fs.other||0)-v)*100)/100;if(!(fs.other>0))delete fs.other;
+  if(!fs.unk.length)delete fs.unk;dsrSumApps(d);if(d.f.other!=null&&!DSR_SHIFTS.some(x=>(d.fs[x]||{}).other!=null))delete d.f.other;render()});
 document.addEventListener('change',ev=>{const el=ev.target;if(!el.classList||!el.classList.contains('dsr-scan-in'))return;const f=el.files&&el.files[0];el.value='';if(f)dsrScan(f,el.dataset.s)});
 
 /* ---------- finance and operations: a month by payment method, and the DSR sheet in Excel ---------- */

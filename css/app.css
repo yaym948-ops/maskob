@@ -775,3 +775,13 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
 .dsr-tbl tr.dsr-off .dsr-why{border-color:var(--sun)}
 .dsr-tbl .dsr-d{color:var(--late)}
 .ap-rate{width:76px!important;min-width:0;padding:6px 8px;text-align:end;display:inline-block}
+
+.dsr-unk{margin:10px 0;padding:10px 12px;border:1px solid var(--sun);border-radius:12px;background:var(--sun-soft)}
+/* the DSR on a phone: label, actual, Foodics and difference all in view */
+@media (max-width:700px){
+  .dsr-tbl{min-width:0;table-layout:fixed;width:100%;font-size:13px}
+  .dsr-tbl th:first-child{width:34%}.dsr-tbl th:nth-child(2),.dsr-tbl th:nth-child(3){width:25%}.dsr-tbl th:nth-child(4){width:16%}
+  .dsr-tbl th[scope="row"]{white-space:normal;font-size:12.5px;line-height:1.3}
+  .dsr-tbl .dsr-in{min-width:0;padding:5px 6px;font-size:14px}
+  .dsr-tbl td,.dsr-tbl th{padding:3px 4px}
+}
