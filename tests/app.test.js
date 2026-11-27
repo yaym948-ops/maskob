@@ -767,3 +767,26 @@ test('correspondence: finance writes to operations and a branch with an attachme
   assert.equal(w.eval('mailUnreadN()'), 1, 'reply unread for finance');
   d.setVal('ownerView', 'dash'); await sleep(200);
 });
+
+test('correspondence: a circular to every branch is one copy per branch, one line for the sender, replies private', async () => {
+  const d = driver(w), S = w.eval('S');
+  w.eval('MEMSET')('mail', []); S._demoMsgs = {}; S._demoMail = {};
+  await d.signIn('6060'); w.eval('xLoadDemo()'); w.eval('render()');
+  d.click('[data-act="tab"][data-k="mail"]'); d.click('[data-act="mlNew"]'); await sleep(20);
+  d.click('[data-act="mlCirc"][data-k="br"]');
+  const branches = w.eval('S.branches');
+  assert.equal(S.mlDraft.to.length, branches.length, 'every branch chosen');
+  d.click('[data-act="mlCirc"][data-k="all"]');
+  assert.equal(S.mlDraft.to.length, branches.length + 3, 'everyone but finance itself');
+  d.click('[data-act="mlCirc"][data-k="br"]');
+  d.setVal('ml-subject', 'تعميم: مواعيد الدوام في رمضان'); d.setVal('ml-body', 'يبدأ الدوام الساعة 8 مساءً');
+  d.click('[data-act="mlSend"]'); await sleep(400);
+  const threads = w.eval('S.mail');
+  assert.equal(threads.length, branches.length, 'one thread per branch');
+  assert.ok(threads.every((m) => m.parties.length === 2 && m.circ === threads[0].circ), 'each with the sender alone');
+  w.eval('render()');
+  assert.equal(w.document.querySelectorAll('[data-act="mlCircOpen"]').length, 1, 'one line for the sender');
+  d.click('[data-act="mlCircOpen"]'); await sleep(20);
+  assert.equal(w.document.querySelectorAll('.sheet [data-act="mlOpen"], #sheet [data-act="mlOpen"]').length, branches.length, 'recipients listed');
+  d.click('[data-act="close"]');
+});

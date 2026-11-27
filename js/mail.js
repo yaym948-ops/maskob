@@ -54,7 +54,7 @@ function mailNotify(m){try{if(typeof Notification==='undefined'||Notification.pe
 /* ---------- the page ---------- */
 function mailView(){
   const me=mailBox();if(!me)return'';const f=S.mlBox||'in';
-  const all=[...(S.mail||[])].sort((a,b)=>String(b.last).localeCompare(String(a.last)));
+  const seenC=new Set(),all=[...(S.mail||[])].sort((a,b)=>String(b.last).localeCompare(String(a.last))).filter(m=>!(m.circ&&m.from===me)||(!seenC.has(m.circ)&&seenC.add(m.circ)));
   const list=f==='out'?all.filter(m=>m.from===me):f==='unread'?all.filter(mailUnread):all;
   const ic=n=>typeof ico==='function'?ico(n):'';
   const canAsk=typeof Notification!=='undefined'&&Notification.permission==='default';
@@ -62,10 +62,15 @@ function mailView(){
   <div class="filters">${[['in','ml_all'],['unread','ml_unread'],['out','ml_sent']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-act="mlBox" data-k="${k}">${esc(t(l))}${k==='unread'&&mailUnreadN()?` <span class="c num">(${mailUnreadN()})</span>`:''}</button>`).join('')}</div>
   <div class="list">${list.length?list.map(m=>{const un=mailUnread(m),mine=m.from===me,other=mine?(m.to||[]).map(mailBoxName).join('، '):mailBoxName(m.from);
     const seen=mine?(m.to||[]).filter(b=>String((m.readBy||{})[b]||'')>=String(m.last||'')).length:0;
+    if(m.circ&&mine){const grp=(S.mail||[]).filter(x=>x.circ===m.circ),read=grp.filter(x=>String((x.readBy||{})[x.to[0]]||'')>=String(x.at||'')).length,rep=grp.filter(mailUnread).length;
+      return`<button class="oc ml-row ${rep?'ml-new':''}" data-act="mlCircOpen" data-id="${esc(m.circ)}"><span class="ml-av" aria-hidden="true">${ic('send')}</span>
+      <span style="min-width:0;flex:1"><span class="t">${rep?'<i class="ml-dot"></i>':''}${esc(m.subject||t('ml_noSubject'))} <span class="tag">${esc(t('ml_circTag'))}</span></span>
+        <span class="s">${esc(t('ml_circ_'+(m.circKind||'all')))} · ${esc(t('ml_circN',{n:grp.length}))}${rep?' · '+esc(t('ml_circRep',{n:rep})):''}</span></span>
+      <span class="side"><span class="hint">${esc(when(m.at))}</span><span class="pill ${read===grp.length?'ms-done':'ms-progress'}">${esc(t('ml_circRead',{a:read,b:grp.length}))}</span></span></button>`}
     return`<button class="oc ml-row ${un?'ml-new':''}" data-act="mlOpen" data-id="${esc(m.id)}">
       <span class="ml-av" aria-hidden="true">${ic(mine?'send':'inbox')}</span>
       <span style="min-width:0;flex:1"><span class="t">${un?'<i class="ml-dot"></i>':''}${esc(m.subject||t('ml_noSubject'))}</span>
-        <span class="s">${esc(t(mine?'ml_to':'ml_from'))}: ${esc(other)}${m.n?' · '+esc(t('ml_replies',{n:m.n})):''}</span></span>
+        <span class="s">${m.circ&&!mine?`<span class="tag">${esc(t('ml_circTag'))}</span> `:''}${esc(t(mine?'ml_to':'ml_from'))}: ${esc(other)}${m.n?' · '+esc(t('ml_replies',{n:m.n})):''}</span></span>
       <span class="side"><span class="hint">${esc(when(m.last))}</span>${mine?`<span class="pill ${seen?'ms-done':'ms-progress'}">${esc(t(seen?'ml_seen':'ml_notSeen'))}</span>`:''}</span></button>`}).join('')
     :`<div class="empty">${esc(t(all.length?'ml_noneHere':'ml_none'))}</div>`}</div>`;
 }
@@ -73,7 +78,9 @@ function mailView(){
 function mailNewSheet(){
   const me=mailBox(),d=S.mlDraft||{};
   const files=d.files||[];
-  const body=`<div><span class="hint">${t('ml_toPick')}</span><div class="ml-to">${mailBoxes().filter(b=>b!==me).map(b=>`<button class="chip" aria-pressed="${(d.to||[]).includes(b)}" data-act="mlTo" data-k="${esc(b)}">${esc(mailBoxName(b))}</button>`).join('')}</div></div>
+  const circ=[['br','ml_circBr'],['dept','ml_circDept'],['all','ml_circAll']];
+  const body=`<div><span class="hint">${t('ml_circ')}</span><div class="ml-to">${circ.map(([k,l])=>`<button class="chip ml-circ" aria-pressed="${d.circ===k}" data-act="mlCirc" data-k="${k}">${typeof ico==='function'?ico('send','b-ic'):''}${esc(t(l))}</button>`).join('')}</div></div>
+  <div style="margin-top:10px"><span class="hint">${t('ml_toPick')}</span><div class="ml-to">${mailBoxes().filter(b=>b!==me).map(b=>`<button class="chip" aria-pressed="${(d.to||[]).includes(b)}" data-act="mlTo" data-k="${esc(b)}">${esc(mailBoxName(b))}</button>`).join('')}</div></div>
   <label style="display:block;margin-top:10px"><span class="hint">${t('ml_subject')}</span><input class="field" id="ml-subject" data-in="mlF" data-f="subject" dir="auto" value="${esc(d.subject||'')}"></label>
   <label style="display:block;margin-top:10px"><span class="hint">${t('ml_body')}</span><textarea class="field" id="ml-body" rows="5" dir="auto" data-in="mlF" data-f="body">${esc(d.body||'')}</textarea></label>
   ${mailAttachBlock(files)}`;
@@ -98,13 +105,25 @@ function mailThreadSheet(){
   ${mailAttachBlock(d.files||[])}`;
   return hrSheetWrap(m.subject||t('ml_noSubject'),body,`<span class="spacer"></span><button class="btn btn-sun" data-act="mlReply" ${S.mlBusy?'disabled':''}>${S.mlBusy?t('ef_loading'):t('ml_send')}</button>`);
 }
+function mailCircSheet(){
+  const grp=(S.mail||[]).filter(x=>x.circ===S.mlCirc).sort((a,b)=>mailBoxName(a.to[0]).localeCompare(mailBoxName(b.to[0]),'ar'));if(!grp.length)return'';
+  const body=`<p class="hint">${esc(t('ml_circHint'))}</p><div class="list">${grp.map(x=>{const r=x.to[0],rd=(x.readBy||{})[r],un=mailUnread(x);
+    return`<button class="oc ml-row ${un?'ml-new':''}" data-act="mlOpen" data-id="${esc(x.id)}"><span style="min-width:0;flex:1"><span class="t">${un?'<i class="ml-dot"></i>':''}${esc(mailBoxName(r))}</span>
+      <span class="s">${rd&&rd>=x.at?esc(t('ml_readAt',{d:when(rd)})):esc(t('ml_notSeen'))}${x.n?' · '+esc(t('ml_replies',{n:x.n})):''}</span></span>
+      <span class="side"><span class="pill ${rd&&rd>=x.at?'ms-done':'ms-progress'}">${esc(t(rd&&rd>=x.at?'ml_seen':'ml_notSeen'))}</span></span></button>`}).join('')}</div>`;
+  return hrSheetWrap(grp[0].subject||t('ml_noSubject'),body,'');
+}
 function mailLoadThread(id){S.mlMsgs={id,list:null};render();MAILS.msgs(id).then(list=>{if(S.mlOpen===id){S.mlMsgs={id,list};render()}}).catch(()=>{S.mlMsgs={id,list:[]};render()})}
 Object.assign(A,{
   mlBox(el){S.mlBox=el.dataset.k;render()},
   mlNew(){S.mlNewOpen=true;S.mlOpen=null;S.mlDraft={to:[],subject:'',body:'',files:[]};render()},
-  mlTo(el){const d=S.mlDraft;if(!d)return;const b=el.dataset.k;d.to=d.to.includes(b)?d.to.filter(x=>x!==b):d.to.concat([b]);render()},
+  mlTo(el){const d=S.mlDraft;if(!d)return;const b=el.dataset.k;d.circ=null;d.to=d.to.includes(b)?d.to.filter(x=>x!==b):d.to.concat([b]);render()},
+  /* a circular: every branch, every department, or everyone (the sender excepted) */
+  mlCirc(el){const d=S.mlDraft;if(!d)return;const k=el.dataset.k,me=mailBox();if(d.circ===k){d.circ=null;d.to=[];render();return}
+    const br=S.branches.map(b=>'br:'+b),dp=MAIL_DEPTS;d.circ=k;d.to=(k==='br'?br:k==='dept'?dp:[...dp,...br]).filter(b=>b!==me);render()},
+  mlCircOpen(el){S.mlCirc=el.dataset.id;S.mlOpen=null;S.mlNewOpen=false;render()},
   mlRmFile(el){const d=S.mlDraft;if(!d)return;d.files.splice(+el.dataset.i,1);render()},
-  mlOpen(el){S.mlOpen=el.dataset.id;S.mlNewOpen=false;S.mlDraft={body:'',files:[]};mailLoadThread(S.mlOpen);MAILS.read(S.mlOpen)},
+  mlOpen(el){S.mlOpen=el.dataset.id;S.mlNewOpen=false;S.mlCirc=null;S.mlDraft={body:'',files:[]};mailLoadThread(S.mlOpen);MAILS.read(S.mlOpen)},
   async mlSend(){const me=mailBox(),d=S.mlDraft||{};if(!me)return;
     if(!(d.to||[]).length){toast(t('ml_needTo'));return}
     if(!String(d.subject||'').trim()){toast(t('ml_needSubject'));return}
@@ -112,7 +131,11 @@ Object.assign(A,{
     const at=nowIso(),by=S.userName||roleL(S.realRole||S.role);
     const head={from:me,to:d.to,parties:[me,...d.to],subject:String(d.subject).trim(),by,at,last:at,lastFrom:me,n:0,readBy:{[me]:at}};
     S.mlBusy=true;render();
-    try{await MAILS.create(head,{from:me,by,body:String(d.body||'').trim(),at},d.files);S.mlNewOpen=false;S.mlDraft=null;toast(t('ml_sent2'))}catch(e){toast(t('saveFail'))}
+    const msg={from:me,by,body:String(d.body||'').trim(),at};
+    try{if(d.circ){const cid='CI-'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+        for(const r of d.to)await MAILS.create(Object.assign({},head,{to:[r],parties:[me,r],circ:cid,circKind:d.circ,circN:d.to.length}),msg,d.files)}
+      else await MAILS.create(head,msg,d.files);
+      S.mlNewOpen=false;S.mlDraft=null;toast(t('ml_sent2'))}catch(e){toast(t('saveFail'))}
     S.mlBusy=false;render()},
   async mlReply(){const me=mailBox(),d=S.mlDraft||{},id=S.mlOpen;if(!me||!id)return;
     if(!String(d.body||'').trim()&&!(d.files||[]).length){toast(t('ml_needBody'));return}
