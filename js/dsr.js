@@ -40,9 +40,11 @@ function parseFoodicsReport(text){
   const T=toLatinDigits(text).replace(/[‎‏‪-‮⁦-⁩]/g,'');
   const lines=T.split(/\n+/).map(l=>l.replace(/\s+/g,' ').trim()).filter(Boolean);
   const out={pay:{},raw:{}};
-  const money=l=>{const m=[...l.matchAll(/-?\d{1,3}(?:,\d{3})+(?:\.\d{1,2})|-?\d+\.\d{1,2}/g)];return m.length?m[m.length-1][0]:null};
-  const qtyOf=l=>{const s=l.replace(/-?\d{1,3}(?:,\d{3})+(?:\.\d{1,2})|-?\d+\.\d{1,2}/g,' ');const m=s.match(/(?:^|\s)(\d{1,5})(?=\s|$)/);return m?+m[1]:null};
-  const lab=l=>l.split(/[:#\d]/)[0].toLowerCase().replace(/[^a-z؀-ۿ ]/g,' ').replace(/\s+/g,' ').trim();
+  const AMT=/-?\d{1,3}(?:[.,]\d{3})+[.,]\d{2}(?!\d)|-?\d+[.,]\d{2}(?!\d)/g;
+  const norm=x=>{const neg=x.startsWith('-'),d=x.replace(/^-/,''),i=Math.max(d.lastIndexOf('.'),d.lastIndexOf(','));return(neg?'-':'')+d.slice(0,i).replace(/[.,]/g,'')+'.'+d.slice(i+1)};
+  const money=l=>{const m=[...l.matchAll(AMT)];return m.length?norm(m[m.length-1][0]):null};
+  const qtyOf=l=>{const s=l.replace(AMT,' ');const m=s.match(/(?:^|\s)(\d{1,5})(?=\s|$)/);return m?+m[1]:null};
+  const lab=l=>l.replace(/([A-Za-z])0(?=[A-Za-z])/g,'$1o').replace(/([A-Za-z])1(?=[A-Za-z])/g,'$1l').replace(/([A-Za-z])5(?=[A-Za-z])/g,'$1s').replace(/^[^A-Za-z\u0600-\u06ff]+/,'').split(/[:;#\d]/)[0].toLowerCase().replace(/[^a-z؀-ۿ ]/g,' ').replace(/\s+/g,' ').trim();
   const dm=T.match(/business\s*date\s*:?\s*(\d{4})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{1,2})/i);if(dm)out.date=dm[1]+'-'+dm[2].padStart(2,'0')+'-'+dm[3].padStart(2,'0');
   const om=T.match(/opened\s*at\s*:?\s*\d{4}\S*\s+(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm)?/i);
   if(om){let h=+om[1];if(om[3]){const pm=/pm/i.test(om[3]);if(pm&&h<12)h+=12;if(!pm&&h===12)h=0}out.openHour=h}
@@ -51,14 +53,16 @@ function parseFoodicsReport(text){
   let inPay=false;
   for(const l of lines){
     const L=lab(l),m=money(l);
-    if(/^payments?$/.test(L)&&!m){inPay=true;continue}
+    if(/^pay\s?m\w*$/.test(L)&&!m){inPay=true;continue}
     if(inPay&&/^net payments?/.test(L)){if(m)out.netPay=m;inPay=false;continue}
     if(inPay){
       if(!m||/^(name|quantity|amount)/.test(L))continue;
       if(/^total payments?/.test(L)){out.totalPay=m;continue}
       if(/^total returns?/.test(L)){out.returns=m;continue}
-      const hit=DSR_METHOD.find(([re])=>re.test(L));const k=hit?hit[1]:'other';
-      out.raw[k]=out.raw[k]?String(dsrNum(out.raw[k])+dsrNum(m)):m;continue}
+      /* past the payment methods (drawer, totals, shortage…): back to the general lines */
+      if(/drawer|operation|short|over|drop|register|open\w* am|clos\w* am|estim|pay in|pay out|^total|^net/.test(L)){inPay=false}
+      else{const hit=DSR_METHOD.find(([re])=>re.test(L));const k=hit?hit[1]:'other';
+      out.raw[k]=out.raw[k]?String(dsrNum(out.raw[k])+dsrNum(m)):m;continue}}
     if(!m&&!/guest count/.test(L))continue;
     if(/^gross sales without/.test(L))out.grossNet=m;
     else if(/^gross sales/.test(L)){out.gross=m;const q=qtyOf(l);if(q!=null)out.orders=q}
@@ -68,15 +72,20 @@ function parseFoodicsReport(text){
     else if(/^total tax/.test(L))out.tax=m;
     else if(/^guest count/.test(L)){const q=qtyOf(l);if(q!=null)out.guests=q}
     else if(/^total returns?$/.test(L))out.returns=m;
-    else if(/^opening amount/.test(L))out.opening=m;
-    else if(/^closing amount/.test(L))out.closing=m;
-    else if(/^estimated cash/.test(L))out.estimated=m;
-    else if(/^cash shortage/.test(L))out.short=m;
-    else if(/^cash over/.test(L))out.over=m;
+    else if(/^open\w* am/.test(L))out.opening=m;
+    else if(/^clos\w* am/.test(L))out.closing=m;
+    else if(/^estim/.test(L))out.estimated=m;
+    else if(/short/.test(L))out.short=m;
+    else if(/^cash over|overage/.test(L))out.over=m;
     else if(/^total pay in/.test(L))out.payIn=m;
     else if(/^total pay out/.test(L))out.payOut=m;
     else if(/^total cash drops?/.test(L))out.drops=m;
   }
+  if(!Object.keys(out.raw).length){const ti=lines.findIndex(l=>/^total\s*paym/.test(lab(l)));
+    const NOT=/total|net|short|over|drop|register|operation|opening|closing|estimat|gift|house|third|count|gross|discount|tax|void|return/;
+    lines.slice(Math.max(0,ti<0?0:ti-10),ti<0?lines.length:ti).forEach(l=>{const L=lab(l),m=money(l);if(!m||!L||NOT.test(L))return;
+      const hit=DSR_METHOD.find(([re])=>re.test(L));if(!hit)return;out.raw[hit[1]]=out.raw[hit[1]]?String(dsrNum(out.raw[hit[1]])+dsrNum(m)):m});
+    if(ti>=0&&out.totalPay==null){const m=money(lines[ti]);if(m)out.totalPay=m}}
   /* the riyal sign is sometimes read as a digit stuck to the amount (₼1,653.00 → 41,653.00):
      when the methods do not add up to the total, try each amount without its first digit */
   const keys=Object.keys(out.raw),tot=out.totalPay!=null?dsrNum(out.totalPay):null;
@@ -88,15 +97,36 @@ function parseFoodicsReport(text){
   for(const k of ['totalPay','netPay','returns','gross','grossNet','disc','void','net','tax','opening','closing','estimated','short','over','payIn','payOut','drops'])if(out[k]!=null)out[k]=dsrNum(out[k]);
   return out;
 }
-/* the photo → text, as for invoices: only the paper, turned upright, read in red then grey */
+/* the photo → text: only the paper, turned upright; first in black and white with shadows evened out and
+   read in English as one block (Foodics prints its reports in English), then other ways if that reads little */
+let tessEngW=null;
+async function readEng(c,psm,onStep){
+  await loadScript(SCAN_LIBS.tess);
+  if(!tessEngW)tessEngW=Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text'&&readEng.onStep)readEng.onStep(Math.round((m.progress||0)*100))}}).catch(e=>{tessEngW=null;throw e});
+  const w=await tessEngW;readEng.onStep=onStep;
+  try{await w.setParameters({tessedit_pageseg_mode:String(psm||6),preserve_interword_spaces:'1'})}catch(e){}
+  const {data}=await w.recognize(c);return data.text||'';
+}
+/* black and white against the local brightness (thermal paper, shadows, a phone's uneven light) */
+function binarize(c){const g=c.getContext('2d'),W=c.width,H=c.height,d=g.getImageData(0,0,W,H),p=d.data,L=new Float32Array(W*H);
+  for(let i=0;i<W*H;i++)L[i]=p[i*4]*0.5+p[i*4+1]*0.35+p[i*4+2]*0.15;
+  const I=new Float64Array((W+1)*(H+1));for(let y=0;y<H;y++){let s0=0;for(let x=0;x<W;x++){s0+=L[y*W+x];I[(y+1)*(W+1)+x+1]=I[y*(W+1)+x+1]+s0}}
+  const r=Math.max(8,Math.round(W/40));
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const x0=Math.max(0,x-r),x1=Math.min(W,x+r+1),y0=Math.max(0,y-r),y1=Math.min(H,y+r+1);
+    const m=(I[y1*(W+1)+x1]-I[y0*(W+1)+x1]-I[y1*(W+1)+x0]+I[y0*(W+1)+x0])/((x1-x0)*(y1-y0));const v=L[y*W+x]<m*0.86?0:255;p[i4(x,y)]=p[i4(x,y)+1]=p[i4(x,y)+2]=v}
+  function i4(x,y){return(y*W+x)*4}
+  g.putImageData(d,0,0);return c}
+const reportScore=r=>Object.keys(r.pay).length+(r.closing!=null)+(r.orders!=null)+(r.totalPay!=null)+(r.short!=null);
 async function readReportText(img,onStep){
   try{const b=paperBox(img);if(b)img=canvasOf(img,Math.max(img.width*b[2],img.height*b[3]),b)}catch(e){}
   let turns=[0];try{if(textRunsSideways(img))turns=[90,270]}catch(e){}
-  let best=null;
-  for(let i=0;i<turns.length;i++){const tx=await readText(rotated(img,turns[i]),p=>onStep&&onStep(Math.round((i*100+p)/(turns.length+1))),'red'),r=parseFoodicsReport(tx);
-    const sc=Object.keys(r.pay).length+(r.closing!=null)+(r.orders!=null)+(r.totalPay!=null);if(!best||sc>best.sc)best={r,sc,im:rotated(img,turns[i])};if(sc>=3)break}
-  if(best.sc<3){const r2=parseFoodicsReport(await readText(best.im,p=>onStep&&onStep(80+Math.round(p/5))));
-    const sc=Object.keys(r2.pay).length+(r2.closing!=null)+(r2.orders!=null)+(r2.totalPay!=null);if(sc>best.sc)best={r:r2,sc}}
+  let best=null;const keep=(text,im)=>{const r=parseFoodicsReport(text),sc=reportScore(r);if(!best||sc>best.sc)best={r,sc,text,im};return sc};
+  const step=(a,b)=>p=>onStep&&onStep(Math.round(a+(b-a)*p/100));
+  for(let i=0;i<turns.length;i++){const im=rotated(img,turns[i]);
+    if(keep(await readEng(binarize(canvasOf(im,2200,[0,0,1,1])),6,step(i*40/turns.length,(i+1)*40/turns.length)),im)>=4)break}
+  if(best.sc<4)keep(await readEng(enhance(canvasOf(best.im,2200,[0,0,1,1]),'red'),4,step(40,70)),best.im);
+  if(best.sc<4)keep(await readText(best.im,step(70,100),'red'),best.im);
+  S.dsrText=best.text;S.dsrTextScore=best.sc;
   return best.r;
 }
 
@@ -151,6 +181,7 @@ function dsrForm(day,ex){
     <p class="hint">${esc(t('dsr_hint'))}</p>
     <div class="row dsr-scan">${DSR_SHIFTS.map(s=>`<label class="btn btn-navy rp-btn io-imp">${ic('camera')}${esc(t('dsr_scan_'+s))}<input type="file" class="dsr-scan-in" data-s="${s}" accept="image/*" capture="environment" aria-label="${esc(t('dsr_scan_'+s))}"></label>`).join('')}</div>
     <div class="row" style="gap:6px;flex-wrap:wrap;margin:6px 0">${tillNote('am')}${tillNote('pm')}</div>
+    ${S.dsrText!=null&&S.dsrTextScore<4?`<details class="dsr-raw"><summary>${esc(t('dsr_rawShow'))}</summary><p class="hint">${esc(t('dsr_rawHint'))}</p><textarea class="field" rows="8" readonly dir="ltr">${esc(S.dsrText)}</textarea></details>`:''}
     ${dsrTable(d,false)}
     <div class="sl-grid hr-grid" style="margin-top:10px">
       <label><span class="hint">${t('dsr_orders')}</span><input class="field num" id="dsr-inv" data-in="dsrX" data-k="inv" inputmode="numeric" dir="ltr" value="${esc(d.inv||'')}" placeholder="0"></label>

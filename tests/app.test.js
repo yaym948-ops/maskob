@@ -596,6 +596,11 @@ test('daily closing (DSR): Foodics reports read from photos, differences need a 
   assert.equal(till.kind, 'till'); assert.equal(till.date, '2026-10-09'); assert.equal(till.openHour, 14);
   assert.equal(till.pay.cash, 136); assert.equal(till.pay.mada, 1653, 'stuck digit removed: methods add up to the total'); assert.equal(till.pay.hunger, 88);
   assert.equal(till.closing, 131); assert.equal(till.short, 5); assert.equal(till.totalPay, 1877);
+  // misread heading, comma decimals, dotted thousands, labels with stray marks
+  const rough = parse('Paymerts\n| Cash: & 136,00\nMada: ~1.653,00\nHungerstation: #88.00\nTotal Payments: #1,877.00\nCl0sing Amount: 131.00\nCash Shortaqe: 5.00');
+  assert.equal(rough.pay.cash, 136); assert.equal(rough.pay.mada, 1653); assert.equal(rough.pay.hunger, 88); assert.equal(rough.closing, 131); assert.equal(rough.short, 5);
+  const noHead = parse('Cash: 136.00\nMada: 1,653.00\nHungerstation: 88.00\nTotal Payments: 1,877.00\nTotal Pay In: 0.00\nTotal Cash Drops: 0.00\nCash Shortage: 5.00');
+  assert.equal(JSON.stringify(noHead.pay), JSON.stringify({ cash: 136, mada: 1653, hunger: 88 }), 'methods found above Total Payments without the heading');
   // the orders summary: number of orders, net sales, taxes; "Net Payments by Type" is not counted twice
   const ord = parse('Orders Summary\nBusiness Date: 2026/10/09\nGeneral\nName Quantity Amount\nGross Sales 77 #1,877.00\nGross Sales Without Tax 77 #1,632.17\nTotal Discounts 0 #0.00\nTotal Taxes - #244.83\nNet Sales 77 #1,632.17\nGuest Count 77 -\nTotal Void 0 #0.00\nPayments\nName Quantity Amount\nCash 4 #136.00\nMada 72 #1,653.00\nHungerstation 2 #88.00\nTotal Payments - #1,877.00\nTotal Return 0 #0.00\nNet Payments - #1,877.00\nNet Payments by Type\nCash - #136.00\nCard - #1,741.00');
   assert.equal(ord.kind, 'orders'); assert.equal(ord.orders, 77); assert.equal(ord.net, 1632.17); assert.equal(ord.tax, 244.83);
