@@ -39,6 +39,7 @@ function salesDaySheet(){
   const st=slRevState(r),rv=r.review||{};
   const body=`<div class="stats">${kpi(t('sl_sales'),sar2(r.sales)+' '+t('sar'))}${kpi(t('sl_inv'),sar(r.invoices))}${kpi(t('sl_avg'),+r.invoices?sar2(r.sales/r.invoices)+' '+t('sar'):'—')}</div>
   ${r.dsr&&typeof dsrTable==='function'?dsrTable(r.dsr,true)+slTill(r):''}
+  ${+r.balPhotos&&typeof phBlock==='function'?phBlock('sales',r.id+DSR_BAL,{readOnly:true,title:'ph_bal'}):''}
   ${slNoPhoto(r)?`<div class="note-bar">${esc(t('slr_nophotoHint'))}</div>`:(typeof phBlock==='function'?phBlock('sales',r.id,{readOnly:true,title:'ph_sales'}):'')}
   <h4 class="hr-sub">${t('slr_title')}</h4>
   ${st==='wait'?'':`<p class="hint"><span class="pill ${st==='ok'?'ms-done':'li-expired'}">${esc(t('slr_'+st))}</span> ${esc(rv.by||'')}${rv.at?' · '+esc(when(rv.at)):''}${rv.note?`<br><span dir="auto">${esc(rv.note)}</span>`:''}</p>`}

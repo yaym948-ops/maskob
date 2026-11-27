@@ -284,7 +284,7 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   await d.signIn('6060');
   assert.equal(w.eval('S.role'), 'finance');
   const tabs = [...w.document.querySelectorAll('#tabsIn [data-act="tab"]')].map((b) => b.dataset.k);
-  assert.deepEqual(tabs, ['fsum', 'salesLog', 'expenses', 'supinv', 'suppliers', 'payroll', 'vouchers', 'advances', 'pnl', 'be', 'supst', 'costs', 'assets']);
+  assert.deepEqual(tabs, ['fsum', 'salesLog', 'expenses', 'supinv', 'suppliers', 'apps', 'payroll', 'vouchers', 'advances', 'pnl', 'be', 'supst', 'costs', 'assets']);
   // the reports sit in one group of the side menu, closed until opened
   const grp = w.document.querySelector('#tabsIn [data-act="navGrp"]');
   assert.ok(grp, 'reports group shown');
@@ -551,7 +551,7 @@ test('attached photos: kept with an expense, removed again, required with the da
   assert.ok(w.document.querySelector('.ph-block.need'), 'photo asked for');
   d.click('[data-act="dsrSave"]'); await sleep(200);
   assert.equal(w.eval('S.sales').filter((r) => r.id === sid).length, 0, 'not saved without a photo');
-  addPhoto('sales/' + sid);
+  addPhoto('sales/' + sid); addPhoto('sales/' + sid + '__bal');
   d.click('[data-act="dsrSave"]'); await sleep(300);
   const row = w.eval('S.sales').find((r) => r.id === sid);
   assert.ok(row, 'saved with the photo'); assert.equal(row.photos, 1);
@@ -609,16 +609,19 @@ test('daily closing (DSR): Foodics reports read from photos, differences need a 
   assert.equal(w.document.getElementById('dsr-f-cash_pm').value, '136'); assert.equal(w.document.getElementById('dsr-a-cash_pm').value, '131', 'counted cash');
   assert.equal(w.document.getElementById('dsr-f-mada_pm').value, '1653'); assert.equal(w.document.getElementById('dsr-f-hunger').value, '88');
   assert.equal(w.document.getElementById('dsr-inv').value, '77'); assert.equal(D.cashier.pm, 'محمد حسني');
-  // actual Mada and HungerStation typed; the cash shortage needs its reason
+  // actual Mada and HungerStation typed (from the terminal settlement and app receipts)
   d.setVal('dsr-a-mada_pm', '1653'); d.setVal('dsr-a-hunger', '88');
   assert.equal(w.document.getElementById('dsr-d-cash_pm').textContent.replace(/[‎‏\s]/g, ''), '-5');
   S.phs['sales/' + id].list.push({ pid: 'p0', data: 'data:image/jpeg;base64,/9j/Q', saved: false });
+  assert.ok(!w.document.querySelector('.dsr-why'), 'no reason column');
   d.click('[data-act="dsrSave"]'); await sleep(200);
-  assert.ok(!w.eval('S.sales').find((r) => r.id === id), 'held back: no reason for the difference');
-  d.setVal('dsr-w-cash_pm', 'عجز عند الكاشير'); d.click('[data-act="dsrSave"]'); await sleep(300);
+  assert.ok(!w.eval('S.sales').find((r) => r.id === id), 'held back: no reconciliation photo');
+  S.phs['sales/' + id + '__bal'].list.push({ pid: 'b0', data: 'data:image/jpeg;base64,/9j/B', saved: false });
+  d.click('[data-act="dsrSave"]'); await sleep(300);
   const row = w.eval('S.sales').find((r) => r.id === id);
   assert.ok(row, 'sent'); assert.equal(row.sales, 1877, 'Foodics total goes to sales'); assert.equal(row.invoices, 77);
-  assert.equal(row.dsrA, 1872); assert.equal(row.dsrDiff, -5); assert.equal(row.dsr.why.cash_pm, 'عجز عند الكاشير'); assert.equal(row.dsr.till.pm.short, 5);
+  assert.equal(row.dsrA, 1872); assert.equal(row.dsrDiff, -5); assert.equal(row.balPhotos, 1);
+  assert.equal((await w.eval('PH_STORE').list('sales', id + '__bal')).length, 1, 'reconciliation photo kept with the day'); assert.equal(row.dsr.till.pm.short, 5);
   // finance sees the DSR, the shortage and the month by payment method
   await d.signIn('6060'); w.eval('xLoadDemo()'); d.click('[data-act="tab"][data-k="salesLog"]');
   assert.ok(w.document.querySelector('.fn-tbl'), 'month by payment method');
@@ -626,4 +629,23 @@ test('daily closing (DSR): Foodics reports read from photos, differences need a 
   assert.ok(w.document.querySelector('.dsr-tbl'), 'DSR table in the day');
   assert.ok(!w.document.querySelector('.dsr-tbl input'), 'read-only for finance');
   d.click('[data-act="close"]');
+});
+
+test('delivery apps in finance: sales per app, commission, transfers and balance, commission in P&L', async () => {
+  const d = driver(w), S = w.eval('S'), mk = w.eval('monthKey(Date.now())'), day = mk + '-05';
+  const dsr = (h, j) => ({ a: { hunger: h, jahez: j }, f: { hunger: h, jahez: j } });
+  w.eval('MEMSET')('sales', [{ id: 'القطيف_' + day, branch: 'القطيف', date: day, sales: 2300, dsr: dsr(1000, 300) }, { id: 'الخبر_' + day, branch: 'الخبر', date: day, sales: 1150, dsr: dsr(500, 0) }]);
+  w.eval('MEMSET')('appPays', []);
+  await d.signIn('6060'); w.eval('xLoadDemo()'); d.click('[data-act="tab"][data-k="apps"]');
+  d.setVal('apRate-hunger', '20'); await sleep(100);
+  const M = w.eval('appStats')(w.eval('S.sales'));
+  assert.equal(M.hunger.sales, 1500); assert.equal(M.hunger.fee, 300); assert.equal(M.hunger.net, 1200); assert.equal(M.jahez.fee, 0);
+  // a transfer from HungerStation leaves 400 owed
+  d.click('[data-act="apNew"]'); await sleep(20);
+  d.setVal('hr-app', 'hunger'); d.setVal('hr-amount', '800'); d.click('[data-act="apSave"]'); await sleep(300);
+  assert.equal(w.eval('appPaid')('hunger'), 800);
+  assert.ok(w.document.body.textContent.includes('400'), 'remaining balance shown');
+  // P&L: the commission is a delivery-app commission expense of the branch
+  const P = w.eval('pnlCalc')(mk, mk);
+  assert.equal(Math.round(P.P['القطيف'].exp.delivery), 200); assert.equal(Math.round(P.C.exp.delivery), 300);
 });

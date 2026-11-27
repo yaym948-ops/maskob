@@ -65,6 +65,7 @@ const LINE_ICONS={
   copy:'<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
   chevron:'<path d="m6 9 6 6 6-6"/>',
   bank:'<path d="M3 22h18"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="m12 2 8 5H4z"/>',
+  phone:'<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
   hash:'<path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="M16 3l-2 18"/>'
 };
 const ico=(name,cls)=>`<svg class="ic${cls?' '+cls:''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LINE_ICONS[name]||LINE_ICONS.dot}</svg>`;
@@ -73,7 +74,7 @@ const ico=(name,cls)=>`<svg class="ic${cls?' '+cls:''}" viewBox="0 0 24 24" fill
 const NAV_ICON={rep:'pie',new:'plus',tasks:'inbox',orders:'clipboard',sales:'bars',maint:'wrench',checks:'listCheck',lr:'calClock',forms:'filePen',
   pending:'clock',report:'fileText',all:'list',salesAll:'bars',maintAll:'wrench',stock:'box',prep:'clipCheck',sched:'cal',incoming:'truck',done:'history',
   branches:'sliders',users:'users',actlog:'activity',catalog:'tag',emps:'users',docs:'idCard',leaves:'calCheck',custody:'key',advances:'wallet',lic:'shield',
-  payroll:'cash',vouchers:'receipt',dash:'dash',fsum:'dash',expenses:'receipt',supinv:'fileSheet',suppliers:'truck',pnl:'trend',be:'target',supst:'book',salesLog:'clipCheck',
+  payroll:'cash',vouchers:'receipt',dash:'dash',fsum:'dash',expenses:'receipt',supinv:'fileSheet',suppliers:'truck',pnl:'trend',be:'target',supst:'book',salesLog:'clipCheck',apps:'phone',
   costs:'tag',assets:'archive'};
 
 /* buttons, by what they do */

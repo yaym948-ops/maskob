@@ -37,7 +37,9 @@ function pnlCalc(from,to){
   const at=p=>P[p]||P['@office'];
   const inPeriod=d=>{const m=String(d||'').slice(0,7);return months.includes(m)};
   // sales (VAT removed when recorded sales include it)
-  (S.sales||[]).filter(r=>inPeriod(r.date)).forEach(r=>{at(r.branch).sales+=(+r.sales||0)/(cfg.salesVat?1+VAT_RATE/100:1)});
+  (S.sales||[]).filter(r=>inPeriod(r.date)).forEach(r=>{at(r.branch).sales+=(+r.sales||0)/(cfg.salesVat?1+VAT_RATE/100:1);
+    /* delivery-app commission on the day's app sales (rates in the delivery apps page) */
+    const fee=typeof appCommission==='function'?appCommission(r):0;if(fee){const x=at(r.branch);x.exp.delivery=(x.exp.delivery||0)+fee}});
   // goods sent to branches at cost, less returns
   (S.orders||[]).forEach(o=>{
     if(o.kind!=='return'&&['shipped','received'].includes(o.status)&&inPeriod(o.shippedAt))

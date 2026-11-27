@@ -2,15 +2,16 @@
    photos of the Foodics reports, and handed to finance.
    Loaded by index.html as a classic script after invscan.js (it uses its photo readers).
 
-   Each row has the actual amount (counted / terminal / app) and the Foodics amount; the difference needs a
-   reason. Cash, Mada and Apple Pay come per shift (morning / evening); delivery apps, voids and discounts per
+   Each row has the actual amount (counted / terminal / app) and the Foodics amount; a difference shows in a
+   red mark. Cash, Mada and Apple Pay come per shift (morning / evening); delivery apps, voids and discounts per
    day. A photo of a Foodics "Till" report or "Orders Summary" fills the Foodics column of its shift, the
    counted cash (Closing Amount) and the number of orders.
 
    sales/{branch_date}: {branch, date, sales (total sales, Foodics when read, else actual), invoices, photos,
-     dsr:{a:{key:n}, f:{key:n}, why:{key:text}, fs:{am:{…}, pm:{…}} (Foodics per shift), cashier:{am,pm},
+     balPhotos, dsr:{a:{key:n}, f:{key:n}, fs:{am:{…}, pm:{…}} (Foodics per shift), cashier:{am,pm},
           till:{am:{opening,closing,estimated,short}, pm:{…}}, net, tax}, dsrA, dsrF, dsrDiff} */
 const DSR_SHIFTS=['am','pm'];
+const DSR_BAL='__bal';   // the reconciliation photos sit at sales/{id}__bal/photos (no record of their own)
 const DSR_PAY=['cash','mada','apple'];
 const DSR_APPS=['hunger','koinz','keeta','ninja','locate','maskob','jahez','other'];
 const DSR_ADJ=['void','disc'];
@@ -127,13 +128,12 @@ function dsrApply(d,r,s){
 function dsrRow(d,k,ro){
   const df=dsrDiffOf(d,k),inp=(c)=>ro?`<td class="n">${dsrHas(d[c][k])?esc(sar2(dsrNum(d[c][k]))):'—'}</td>`
     :`<td><input class="field num dsr-in" id="dsr-${c}-${k}" data-in="dsr" data-c="${c}" data-k="${k}" inputmode="decimal" dir="ltr" value="${esc(d[c][k]??'')}" placeholder="0"></td>`;
-  return`<tr class="${df?'dsr-off':''}" id="dsr-r-${k}"><th scope="row">${esc(dsrLabel(k))}</th>${inp('a')}${inp('f')}<td class="n dsr-d" id="dsr-d-${k}">${df?esc(sar2(df)):''}</td>
-    <td>${ro?`<span dir="auto">${esc(d.why[k]||'')}</span>`:`<input class="field dsr-why" id="dsr-w-${k}" data-in="dsrW" data-k="${k}" dir="auto" value="${esc(d.why[k]||'')}" placeholder="${esc(t(df?'dsr_whyNeed':'dsr_why'))}">`}</td></tr>`;
+  return`<tr class="${df?'dsr-off':''}" id="dsr-r-${k}"><th scope="row">${esc(dsrLabel(k))}</th>${inp('a')}${inp('f')}<td class="n dsr-d" id="dsr-d-${k}">${df?esc(sar2(df)):''}</td></tr>`;
 }
 function dsrTable(d,ro){
-  const T=dsrTotals(d),sec=(l,keys)=>`<tr class="dsr-sec"><th colspan="5">${esc(t(l))}</th></tr>`+keys.map(k=>dsrRow(d,k,ro)).join('');
-  const tot=(l,a,f,id)=>`<tr class="dsr-tot"><th scope="row">${esc(t(l))}</th><td class="n" id="${id}-a">${esc(sar2(a))}</td><td class="n" id="${id}-f">${esc(sar2(f))}</td><td class="n" id="${id}-d">${Math.round((a-f)*100)/100?esc(sar2(Math.round((a-f)*100)/100)):''}</td><td></td></tr>`;
-  return`<div class="scroll"><table class="tbl dsr-tbl"><thead><tr><th>${t('dsr_details')}</th><th>${t('dsr_actual')}</th><th>${t('dsr_foodics')}</th><th>${t('dsr_diff')}</th><th>${t('dsr_why')}</th></tr></thead><tbody>
+  const T=dsrTotals(d),sec=(l,keys)=>`<tr class="dsr-sec"><th colspan="4">${esc(t(l))}</th></tr>`+keys.map(k=>dsrRow(d,k,ro)).join('');
+  const tot=(l,a,f,id)=>`<tr class="dsr-tot"><th scope="row">${esc(t(l))}</th><td class="n" id="${id}-a">${esc(sar2(a))}</td><td class="n" id="${id}-f">${esc(sar2(f))}</td><td class="n" id="${id}-d">${Math.round((a-f)*100)/100?esc(sar2(Math.round((a-f)*100)/100)):''}</td></tr>`;
+  return`<div class="scroll"><table class="tbl dsr-tbl"><thead><tr><th>${t('dsr_details')}</th><th>${t('dsr_actual')}</th><th>${t('dsr_foodics')}</th><th>${t('dsr_diff')}</th></tr></thead><tbody>
     ${sec('dsr_secCash',['cash_am','cash_pm'])}${tot('dsr_total',T.cashA,T.cashF,'dsr-tc')}
     ${sec('dsr_secCard',['mada_am','mada_pm','apple_am','apple_pm'])}${tot('dsr_total',T.cardA,T.cardF,'dsr-tk')}
     ${sec('dsr_secApps',DSR_APPS)}${tot('dsr_total',T.appsA,T.appsF,'dsr-tp')}
@@ -157,6 +157,7 @@ function dsrForm(day,ex){
       <label><span class="hint">${t('dsr_cashier_am')}</span><input class="field" id="dsr-c-am" data-in="dsrX" data-k="cashier_am" dir="auto" value="${esc(d.cashier.am||'')}"></label>
       <label><span class="hint">${t('dsr_cashier_pm')}</span><input class="field" id="dsr-c-pm" data-in="dsrX" data-k="cashier_pm" dir="auto" value="${esc(d.cashier.pm||'')}"></label></div>
     ${typeof phBlock==='function'?phBlock('sales',id,{title:'ph_sales',required:'ph_salesNeed',branch:S.branch}):''}
+    ${typeof phBlock==='function'?phBlock('sales',id+DSR_BAL,{title:'ph_bal',required:'ph_balNeed',branch:S.branch}):''}
     <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn btn-sun" data-act="dsrSave" ${S.busy?'disabled':''}>${ex?t('sl_update'):t('dsr_send')}</button></div>
   </div>`;
 }
@@ -164,7 +165,7 @@ function dsrForm(day,ex){
 function dsrPaint(){
   const d=S.dsr;if(!d)return;const T=dsrTotals(d),set=(id,v)=>{const o=document.getElementById(id);if(o)o.textContent=v};
   for(const k of DSR_KEYS){const df=dsrDiffOf(d,k);set('dsr-d-'+k,df?sar2(df):'');const r=document.getElementById('dsr-r-'+k);if(r)r.classList.toggle('dsr-off',!!df);
-    const w=document.getElementById('dsr-w-'+k);if(w)w.placeholder=t(df?'dsr_whyNeed':'dsr_why')}
+  }
   for(const [id,a,f] of [['dsr-tc',T.cashA,T.cashF],['dsr-tk',T.cardA,T.cardF],['dsr-tp',T.appsA,T.appsF],['dsr-te',T.endA,T.endF],['dsr-tt',T.totA,T.totF]]){
     set(id+'-a',sar2(a));set(id+'-f',sar2(f));const x=Math.round((a-f)*100)/100;set(id+'-d',x?sar2(x):'')}
 }
@@ -189,18 +190,17 @@ Object.assign(A,{
     const day=S.slDay||dayKey(Date.now()),id=S.branch+'_'+day,d=S.dsr;if(!d||d.key!==id)return;
     if(day>dayKey(Date.now())){toast(t('sl_future'));return}
     const T=dsrTotals(d);if(!(T.endA>0||T.endF>0)){toast(t('dsr_need'));return}
-    const miss=DSR_KEYS.find(k=>dsrDiffOf(d,k)&&!String(d.why[k]||'').trim());if(miss){toast(t('dsr_needWhy',{x:dsrLabel(miss)}));const o=document.getElementById('dsr-w-'+miss);if(o)o.focus();return}
     const pn=typeof phCount==='function'?phCount('sales',id):null;if(pn===0){toast(t('ph_salesNeed'));return}
+    const bn=typeof phCount==='function'?phCount('sales',id+DSR_BAL):null;if(bn===0){toast(t('ph_balNeed'));return}
     const clean=o=>{const r={};for(const k in o)if(dsrHas(o[k]))r[k]=dsrNum(o[k]);return r};
-    const dsr={a:clean(d.a),f:clean(d.f),why:Object.fromEntries(Object.entries(d.why).filter(([k,v])=>String(v).trim()&&dsrDiffOf(d,k))),fs:d.fs,cashier:d.cashier,till:d.till,net:d.net??null,tax:d.tax??null};
+    const dsr={a:clean(d.a),f:clean(d.f),fs:d.fs,cashier:d.cashier,till:d.till,net:d.net??null,tax:d.tax??null};
     const data={branch:S.branch,date:day,sales:T.totF>0?T.totF:T.totA,invoices:Math.round(dsrNum(d.inv))||0,at:nowIso(),dsr,dsrA:T.totA,dsrF:T.totF,dsrDiff:T.diff};
-    if(pn!=null)data.photos=pn;
-    guard(async()=>{await X.put('sales',id,data);if(typeof phCommit==='function')await phCommit('sales',id,id,S.branch);S.dsr=null},()=>t('dsr_saved'));
+    if(pn!=null)data.photos=pn;if(bn!=null)data.balPhotos=bn;
+    guard(async()=>{await X.put('sales',id,data);if(typeof phCommit==='function'){await phCommit('sales',id,id,S.branch);await phCommit('sales',id+DSR_BAL,id+DSR_BAL,S.branch)}S.dsr=null},()=>t('dsr_saved'));
   }
 });
 document.addEventListener('input',ev=>{const el=ev.target,k=el.dataset&&el.dataset.in;if(!S.dsr||!k)return;
   if(k==='dsr'){S.dsr[el.dataset.c][el.dataset.k]=el.value;dsrPaint()}
-  else if(k==='dsrW')S.dsr.why[el.dataset.k]=el.value;
   else if(k==='dsrX'){const f=el.dataset.k;if(f==='inv')S.dsr.inv=el.value;else S.dsr.cashier[f.slice(8)]=el.value}});
 document.addEventListener('change',ev=>{const el=ev.target;if(!el.classList||!el.classList.contains('dsr-scan-in'))return;const f=el.files&&el.files[0];el.value='';if(f)dsrScan(f,el.dataset.s)});
 

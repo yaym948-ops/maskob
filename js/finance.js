@@ -27,9 +27,10 @@ const INC_CATS=['catering','rebate','other'];
 const expLabel=e=>t((e.kind==='income'?'ic_':'ec_')+(e.cat||'other'));
 const finTabs=()=>{const due=(S.supInv||[]).filter(i=>supRemain(i)>0&&i.due&&i.due<=dayKey(Date.now())).length;
   const sup=typeof suppliersView==='function';
-  return[{k:'fsum',l:t('tab_fsum')},...(typeof salesLogView==='function'?[{k:'salesLog',l:t('tab_slLog'),b:slWaiting()}]:[]),{k:'expenses',l:t('tab_exp')},{k:'supinv',l:t('tab_supinv'),b:due,late:due>0},...(sup?[{k:'suppliers',l:t('tab_sup')}]:[]),{k:'payroll',l:t('tab_pr')},{k:'vouchers',l:t('tab_vc')},{k:'advances',l:t('tab_adv')},
+  return[{k:'fsum',l:t('tab_fsum')},...(typeof salesLogView==='function'?[{k:'salesLog',l:t('tab_slLog'),b:slWaiting()}]:[]),{k:'expenses',l:t('tab_exp')},{k:'supinv',l:t('tab_supinv'),b:due,late:due>0},...(sup?[{k:'suppliers',l:t('tab_sup')}]:[]),...(typeof appsView==='function'?[{k:'apps',l:t('tab_apps')}]:[]),{k:'payroll',l:t('tab_pr')},{k:'vouchers',l:t('tab_vc')},{k:'advances',l:t('tab_adv')},
     {k:'pnl',l:t('tab_pnl'),g:'rep'},{k:'be',l:t('tab_be'),g:'rep'},...(sup?[{k:'supst',l:t('tab_supst'),g:'rep'}]:[]),{k:'costs',l:t('tab_costs')},{k:'assets',l:t('tab_assets')}]};
 function financeView(tb){
+  if(tb==='apps'&&typeof appsView==='function')return appsView();
   if(tb==='salesLog'&&typeof salesLogView==='function')return salesLogView();
   if(tb==='suppliers'&&typeof suppliersView==='function')return suppliersView();
   if(tb==='supst'&&typeof supStatementView==='function')return supStatementView();

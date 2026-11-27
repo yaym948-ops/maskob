@@ -290,6 +290,10 @@ service cloud.firestore {
       allow create, update: if isBranch() && request.resource.data.branch == myBranch();
       allow delete: if isMgr() || (isBranch() && resource.data.branch == myBranch());
     }
+    // transfers received from delivery apps
+    match /appPays/{id} {
+      allow read, write: if isRole('finance');
+    }
     // supplier cards (name, VAT number, mobile, bank, usual credit term)
     match /suppliers/{id} {
       allow read, write: if isRole('finance');

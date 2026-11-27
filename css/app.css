@@ -774,3 +774,4 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
 .dsr-tbl tr.dsr-off .dsr-d{color:var(--late);font-weight:700}
 .dsr-tbl tr.dsr-off .dsr-why{border-color:var(--sun)}
 .dsr-tbl .dsr-d{color:var(--late)}
+.ap-rate{width:76px!important;min-width:0;padding:6px 8px;text-align:end;display:inline-block}
