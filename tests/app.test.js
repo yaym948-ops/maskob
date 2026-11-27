@@ -691,3 +691,13 @@ test('daily closing: the actual column is filled from the report; a figure the b
   assert.equal(D.a.mada_pm, '3870', 'typed figure kept'); assert.equal(D.a.hunger, '40', 'copied figure follows the new photo');
   S.dsr = null;
 });
+
+test('daily closing: the AI answer becomes the same figures (Arabic app names, cash from payment operations)', () => {
+  const r = w.eval('aiToReport')({ kind: 'till', businessDate: '2026-11-26', openedAt: '15:54', user: 'كاشير',
+    payments: [{ name: 'Cash', amount: 23 }, { name: 'Mada', amount: 3873 }, { name: 'Hungerstation', amount: 35 }, { name: 'كيتا', amount: 94 }, { name: 'Koinz Pay', amount: 47 }, { name: 'نينجا', amount: 82.5 }],
+    totalPayments: 4154.5, totalReturns: 0, netPayments: 4154.5, totalPaymentOperations: 23, openingAmount: 0, closingAmount: 23, estimatedCashInRegister: 23, cashShortage: 0 });
+  assert.equal(JSON.stringify(r.pay), JSON.stringify({ cash: 23, mada: 3873, hunger: 35, keeta: 94, koinz: 47, ninja: 82.5 }));
+  assert.equal(r.unknown.length, 0); assert.equal(r.closing, 23); assert.equal(r.totalPay, 4154.5); assert.equal(r.date, '2026-11-26'); assert.equal(r.openHour, 15);
+  // the demo has no Firebase project: the AI step stands aside and the phone reads
+  return w.eval('readReportAI')({ width: 10, height: 10 }).then((x) => assert.equal(x, null));
+});

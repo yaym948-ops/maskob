@@ -142,14 +142,62 @@ async function readReportText(img,onStep){
   let best=null;const keep=(text,im)=>{const r=parseFoodicsReport(text),sc=reportScore(r);if(!best||sc>best.sc)best={r,sc,text,im};return sc};
   const step=(a,b)=>p=>onStep&&onStep(Math.round(a+(b-a)*p/100));
   for(let i=0;i<turns.length;i++){const im=rotated(img,turns[i]);
-    if(keep(await readEng(binarize(canvasOf(im,2600,[0,0,1,1])),6,step(i*40/turns.length,(i+1)*40/turns.length)),im)>=4)break}
-  if(best.sc<4)keep(await readEng(enhance(canvasOf(best.im,2200,[0,0,1,1]),'red'),4,step(40,70)),best.im);
+    if(keep(await readEng(binarize(canvasOf(im,2000,[0,0,1,1])),6,step(i*40/turns.length,(i+1)*40/turns.length)),im)>=4)break}
+  if(best.sc<3)keep(await readEng(enhance(canvasOf(best.im,2000,[0,0,1,1]),'red'),4,step(40,70)),best.im);
   if(best.sc<4)keep(await readText(best.im,step(70,100),'red'),best.im);
   else if(best.r.unknown&&best.r.unknown.length){const r2=parseFoodicsReport(await readText(best.im,step(70,100),'red')),r=best.r;
     for(const k of Object.keys(r2.pay)){if(k==='other'||r.pay[k]!=null)continue;const i=r.unknown.findIndex(v=>Math.abs(v-r2.pay[k])<0.01);if(i>=0){r.pay[k]=r2.pay[k];r.unknown.splice(i,1)}}
     if(r.unknown.length)r.pay.other=Math.round(r.unknown.reduce((s0,v)=>s0+v,0)*100)/100;else delete r.pay.other}
   S.dsrText=best.text;S.dsrTextScore=best.sc;
   return best.r;
+}
+
+/* ---------- reading with AI (Gemini through Firebase AI Logic: no server, no key in the app) ----------
+   The photo (made smaller) goes to Gemini, which returns the report's figures as JSON. When the service is
+   not switched on in the Firebase project, or there is no connection, the phone reads it as before. */
+const AI_SDK='https://www.gstatic.com/firebasejs/12.0.0/';
+let aiModelP=null,aiOff=false;
+async function aiModel(){
+  if(!aiModelP)aiModelP=(async()=>{const fa=await import(AI_SDK+'firebase-app.js'),ai=await import(AI_SDK+'firebase-ai.js');
+    const app=fa.getApps().find(a=>a.name==='maskob-ai')||fa.initializeApp(window.FIREBASE_CONFIG,'maskob-ai');
+    return ai.getGenerativeModel(ai.getAI(app,{backend:new ai.GoogleAIBackend()}),{model:'gemini-2.5-flash',generationConfig:{responseMimeType:'application/json',temperature:0}})})()
+    .catch(e=>{aiModelP=null;throw e});
+  return aiModelP;
+}
+const AI_PROMPT='This photo is a Foodics point-of-sale report from a coffee shop in Saudi Arabia: a "Till Close Report" or an "Orders Summary". '+
+ 'Read it exactly as printed (the riyal sign is a symbol before each amount; ignore it). Answer with JSON only, using null for anything not printed: '+
+ '{"kind":"till"|"orders"|"other","businessDate":"YYYY-MM-DD","openedAt":"HH:MM" (24-hour),"user":string,'+
+ '"payments":[{"name":string exactly as printed (may be Arabic),"amount":number}] (only the lines of the "Payments" section, not "Net Payments by Type", not totals),'+
+ '"totalPayments":number,"totalReturns":number,"netPayments":number,"totalPayIn":number,"totalPayOut":number,"totalCashDrops":number,"totalPaymentOperations":number,'+
+ '"openingAmount":number,"closingAmount":number,"estimatedCashInRegister":number,"cashShortage":number,"cashOverage":number,'+
+ '"orders":number (quantity of Gross Sales),"grossSales":number,"netSales":number,"totalTaxes":number,"totalDiscounts":number,"totalVoid":number}';
+/* the answer in the same shape as the phone's reader gives */
+function aiToReport(j){
+  const n=v=>v==null||v===''||!isFinite(+v)?null:Math.round(+v*100)/100,out={pay:{},unknown:[],kind:j.kind||'other'};
+  if(/^\d{4}-\d{2}-\d{2}$/.test(j.businessDate||''))out.date=j.businessDate;
+  const om=String(j.openedAt||'').match(/^(\d{1,2}):\d{2}/);if(om)out.openHour=+om[1];
+  if(j.user)out.user=String(j.user).trim();
+  for(const p of j.payments||[]){const v=n(p&&p.amount);if(v==null)continue;const L=String(p.name||'').toLowerCase();
+    if(/total|net pay|return/.test(L))continue;const hit=DSR_METHOD.find(([re])=>re.test(L));
+    if(hit)out.pay[hit[1]]=Math.round(((out.pay[hit[1]]||0)+v)*100)/100;else out.unknown.push(v)}
+  if(out.unknown.length)out.pay.other=Math.round(out.unknown.reduce((a,v)=>a+v,0)*100)/100;
+  const map={totalPay:'totalPayments',returns:'totalReturns',netPay:'netPayments',payIn:'totalPayIn',payOut:'totalPayOut',drops:'totalCashDrops',payOps:'totalPaymentOperations',
+    opening:'openingAmount',closing:'closingAmount',estimated:'estimatedCashInRegister',short:'cashShortage',over:'cashOverage',orders:'orders',gross:'grossSales',net:'netSales',tax:'totalTaxes',disc:'totalDiscounts',void:'totalVoid'};
+  for(const k in map){const v=n(j[map[k]]);if(v!=null)out[k]=v}
+  if(out.kind==='till'&&out.payOps!=null&&out.pay.cash==null)out.pay.cash=out.payOps;
+  return out;
+}
+async function readReportAI(img){
+  if(aiOff||!S.fb||!window.FIREBASE_CONFIG)return null;
+  try{const b=paperBox(img);if(b)img=canvasOf(img,Math.max(img.width*b[2],img.height*b[3]),b)}catch(e){}
+  const data=canvasOf(img,1600).toDataURL('image/jpeg',0.85).split(',')[1];
+  try{
+    const m=await aiModel();
+    const res=await Promise.race([m.generateContent([AI_PROMPT,{inlineData:{mimeType:'image/jpeg',data}}]),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),30000))]);
+    const txt=res.response.text().replace(/^\s*\x60\x60\x60(?:json)?|\x60\x60\x60\s*$/g,'');const r=aiToReport(JSON.parse(txt));
+    S.dsrText=txt;S.dsrTextScore=reportScore(r);
+    return reportScore(r)?r:null;
+  }catch(e){if(/403|permission|not enabled|API has not been used|PERMISSION_DENIED|404/i.test(String(e&&e.message||e)))aiOff=true;return null}
 }
 
 /* ---------- the branch's form ---------- */
@@ -244,7 +292,8 @@ async function dsrScan(file,s){
     /* the photo goes with the day's photos at once */
     if(typeof phShrink==='function'&&typeof phEnsure==='function'){const p=phEnsure('sales',id,{branch:S.branch});if(p.list.length<PH_MAX)p.list.push({pid:phNewId(),data:await phShrink(file),saved:false})}
     const img=await imgFromFile(file);
-    const r=await readReportText(img,p=>{S.scan={step:t('dsr_reading'),pct:p};render()});
+    S.scan={step:t('dsr_readingAi'),pct:null};render();
+    const r=(await readReportAI(img))||await readReportText(img,p=>{S.scan={step:t('dsr_reading'),pct:p};render()});
     const n=Object.keys(r.pay).length+(r.closing!=null)+(r.orders!=null);
     S.scan=null;
     if(!n){toast(t('dsr_noRead'));render();return}
