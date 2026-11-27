@@ -284,7 +284,7 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   await d.signIn('6060');
   assert.equal(w.eval('S.role'), 'finance');
   const tabs = [...w.document.querySelectorAll('#tabsIn [data-act="tab"]')].map((b) => b.dataset.k);
-  assert.deepEqual(tabs, ['fsum', 'salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'expenses', 'suppliers', 'apps', 'vouchers', 'advances', 'costs', 'assets']);
+  assert.deepEqual(tabs, ['fsum', 'salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'expenses', 'suppliers', 'apps', 'vouchers', 'advances', 'costs', 'assets', 'archive']);
   // the reports sit in one group of the side menu, closed until opened
   const grp = w.document.querySelector('#tabsIn [data-act="navGrp"]');
   assert.ok(grp, 'reports group shown');
@@ -700,4 +700,36 @@ test('daily closing: the AI answer becomes the same figures (Arabic app names, c
   assert.equal(r.unknown.length, 0); assert.equal(r.closing, 23); assert.equal(r.totalPay, 4154.5); assert.equal(r.date, '2026-11-26'); assert.equal(r.openHour, 15);
   // the demo has no Firebase project: the AI step stands aside and the phone reads
   return w.eval('readReportAI')({ width: 10, height: 10 }).then((x) => assert.equal(x, null));
+});
+
+test('archive: each department keeps its own documents in sections, with branch, expiry warning and search', async () => {
+  const d = driver(w), S = w.eval('S');
+  w.eval('MEMSET')('archive', []); w.eval('MEMSET')('archiveSecs', {});
+  await d.signIn('6060'); w.eval('xLoadDemo()'); w.eval('render()');
+  d.click('[data-act="tab"][data-k="archive"]');
+  assert.ok(w.document.querySelectorAll('.arc-sec').length >= 7, 'ready-made finance sections');
+  // add a document (as a PDF) in a section, linked to a branch, expiring in 10 days
+  const ARC = w.eval('ARC'), soon = w.eval('dayKey(Date.now()+10*864e5)');
+  await ARC.add({ dept: 'fin', sec: 'cr', title: 'السجل التجاري', ref: 'CR-1010', branch: 'القطيف', expiry: soon, note: 'نسخة 2026', name: 'cr.pdf', type: 'application/pdf', size: 1000 }, 'data:application/pdf;base64,JVBERi0=');
+  await ARC.add({ dept: 'fin', sec: 'bank', title: 'كشف بنك أكتوبر', ref: '', branch: '', expiry: '', note: '', name: 'b.jpg', type: 'image/jpeg', size: 500 }, 'data:image/jpeg;base64,/9j/A');
+  w.eval('render()');
+  assert.equal(w.eval('S.archive').length, 2);
+  assert.equal(w.eval('arcAlerts()').length, 1, 'expiring within 30 days');
+  assert.ok(w.document.querySelector('#tabsIn [data-k="archive"] .badge'), 'menu badge for the expiring document');
+  // search and section filter
+  S.arcQ = 'CR-1010'; w.eval('render()');
+  assert.equal(w.document.querySelectorAll('.arc-row').length, 1);
+  S.arcQ = ''; S.arcSec = 'bank'; w.eval('render()');
+  assert.equal(w.document.querySelectorAll('.arc-row').length, 1);
+  S.arcSec = '';
+  // the file comes back whole
+  assert.equal(await ARC.get(w.eval('S.archive').find((x) => x.ref === 'CR-1010')), 'data:application/pdf;base64,JVBERi0=');
+  // an own section, saved for the department
+  d.click('[data-act="arcSecs"]'); await sleep(20);
+  d.setVal('arcNewSec', 'عقود التأمين'); d.click('[data-act="arcSecAdd"]'); d.click('[data-act="arcSecsSave"]'); await sleep(200);
+  assert.ok(w.eval('arcSecs')('fin').some((s) => s.name === 'عقود التأمين'), 'own section kept');
+  // HR does not see the finance archive
+  await d.signIn('9191'); d.setVal('ownerView', 'hr'); await sleep(200);
+  assert.equal(w.eval('S.archive').length, 0, 'HR has its own (empty) archive');
+  d.setVal('ownerView', 'dash'); await sleep(200);
 });

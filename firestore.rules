@@ -294,6 +294,20 @@ service cloud.firestore {
     match /appPays/{id} {
       allow read, write: if isRole('finance');
     }
+    // ---- archive: HR, operations (manager) and finance, each only its own documents ----
+    function arcOk(d) { return (d == 'hr' && isRole('hr')) || (d == 'ops' && isRole('manager')) || (d == 'fin' && isRole('finance')); }
+    match /archive/{id} {
+      allow read, delete: if arcOk(resource.data.dept);
+      allow create: if arcOk(request.resource.data.dept);
+      allow update: if arcOk(resource.data.dept) && request.resource.data.dept == resource.data.dept;
+      match /parts/{p} {
+        allow read, delete: if arcOk(resource.data.dept);
+        allow create, update: if arcOk(request.resource.data.dept);
+      }
+    }
+    match /archiveSecs/{dept} {
+      allow read, write: if arcOk(dept);
+    }
     // supplier cards (name, VAT number, mobile, bank, usual credit term)
     match /suppliers/{id} {
       allow read, write: if isRole('finance');

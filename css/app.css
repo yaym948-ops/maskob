@@ -798,3 +798,19 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
 .sidenav .tab-grp.in .tab-ico{background:var(--navy);color:#fff}
 .sidenav .tab{padding-block:7px}
 .sidenav .tab-sub .tab-ico{width:28px;height:28px;border-radius:8px}.sidenav .tab-sub .tab-ico .ic{width:16px;height:16px}
+
+/* ---------- archive ---------- */
+.arc-secs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-bottom:14px}
+.arc-sec{display:flex;align-items:center;gap:10px;text-align:start;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);cursor:pointer;color:var(--fg)}
+.arc-sec b{flex:1;min-width:0;font-size:13.5px;line-height:1.3}
+.arc-sec .num{color:var(--muted);font-size:13px}
+.arc-sec .arc-ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--lav-soft);color:var(--navy);flex:none}
+.arc-sec .arc-ic .ic{width:17px;height:17px}
+.arc-sec[aria-pressed="true"]{border-color:var(--navy);background:var(--lav-soft)}
+.arc-sec[aria-pressed="true"] .arc-ic{background:var(--navy);color:#fff}
+.arc-sec.warn .arc-ic{background:var(--sun-soft);color:var(--sun-ink)}
+.arc-row{display:flex;align-items:center;gap:12px;cursor:default}
+.arc-type{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;background:var(--soft);color:var(--navy);font-weight:700;font-size:12px;flex:none}
+.arc-type.pdf{background:#fdecea;color:#c0392b}
+.arc-type .ic{width:20px;height:20px}
+.arc-file{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}

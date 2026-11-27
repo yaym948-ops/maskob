@@ -88,6 +88,7 @@ function xLoadDemo(){
   {const c=S.role==='hr'?MEM('hrcfg'):null;S.hrCfg=c&&!Array.isArray(c)?c:{}}
   if(S.role==='finance'){S.emps=MEM('employees');S.leaves=MEM('leaves');S.forms=MEM('forms');S.advances=MEM('advances');S.payroll=MEM('payroll');S.vouchers=MEM('vouchers');S.expenses=MEM('expenses');S.supInv=MEM('supInvoices');S.suppliers=MEM('suppliers');S.appPays=MEM('appPays');S.sales=MEM('sales')}
   if(S.role==='dash'){S.emps=MEM('employees');S.leaveReqs=MEM('leaveReqs');S.forms=MEM('forms');S.licenses=MEM('licenses');S.leaves=MEM('leaves')}
+  if(typeof arcLoadDemo==='function')arcLoadDemo();
 }
 /* live subscriptions per role */
 function xStart(){
@@ -153,6 +154,8 @@ function xStart(){
     u.push(db.collection('targets').onSnapshot(s=>{const t={};s.docs.forEach(d=>t[d.id]=d.data());S.targets=t;render()},onErr));
     for(const [col,key] of [['employees','emps'],['leaveReqs','leaveReqs'],['forms','forms'],['licenses','licenses']])list(col,a=>S[key]=a);
   }
+  // each department's archive (HR, operations, finance)
+  if(typeof arcStart==='function')arcStart(u,onErr);
 }
 function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.stock={};S.stockMoves=[];S.expenses=[];S.supInv=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
