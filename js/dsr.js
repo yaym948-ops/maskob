@@ -156,13 +156,19 @@ async function readReportText(img,onStep){
    The photo (made smaller) goes to Gemini, which returns the report's figures as JSON. When the service is
    not switched on in the Firebase project, or there is no connection, the phone reads it as before. */
 const AI_SDK='https://www.gstatic.com/firebasejs/12.0.0/';
-let aiModelP=null,aiOff=false;
-async function aiModel(){
+const AI_RECAPTCHA_KEY='6LcivjQuAAAAAK75Hs-NtvDfdkHukbnNwr8XU8bP';   // public site key (registered in App Check for fllow-maskob.web.app)
+/* the fast model first; the fuller one when the fast one's figures do not add up */
+const AI_MODELS=['gemini-3.5-flash-lite','gemini-3.5-flash'];
+let aiModelP=null,aiOff=false;const aiDead={};
+async function aiModel(name){
   if(!aiModelP)aiModelP=(async()=>{const fa=await import(AI_SDK+'firebase-app.js'),ai=await import(AI_SDK+'firebase-ai.js');
-    const app=fa.getApps().find(a=>a.name==='maskob-ai')||fa.initializeApp(window.FIREBASE_CONFIG,'maskob-ai');
-    return ai.getGenerativeModel(ai.getAI(app,{backend:new ai.GoogleAIBackend()}),{model:'gemini-2.5-flash',generationConfig:{responseMimeType:'application/json',temperature:0}})})()
+    let app=fa.getApps().find(a=>a.name==='maskob-ai');
+    if(!app){app=fa.initializeApp(window.FIREBASE_CONFIG,'maskob-ai');
+      /* App Check: requests to Gemini must come from this site (reCAPTCHA Enterprise / Fraud Defense, public site key) */
+      try{const ac=await import(AI_SDK+'firebase-app-check.js');ac.initializeAppCheck(app,{provider:new ac.ReCaptchaEnterpriseProvider(AI_RECAPTCHA_KEY),isTokenAutoRefreshEnabled:true})}catch(e){}}
+    return{ai,AIx:ai.getAI(app,{backend:new ai.GoogleAIBackend()})}})()
     .catch(e=>{aiModelP=null;throw e});
-  return aiModelP;
+  const {ai,AIx}=await aiModelP;return ai.getGenerativeModel(AIx,{model:name||AI_MODELS[0],generationConfig:{responseMimeType:'application/json',temperature:0}});
 }
 const AI_PROMPT='This photo is a Foodics point-of-sale report from a coffee shop in Saudi Arabia: a "Till Close Report" or an "Orders Summary". '+
  'Read it exactly as printed (the riyal sign is a symbol before each amount; ignore it). Answer with JSON only, using null for anything not printed: '+
@@ -191,13 +197,21 @@ async function readReportAI(img){
   if(aiOff||!S.fb||!window.FIREBASE_CONFIG)return null;
   try{const b=paperBox(img);if(b)img=canvasOf(img,Math.max(img.width*b[2],img.height*b[3]),b)}catch(e){}
   const data=canvasOf(img,1600).toDataURL('image/jpeg',0.85).split(',')[1];
-  try{
-    const m=await aiModel();
-    const res=await Promise.race([m.generateContent([AI_PROMPT,{inlineData:{mimeType:'image/jpeg',data}}]),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),30000))]);
-    const txt=res.response.text().replace(/^\s*\x60\x60\x60(?:json)?|\x60\x60\x60\s*$/g,'');const r=aiToReport(JSON.parse(txt));
-    S.dsrText=txt;S.dsrTextScore=reportScore(r);
-    return reportScore(r)?r:null;
-  }catch(e){if(/403|permission|not enabled|API has not been used|PERMISSION_DENIED|404/i.test(String(e&&e.message||e)))aiOff=true;return null}
+  /* the figures agree with themselves: the methods add up to "Total Payments" (when printed) */
+  const agrees=r=>r.totalPay==null||Math.abs(Object.values(r.pay).reduce((x,v)=>x+v,0)-r.totalPay)<1;
+  let best=null;
+  for(const name of AI_MODELS){if(aiDead[name])continue;
+    try{
+      const m=await aiModel(name);
+      const res=await Promise.race([m.generateContent([AI_PROMPT,{inlineData:{mimeType:'image/jpeg',data}}]),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),25000))]);
+      const txt=res.response.text().replace(/^\s*\x60\x60\x60(?:json)?|\x60\x60\x60\s*$/g,'');const r=aiToReport(JSON.parse(txt));
+      if(reportScore(r)&&(!best||reportScore(r)>reportScore(best.r)))best={r,txt};
+      if(reportScore(r)&&agrees(r))break;
+    }catch(e){const msg=String(e&&e.message||e);
+      if(/403|permission|PERMISSION_DENIED|not enabled|API has not been used|App Check/i.test(msg)){aiOff=true;break}
+      if(/404|no longer available|not found/i.test(msg))aiDead[name]=true}}
+  if(!best)return null;
+  S.dsrText=best.txt;S.dsrTextScore=reportScore(best.r);return best.r;
 }
 
 /* ---------- the branch's form ---------- */
