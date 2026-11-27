@@ -198,6 +198,7 @@ function salesView(){
   const metric=S.slMetric||'sales';
   const recent=[...st.rows].sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,10);
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_sales')}</h2><div class="row">${ioBtns('sales')}</div></div>
+  ${typeof dsrForm==='function'?dsrForm(day,ex):`
   <div class="box sl-form">
     <div class="sl-grid">
       <label><span class="hint">${t('sl_day')}</span><input class="field" type="date" id="slDay" value="${esc(day)}" max="${dayKey(Date.now())}"></label>
@@ -207,7 +208,7 @@ function salesView(){
     <div class="row" style="justify-content:space-between"><span class="hint">${f.sales&&f.invoices&&+f.invoices>0?esc(t('sl_avg'))+': <b class="num">'+esc(sar2(+f.sales/+f.invoices))+'</b> '+t('sar'):''}</span>
     <button class="btn btn-sun" data-act="saveSales">${ex?t('sl_update'):t('sl_save')}</button></div>
     ${typeof phBlock==='function'?phBlock('sales',S.branch+'_'+day,{title:'ph_sales',required:'ph_salesNeed',branch:S.branch}):''}
-  </div>
+  </div>`}
   <div class="stats">
     ${kpi(t('sl_month'),sar(st.sales)+' '+t('sar'))}${kpi(t('sl_invCount'),sar(st.inv))}${kpi(t('sl_avg'),sar2(st.avg)+' '+t('sar'))}
     ${kpi(t('sl_target'),st.target?sar(st.target)+' '+t('sar'):'—')}
@@ -352,7 +353,7 @@ Object.assign(A,{
     const data={branch:S.branch,date:day,sales,invoices:inv,at:nowIso()};if(pn!=null)data.photos=pn;
     guard(async()=>{await X.put('sales',id,data);if(typeof phCommit==='function')await phCommit('sales',id,id,S.branch);},()=>t('sl_saved'));
   },
-  slEdit(el){S.slDay=el.dataset.d;S.slForm=null;render();window.scrollTo(0,0)},
+  slEdit(el){S.slDay=el.dataset.d;S.slForm=null;S.dsr=null;render();window.scrollTo(0,0)},
   slMetric(el){S.slMetric=el.dataset.k;render()},
   openMaint(el){
     S.openMaint=el.dataset.id;S.mReply=null;render();
@@ -404,7 +405,7 @@ document.addEventListener('input',ev=>{
 });
 document.addEventListener('change',async ev=>{
   const el=ev.target;
-  if(el.id==='slDay'){S.slDay=el.value;S.slForm=null;render();return}
+  if(el.id==='slDay'){S.slDay=el.value;S.slForm=null;S.dsr=null;render();return}
   if(el.id==='slMonth'){if(/^[0-9]{4}-[0-9]{2}$/.test(el.value)){S.slMonth=el.value;render()}return}
   if(el.id==='mCat'){S.mDraft.cat=el.value;return}
   if(el.id==='mUrgent'){S.mDraft.urgent=el.checked;return}

@@ -546,12 +546,13 @@ test('attached photos: kept with an expense, removed again, required with the da
   await d.signIn('9191'); d.setVal('ownerBranch', 'branch:القطيف'); await sleep(200);
   d.click('[data-act="tab"][data-k="sales"]');
   const day = w.eval('dayKey(Date.now())'), sid = 'القطيف_' + day;
-  w.eval('MEMSET')('sales', []); w.eval('xLoadDemo()'); S.slForm = { day, sales: '5000', invoices: '120' }; w.eval('render()'); await sleep(50);
+  w.eval('MEMSET')('sales', []); w.eval('xLoadDemo()'); S.dsr = null; w.eval('render()'); await sleep(50);
+  d.setVal('dsr-a-cash_pm', '5000'); d.setVal('dsr-f-cash_pm', '5000');
   assert.ok(w.document.querySelector('.ph-block.need'), 'photo asked for');
-  d.click('[data-act="saveSales"]'); await sleep(200);
+  d.click('[data-act="dsrSave"]'); await sleep(200);
   assert.equal(w.eval('S.sales').filter((r) => r.id === sid).length, 0, 'not saved without a photo');
   addPhoto('sales/' + sid);
-  d.click('[data-act="saveSales"]'); await sleep(300);
+  d.click('[data-act="dsrSave"]'); await sleep(300);
   const row = w.eval('S.sales').find((r) => r.id === sid);
   assert.ok(row, 'saved with the photo'); assert.equal(row.photos, 1);
   d.setVal('ownerView', 'dash'); await sleep(200);
@@ -586,4 +587,43 @@ test('daily sales log: operations and finance see each day with its photo and ma
   d.click(`[data-act="slLogOpen"][data-id="${rows[1].id}"]`); d.click('[data-act="slRev"][data-k="ok"]'); await sleep(300);
   assert.equal(w.eval('S.sales').find((r) => r.id === rows[1].id).review.st, 'ok');
   d.setVal('ownerView', 'dash'); await sleep(200);
+});
+
+test('daily closing (DSR): Foodics reports read from photos, differences need a reason, sent to finance', async () => {
+  const d = driver(w), S = w.eval('S'), parse = w.eval('parseFoodicsReport');
+  // the till report as the text reader returns it (the riyal sign read as "#" or as a stuck "4")
+  const till = parse('Till\nBusiness Date: 2026/10/09\nPrinted at: 2026/10/10 01:47:14 AM\nUser: محمد حسني\nOpened At: 2026/10/09 02:23 PM\nClosed At: 2026/10/10 01:47 AM\nPayments\nCash: #136.00\nMada: 41,653.00\nHungerstation: #88.00\nTotal Payments: #1,877.00\nTotal Returns: #0.00\nNet Payments: #1,877.00\nDrawer Operations\nTotal Pay In: #0.00\nTotal Pay Out: #0.00\nTotal Cash Drops: #0.00\nTotal Payment Operations: #136.00\nOpening Amount: #0.00\nClosing Amount: #131.00\nEstimated Cash In Register: #136.00\nCash Shortage: #5.00\nEnd Of Report');
+  assert.equal(till.kind, 'till'); assert.equal(till.date, '2026-10-09'); assert.equal(till.openHour, 14);
+  assert.equal(till.pay.cash, 136); assert.equal(till.pay.mada, 1653, 'stuck digit removed: methods add up to the total'); assert.equal(till.pay.hunger, 88);
+  assert.equal(till.closing, 131); assert.equal(till.short, 5); assert.equal(till.totalPay, 1877);
+  // the orders summary: number of orders, net sales, taxes; "Net Payments by Type" is not counted twice
+  const ord = parse('Orders Summary\nBusiness Date: 2026/10/09\nGeneral\nName Quantity Amount\nGross Sales 77 #1,877.00\nGross Sales Without Tax 77 #1,632.17\nTotal Discounts 0 #0.00\nTotal Taxes - #244.83\nNet Sales 77 #1,632.17\nGuest Count 77 -\nTotal Void 0 #0.00\nPayments\nName Quantity Amount\nCash 4 #136.00\nMada 72 #1,653.00\nHungerstation 2 #88.00\nTotal Payments - #1,877.00\nTotal Return 0 #0.00\nNet Payments - #1,877.00\nNet Payments by Type\nCash - #136.00\nCard - #1,741.00');
+  assert.equal(ord.kind, 'orders'); assert.equal(ord.orders, 77); assert.equal(ord.net, 1632.17); assert.equal(ord.tax, 244.83);
+  assert.equal(JSON.stringify(ord.pay), JSON.stringify({ cash: 136, mada: 1653, hunger: 88 }));
+  // the branch: both reports for the evening shift fill the form
+  w.eval('MEMSET')('sales', []); S._demoPh = {}; S.phs = {}; w.eval('xLoadDemo()');
+  await d.signIn('9191'); d.setVal('ownerBranch', 'branch:القطيف'); await sleep(200);
+  d.click('[data-act="tab"][data-k="sales"]'); S.dsr = null; w.eval('render()'); await sleep(50);
+  const day = w.eval('dayKey(Date.now())'), id = 'القطيف_' + day;
+  const D = w.eval('dsrState')(day, null); w.eval('dsrApply')(D, till, 'pm'); w.eval('dsrApply')(D, ord, 'pm'); w.eval('render()');
+  assert.equal(w.document.getElementById('dsr-f-cash_pm').value, '136'); assert.equal(w.document.getElementById('dsr-a-cash_pm').value, '131', 'counted cash');
+  assert.equal(w.document.getElementById('dsr-f-mada_pm').value, '1653'); assert.equal(w.document.getElementById('dsr-f-hunger').value, '88');
+  assert.equal(w.document.getElementById('dsr-inv').value, '77'); assert.equal(D.cashier.pm, 'محمد حسني');
+  // actual Mada and HungerStation typed; the cash shortage needs its reason
+  d.setVal('dsr-a-mada_pm', '1653'); d.setVal('dsr-a-hunger', '88');
+  assert.equal(w.document.getElementById('dsr-d-cash_pm').textContent.replace(/[‎‏\s]/g, ''), '-5');
+  S.phs['sales/' + id].list.push({ pid: 'p0', data: 'data:image/jpeg;base64,/9j/Q', saved: false });
+  d.click('[data-act="dsrSave"]'); await sleep(200);
+  assert.ok(!w.eval('S.sales').find((r) => r.id === id), 'held back: no reason for the difference');
+  d.setVal('dsr-w-cash_pm', 'عجز عند الكاشير'); d.click('[data-act="dsrSave"]'); await sleep(300);
+  const row = w.eval('S.sales').find((r) => r.id === id);
+  assert.ok(row, 'sent'); assert.equal(row.sales, 1877, 'Foodics total goes to sales'); assert.equal(row.invoices, 77);
+  assert.equal(row.dsrA, 1872); assert.equal(row.dsrDiff, -5); assert.equal(row.dsr.why.cash_pm, 'عجز عند الكاشير'); assert.equal(row.dsr.till.pm.short, 5);
+  // finance sees the DSR, the shortage and the month by payment method
+  await d.signIn('6060'); w.eval('xLoadDemo()'); d.click('[data-act="tab"][data-k="salesLog"]');
+  assert.ok(w.document.querySelector('.fn-tbl'), 'month by payment method');
+  d.click('[data-act="slLogOpen"][data-id="' + id + '"]'); await sleep(50);
+  assert.ok(w.document.querySelector('.dsr-tbl'), 'DSR table in the day');
+  assert.ok(!w.document.querySelector('.dsr-tbl input'), 'read-only for finance');
+  d.click('[data-act="close"]');
 });

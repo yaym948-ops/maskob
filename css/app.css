@@ -761,3 +761,16 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
 .ph-box img{position:relative;max-width:min(96vw,1100px);max-height:80vh;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.4);background:#fff}
 .ph-bar{position:relative;display:flex;align-items:center;gap:10px;color:#fff}
 .ph-bar .btn{min-height:40px}.ph-bar .btn-ghost{background:rgba(255,255,255,.14);color:#fff;border-color:transparent}
+/* ---------- daily closing (DSR) ---------- */
+.dsr-h{font-size:17px;color:var(--navy)}
+.dsr-scan{gap:8px;flex-wrap:wrap;margin:8px 0}
+.dsr-tbl{min-width:640px}
+.dsr-tbl th[scope="row"]{text-align:start;font-weight:500;white-space:nowrap}
+.dsr-tbl td{padding:4px 6px}
+.dsr-tbl .dsr-in{width:100%;min-width:90px;padding:6px 8px;text-align:end}
+.dsr-tbl .dsr-why{width:100%;min-width:160px;padding:6px 8px}
+.dsr-tbl .dsr-sec th{background:var(--soft);color:var(--navy);font-weight:700;text-align:start}
+.dsr-tbl .dsr-tot th,.dsr-tbl .dsr-tot td{font-weight:700;border-top:1.5px solid var(--line)}
+.dsr-tbl tr.dsr-off .dsr-d{color:var(--late);font-weight:700}
+.dsr-tbl tr.dsr-off .dsr-why{border-color:var(--sun)}
+.dsr-tbl .dsr-d{color:var(--late)}

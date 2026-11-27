@@ -23,16 +23,22 @@ function salesLogView(){
   ${days.length?days.map(dk=>`<div class="cat-h">${esc(dateLabel(dk))}</div><div class="list">${list.filter(r=>r.date===dk).map(r=>{const st=slRevState(r);
     return`<button class="oc ${st==='diff'?'late':''}" data-act="slLogOpen" data-id="${esc(r.id)}">
       <span style="min-width:0"><span class="t">${esc(r.branch)}</span>
-        <span class="s">${esc(t('sl_inv'))}: <b class="num">${esc(sar(r.invoices))}</b> · ${esc(t('sl_avg'))}: <span class="num">${+r.invoices?esc(sar2(r.sales/r.invoices)):'—'}</span>${r.review&&r.review.note?' · '+esc(String(r.review.note).slice(0,60)):''}</span></span>
+        <span class="s">${esc(t('sl_inv'))}: <b class="num">${esc(sar(r.invoices))}</b> · ${esc(t('sl_avg'))}: <span class="num">${+r.invoices?esc(sar2(r.sales/r.invoices)):'—'}</span>${r.dsr&&+r.dsrDiff?` · <b class="mis">${esc(t('dsr_diff'))}: <span class="num">${esc(sar2(r.dsrDiff))}</span></b>`:''}${r.review&&r.review.note?' · '+esc(String(r.review.note).slice(0,60)):''}</span></span>
       <span class="side"><b class="num">${esc(sar(r.sales))} ${t('sar')}</b>
         <span class="row" style="gap:6px;justify-content:flex-end">${slNoPhoto(r)?`<span class="pill sl-nophoto">${esc(t('slr_nophoto'))}</span>`:`<span class="pill sl-ph">${ic('camera')} <span class="num">${+r.photos}</span></span>`}
         <span class="pill ${st==='ok'?'ms-done':st==='diff'?'li-expired':'ms-progress'}">${esc(t('slr_'+st))}</span></span></span></button>`}).join('')}</div>`).join('')
-    :`<div class="empty">${esc(t('fn_noData'))}</div>`}`;
+    :`<div class="empty">${esc(t('fn_noData'))}</div>`}
+  ${typeof dsrMonthSummary==='function'?dsrMonthSummary(list):''}`;
 }
+/* the till side of a DSR: cashiers, counted cash and any shortage per shift */
+function slTill(r){const D=r.dsr||{},rows=DSR_SHIFTS.map(s=>{const x=(D.till||{})[s]||{},c=(D.cashier||{})[s];if(x.closing==null&&!c)return'';
+  return`<span class="tag ${x.short?'ret':''}">${esc(t('dsr_'+s))}${c?': '+esc(c):''}${x.closing!=null?' · '+esc(t('dsr_counted'))+' '+esc(sar2(x.closing)):''}${x.short?' · '+esc(t('dsr_short'))+' '+esc(sar2(x.short)):x.over?' · '+esc(t('dsr_over'))+' '+esc(sar2(x.over)):''}</span>`}).join('');
+  return rows?`<div class="row" style="gap:6px;flex-wrap:wrap;margin:8px 0">${rows}</div>`:''}
 function salesDaySheet(){
   const r=(S.sales||[]).find(x=>x.id===S.openSl);if(!r)return'';
   const st=slRevState(r),rv=r.review||{};
   const body=`<div class="stats">${kpi(t('sl_sales'),sar2(r.sales)+' '+t('sar'))}${kpi(t('sl_inv'),sar(r.invoices))}${kpi(t('sl_avg'),+r.invoices?sar2(r.sales/r.invoices)+' '+t('sar'):'—')}</div>
+  ${r.dsr&&typeof dsrTable==='function'?dsrTable(r.dsr,true)+slTill(r):''}
   ${slNoPhoto(r)?`<div class="note-bar">${esc(t('slr_nophotoHint'))}</div>`:(typeof phBlock==='function'?phBlock('sales',r.id,{readOnly:true,title:'ph_sales'}):'')}
   <h4 class="hr-sub">${t('slr_title')}</h4>
   ${st==='wait'?'':`<p class="hint"><span class="pill ${st==='ok'?'ms-done':'li-expired'}">${esc(t('slr_'+st))}</span> ${esc(rv.by||'')}${rv.at?' · '+esc(when(rv.at)):''}${rv.note?`<br><span dir="auto">${esc(rv.note)}</span>`:''}</p>`}
