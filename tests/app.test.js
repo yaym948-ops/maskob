@@ -284,11 +284,11 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   await d.signIn('6060');
   assert.equal(w.eval('S.role'), 'finance');
   const tabs = [...w.document.querySelectorAll('#tabsIn [data-act="tab"]')].map((b) => b.dataset.k);
-  assert.deepEqual(tabs, ['fsum', 'salesLog', 'expenses', 'supinv', 'suppliers', 'apps', 'payroll', 'vouchers', 'advances', 'pnl', 'be', 'supst', 'costs', 'assets']);
+  assert.deepEqual(tabs, ['fsum', 'salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'expenses', 'suppliers', 'apps', 'vouchers', 'advances', 'costs', 'assets']);
   // the reports sit in one group of the side menu, closed until opened
   const grp = w.document.querySelector('#tabsIn [data-act="navGrp"]');
   assert.ok(grp, 'reports group shown');
-  assert.deepEqual([...w.document.querySelectorAll('#tabsIn .tab-sub [data-act="tab"]')].map((b) => b.dataset.k), ['pnl', 'be', 'supst']);
+  assert.deepEqual([...w.document.querySelectorAll('#tabsIn .tab-sub [data-act="tab"]')].map((b) => b.dataset.k), ['salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst']);
   assert.ok(w.document.querySelector('#tabsIn .tab-sub').hidden, 'group closed');
   d.click('[data-act="navGrp"]'); assert.ok(!w.document.querySelector('#tabsIn .tab-sub').hidden, 'group opens');
   d.click('[data-act="navGrp"]');
