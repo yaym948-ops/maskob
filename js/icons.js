@@ -66,17 +66,22 @@ const LINE_ICONS={
   chevron:'<path d="m6 9 6 6 6-6"/>',
   bank:'<path d="M3 22h18"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="m12 2 8 5H4z"/>',
   phone:'<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+  cart:'<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+  register:'<rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7h10v4"/><path d="M9 3h6v4H9z"/><path d="M7 15h2"/><path d="M11 15h2"/><path d="M15 15h2"/><path d="M7 18h10"/>',
+  bike:'<circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>',
   hash:'<path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="M16 3l-2 18"/>'
 };
 const ico=(name,cls)=>`<svg class="ic${cls?' '+cls:''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LINE_ICONS[name]||LINE_ICONS.dot}</svg>`;
 
 /* side menu pages */
-const NAV_ICON={rep:'pie',new:'plus',tasks:'inbox',orders:'clipboard',sales:'bars',maint:'wrench',checks:'listCheck',lr:'calClock',forms:'filePen',
+const NAV_ICON={rep:'pie',new:'cart',tasks:'inbox',orders:'clipboard',sales:'register',maint:'wrench',checks:'listCheck',lr:'calClock',forms:'filePen',
   pending:'clock',report:'fileText',all:'list',salesAll:'bars',maintAll:'wrench',stock:'box',prep:'clipCheck',sched:'cal',incoming:'truck',done:'history',
   branches:'sliders',users:'users',actlog:'activity',catalog:'tag',emps:'users',docs:'idCard',leaves:'calCheck',custody:'key',advances:'wallet',lic:'shield',
-  payroll:'cash',vouchers:'receipt',dash:'dash',fsum:'dash',expenses:'receipt',supinv:'fileSheet',suppliers:'truck',pnl:'trend',be:'target',supst:'book',salesLog:'clipCheck',apps:'phone',
+  payroll:'cash',vouchers:'receipt',dash:'dash',fsum:'dash',expenses:'receipt',supinv:'fileSheet',suppliers:'truck',pnl:'trend',be:'target',supst:'book',salesLog:'register',apps:'bike',
   costs:'tag',assets:'archive'};
 
+/* pages about money get the warm (orange) square; the rest blue */
+const NAV_WARM=new Set(['sales','salesLog','expenses','supinv','vouchers','payroll','advances','apps']);
 /* buttons, by what they do */
 const BTN_ICON=[
   [/^(ioExport|fnXls|hrXls|prXls|plXls|beXls|ssXls|shXls|xls[A-Z]\w*)$/,'download'],

@@ -788,3 +788,13 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
 
 /* actual figures copied from the report, not yet confirmed by the branch */
 .dsr-tbl .dsr-in.dsr-auto{background:var(--sun-soft);border-color:color-mix(in srgb,var(--sun) 55%,var(--line))}
+
+/* ---------- side menu icons: line icon in a coloured square (blue; orange for money pages) ---------- */
+.sidenav .tab-ico{width:32px;height:32px;border-radius:9px;display:inline-grid;place-items:center;background:var(--lav-soft);color:var(--navy);flex:none;transition:background .15s,color .15s}
+.sidenav .tab-ico .ic{width:18px;height:18px}
+.sidenav .tab-ico.warm{background:var(--sun-soft);color:var(--sun-ink)}
+.sidenav .tab[aria-selected="true"] .tab-ico{background:var(--navy);color:#fff}
+.sidenav .tab[aria-selected="true"] .tab-ico.warm{background:var(--sun);color:#fff}
+.sidenav .tab-grp.in .tab-ico{background:var(--navy);color:#fff}
+.sidenav .tab{padding-block:7px}
+.sidenav .tab-sub .tab-ico{width:28px;height:28px;border-radius:8px}.sidenav .tab-sub .tab-ico .ic{width:16px;height:16px}

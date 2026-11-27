@@ -537,7 +537,7 @@ const navIcon=k=>typeof ico==='function'?ico(NAV_ICON[k]||'dot'):'';
 /* the side menu: pages marked g:'rep' sit together under one "Reports" entry that opens and closes
    (open by itself while one of them is shown); a department with a single report keeps it as a plain entry */
 function navHtml(tabs){
-  const one=x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}"><span class="tab-ico">${navIcon(x.k)}</span><span class="tab-l">${esc(x.l)}</span>${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`;
+  const one=x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}"><span class="tab-ico${typeof NAV_WARM!=='undefined'&&NAV_WARM.has(x.k)?' warm':''}">${navIcon(x.k)}</span><span class="tab-l">${esc(x.l)}</span>${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`;
   const grp=tabs.filter(x=>x.g==='rep');if(grp.length<2)return tabs.map(one).join('');
   const inside=grp.some(x=>x.k===S.tab),open=inside||!!S.navRep,b=grp.reduce((s,x)=>s+(+x.b||0),0);let done=false;
   return tabs.map(x=>{if(x.g!=='rep')return one(x);if(done)return'';done=true;
