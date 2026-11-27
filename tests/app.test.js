@@ -790,3 +790,37 @@ test('correspondence: a circular to every branch is one copy per branch, one lin
   assert.equal(w.document.querySelectorAll('.sheet [data-act="mlOpen"], #sheet [data-act="mlOpen"]').length, branches.length, 'recipients listed');
   d.click('[data-act="close"]');
 });
+
+test('stock: operations sets units, a made item and a recipe; the branch receives, produces (converted units) and counts', async () => {
+  const d = driver(w), S = w.eval('S');
+  for (const k of ['invItems', 'recipes', 'bstock', 'bmoves', 'prods', 'bcounts']) w.eval('MEMSET')(k, k === 'bstock' ? {} : []);
+  w.eval('MEMSET')('invUnits', {});
+  await d.signIn('9191');
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  assert.ok(w.document.querySelector('[data-act="navGrp"][data-g="inv"]'), 'operations has a stock group');
+  const milk = w.eval('ITEMS[0].id');
+  // made item + conversion: one stock unit of the raw item = 1000 ml
+  d.click('[data-act="tab"][data-k="recipes"]'); d.click('[data-act="rcTab"][data-k="items"]'); d.click('[data-act="miNew"]'); await sleep(20);
+  d.setVal('hr-name', 'كولد برو'); d.setVal('hr-unit', 'لتر'); d.click('[data-act="miSave"]'); await sleep(200);
+  const out = w.eval('S.invItems')[0].id;
+  w.eval('invSaveUnits')(Object.assign({}, w.eval('invUnitsCfg()'), { items: { [milk]: { rUnit: 'مل', rPer: 1000 } } })); await sleep(200);
+  d.click('[data-act="rcTab"][data-k="recipes"]'); d.click('[data-act="rcNew"]'); await sleep(20);
+  Object.assign(S.rcDraft, { name: 'كولد برو 5 لتر', out, yield: '5', lines: [{ item: milk, qty: '250' }] });
+  d.click('[data-act="rcSave"]'); await sleep(200);
+  assert.equal(w.eval('S.recipes').length, 1, 'recipe saved');
+  // the branch: a received supply, then production of 2 batches
+  d.setVal('ownerBranch', 'branch:القطيف'); await sleep(200);
+  await w.eval('bstockApply')('القطيف', [[milk, 3]], 'recv', 'T-1'); await sleep(50);
+  d.click('[data-act="tab"][data-k="prod"]'); d.click('[data-act="prodPick"]'); S.prodN = '2';
+  d.click('[data-act="prodSave"]'); await sleep(400);
+  assert.equal(w.eval('invQty')('القطيف', milk), 2.5, '500 ml = 0.5 stock unit used');
+  assert.equal(w.eval('invQty')('القطيف', out), 10, '2 × 5 litres made');
+  // count: 2 left of the raw item → 0.5 used since
+  d.click('[data-act="tab"][data-k="count"]'); S.countDraft = { [milk]: '2' };
+  d.click('[data-act="countSave"]'); await sleep(400);
+  assert.equal(w.eval('invQty')('القطيف', milk), 2, 'count sets the real figure');
+  assert.equal(w.eval('S.bcounts')[0].lines[0].expected, 2.5);
+  // the bell lists pages with something waiting
+  w.eval('render()'); assert.ok(w.document.querySelector('#bellBox .bell-btn'), 'bell shown');
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});

@@ -94,7 +94,7 @@ Object.assign(A,{
   supDel(){const s=supById(S.openSup);if(!s)return;if(supInvOf(s).length){toast(t('sp_hasInv'));return}
     if(S.confirm!=='supDel'){S.confirm='supDel';render();return}
     guard(async()=>{await X.del('suppliers',s.id);S.openSup=null;S.confirm=null},()=>t('li_deleted'))},
-  supSt(el){S.ssSup=el.dataset.id;S.openSup=null;S.hrDraft=null;S.tab='supst';S.navRep=true;render()},
+  supSt(el){S.ssSup=el.dataset.id;S.openSup=null;S.hrDraft=null;S.tab='supst';(S.navOpen||(S.navOpen={})).rep=true;render()},
   ssXls(){const x=ssSheet();if(x)saveXlsx('maskob-supplier-'+x.R.from+'_'+x.R.to+'.xlsx',[{name:x.name,headers:x.headers,rows:x.rows}])},
   ssPrint(){const x=ssSheet();if(!x)return;
     const body=`<div class="para"><b>${esc(x.s.name)}</b>${x.s.vatNo?' · الرقم الضريبي / VAT: '+esc(x.s.vatNo):''}</div>

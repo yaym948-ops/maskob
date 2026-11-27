@@ -521,8 +521,8 @@ function counts(){
 }
 function tabsFor(){
   const c=counts();
-  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')},{k:'lr',l:t('tab_shifts'),b:(S.leaveReqs||[]).filter(r=>r.status==='pending').length},{k:'forms',l:t('tab_forms')},...(typeof mailView==='function'?[{k:'mail',l:t('tab_mail'),b:mailUnreadN()}]:[])];
-  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report'),g:'rep'},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales'),g:'rep'},...(typeof salesLogView==='function'?[{k:'salesLog',l:t('tab_slLog'),b:slWaiting()}]:[]),{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')},{k:'stock',l:t('tab_stock'),b:typeof stockLow==='function'?stockLow().length:0},...(typeof archiveView==='function'?[{k:'archive',l:t('tab_archive'),b:arcAlerts().length,late:arcAlerts().some(x=>arcExp(x)==='out')}]:[]),...(typeof mailView==='function'?[{k:'mail',l:t('tab_mail'),b:mailUnreadN()}]:[])];
+  if(S.role==='branch')return[{k:'new',l:t('tab_new')},{k:'tasks',l:t('tab_tasks'),b:c.tasks,late:c.tasksLate},{k:'orders',l:t('tab_mine'),b:notices(visible()).length},{k:'sales',l:t('tab_sales')},...(typeof invStockView==='function'?[{k:'bstock',l:t('tab_bstock'),g:'inv'},{k:'prod',l:t('tab_prod'),g:'inv'},{k:'count',l:t('tab_count'),g:'inv'}]:[]),{k:'maint',l:t('tab_maint')},{k:'checks',l:t('tab_checks')},{k:'lr',l:t('tab_shifts'),b:(S.leaveReqs||[]).filter(r=>r.status==='pending').length},{k:'forms',l:t('tab_forms')},...(typeof mailView==='function'?[{k:'mail',l:t('tab_mail'),b:mailUnreadN()}]:[])];
+  if(S.role==='manager')return[{k:'pending',l:t('tab_pending'),b:c.pending,late:c.pendingLate},{k:'report',l:t('tab_report'),g:'rep'},{k:'all',l:t('tab_all')},{k:'salesAll',l:t('tab_sales'),g:'rep'},...(typeof salesLogView==='function'?[{k:'salesLog',l:t('tab_slLog'),b:slWaiting()}]:[]),{k:'maintAll',l:t('tab_maint'),b:(S.maint||[]).filter(m=>m.status!=='done').length,late:(S.maint||[]).some(m=>m.urgent&&m.status!=='done')},{k:'stock',l:t('tab_stock'),g:'inv',b:typeof stockLow==='function'?stockLow().length:0},...(typeof invRecipesView==='function'?[{k:'bstockAll',l:t('tab_bstockAll'),g:'inv'},{k:'prodAll',l:t('tab_prod'),g:'inv'},{k:'recipes',l:t('tab_recipes'),g:'inv'}]:[]),...(typeof archiveView==='function'?[{k:'archive',l:t('tab_archive'),b:arcAlerts().length,late:arcAlerts().some(x=>arcExp(x)==='out')}]:[]),...(typeof mailView==='function'?[{k:'mail',l:t('tab_mail'),b:mailUnreadN()}]:[])];
   if(S.role==='admin')return[{k:'branches',l:t('tab_settings')},{k:'users',l:t('tab_users')},{k:'actlog',l:t('tab_log2')},{k:'catalog',l:t('tab_catalog')}];
   if(S.role==='hr')return hrTabs();
   if(S.role==='finance'&&typeof finTabs==='function')return finTabs();
@@ -537,12 +537,16 @@ const navIcon=k=>typeof ico==='function'?ico(NAV_ICON[k]||'dot'):'';
 /* the side menu: pages marked g:'rep' sit together under one "Reports" entry that opens and closes
    (open by itself while one of them is shown); a department with a single report keeps it as a plain entry */
 function navHtml(tabs){
+  /* groups of the side menu: pages marked g:'rep' (reports) or g:'inv' (stock) sit under one entry that opens
+     and closes (open by itself while one of its pages is shown); a group with a single page stays a plain entry */
+  const GROUPS={rep:['nav_reports','rep'],inv:['nav_inv','inv']};
   const one=x=>`<button class="tab" role="tab" aria-selected="${x.k===S.tab}" data-act="tab" data-k="${x.k}"><span class="tab-ico${typeof NAV_WARM!=='undefined'&&NAV_WARM.has(x.k)?' warm':''}">${navIcon(x.k)}</span><span class="tab-l">${esc(x.l)}</span>${x.b?`<span class="badge num${x.late?' late':''}">${x.b}</span>`:''}</button>`;
-  const grp=tabs.filter(x=>x.g==='rep');if(grp.length<2)return tabs.map(one).join('');
-  const inside=grp.some(x=>x.k===S.tab),open=inside||!!S.navRep,b=grp.reduce((s,x)=>s+(+x.b||0),0);let done=false;
-  return tabs.map(x=>{if(x.g!=='rep')return one(x);if(done)return'';done=true;
-    return`<button class="tab tab-grp${inside?' in':''}" data-act="navGrp" aria-expanded="${open}"><span class="tab-ico">${navIcon('rep')}</span><span class="tab-l">${esc(t('nav_reports'))}</span>${!open&&b?`<span class="badge num${grp.some(g=>g.late)?' late':''}">${b}</span>`:''}<span class="tab-car" aria-hidden="true">${typeof ico==='function'?ico('chevron'):'▾'}</span></button>
-      <div class="tab-sub" role="group" aria-label="${esc(t('nav_reports'))}"${open?'':' hidden'}>${grp.map(one).join('')}</div>`}).join('');
+  const open=S.navOpen||(S.navOpen={}),done={};
+  return tabs.map(x=>{const g=x.g&&GROUPS[x.g]?x.g:null,grp=g?tabs.filter(y=>y.g===g):[];
+    if(!g||grp.length<2)return one(x);if(done[g])return'';done[g]=true;
+    const inside=grp.some(y=>y.k===S.tab),isOpen=inside||!!open[g],bsum=grp.reduce((s0,y)=>s0+(+y.b||0),0),[lk,ik]=GROUPS[g];
+    return`<button class="tab tab-grp${inside?' in':''}" data-act="navGrp" data-g="${g}" aria-expanded="${isOpen}"><span class="tab-ico">${navIcon(ik)}</span><span class="tab-l">${esc(t(lk))}</span>${!isOpen&&bsum?`<span class="badge num${grp.some(y=>y.late)?' late':''}">${bsum}</span>`:''}<span class="tab-car" aria-hidden="true">${typeof ico==='function'?ico('chevron'):'▾'}</span></button>
+      <div class="tab-sub" role="group" aria-label="${esc(t(lk))}"${isOpen?'':' hidden'}>${grp.map(one).join('')}</div>`}).join('');
 }
 /* ---------- render ---------- */
 function applyLang(){
@@ -568,7 +572,7 @@ function render(){
   document.getElementById('tabsIn').innerHTML=navHtml(tabs);
   document.getElementById('main').innerHTML=banner()+(!S.pinsLoaded?`<p class="hint">${t('checking')}</p>`:authed?view():pinPad());
   document.getElementById('cart').innerHTML=(authed&&S.role==='branch'&&S.tab==='new')?cartBar():'';
-  document.getElementById('sheet').innerHTML=authed?(S.scan&&window.scanSheet?scanSheet():S.imp?impSheet():S.openAsset&&window.assetSheet?assetSheet():S.openExp&&window.expenseSheet?expenseSheet():S.openSi&&window.supInvSheet?supInvSheet():S.openSup&&window.supplierSheet?supplierSheet():S.openSl&&window.salesDaySheet?salesDaySheet():S.openAp&&window.appPaySheet?appPaySheet():S.openArc&&window.archiveSheet?archiveSheet():S.openArcSecs&&window.archiveSecsSheet?archiveSecsSheet():S.mlNewOpen&&window.mailNewSheet?mailNewSheet():S.mlOpen&&window.mailThreadSheet?mailThreadSheet():S.mlCirc&&window.mailCircSheet?mailCircSheet():S.openStockRecv&&window.stockRecvSheet?stockRecvSheet():S.openStock&&window.stockItemSheet?stockItemSheet():S.openUser&&window.userSheet?userSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
+  document.getElementById('sheet').innerHTML=authed?(S.scan&&window.scanSheet?scanSheet():S.imp?impSheet():S.openAsset&&window.assetSheet?assetSheet():S.openExp&&window.expenseSheet?expenseSheet():S.openSi&&window.supInvSheet?supInvSheet():S.openSup&&window.supplierSheet?supplierSheet():S.openSl&&window.salesDaySheet?salesDaySheet():S.openAp&&window.appPaySheet?appPaySheet():S.openArc&&window.archiveSheet?archiveSheet():S.openArcSecs&&window.archiveSecsSheet?archiveSecsSheet():S.mlNewOpen&&window.mailNewSheet?mailNewSheet():S.mlOpen&&window.mailThreadSheet?mailThreadSheet():S.mlCirc&&window.mailCircSheet?mailCircSheet():S.openRc&&window.recipeSheet?recipeSheet():S.openMi&&window.madeItemSheet?madeItemSheet():S.openWaste&&window.invWasteSheet?invWasteSheet():S.openStockRecv&&window.stockRecvSheet?stockRecvSheet():S.openStock&&window.stockItemSheet?stockItemSheet():S.openUser&&window.userSheet?userSheet():S.openVc?voucherSheet():S.openForm?formSheet():S.openTpl?templateSheet():S.openStaff?staffSheet():S.openLr?lrSheet():S.openCat?catSheet():S.openMaint?maintSheet():S.openEmp?empSheet():S.openContract?contractSheet():S.openLeave?leaveSheet():S.openCust?custodySheet():S.openEos?eosSheet():S.openLic?licenseSheet():S.openAdv?advanceSheet():sheet()):'';
 
   if(typeof decorateIcons==='function')decorateIcons();
   const nb=document.querySelector('.sh-body');if(nb)nb.scrollTop=shTop;
@@ -583,12 +587,18 @@ function banner(){
 function renderWho(authed){
   const el=document.getElementById('who');
   const lo=document.getElementById('logoutBox');
-  if(!authed){el.innerHTML='';lo.innerHTML='';return}
+  if(!authed){el.innerHTML='';lo.innerHTML='';const b0=document.getElementById('bellBox');if(b0)b0.innerHTML='';return}
   if(S.realRole==='owner'){const cur=S.role==='branch'?'branch:'+S.branch:S.role;
     el.innerHTML=`<div class="who ow"><span>${S.userName?`<b>${esc(S.userName)}</b>`:esc(roleL('owner'))}</span><select class="ow-sel" id="ownerView" aria-label="${esc(t('ow_view'))}">${cur.startsWith('branch:')?`<option value="" selected disabled>${esc(t('ow_depts'))}</option>`:''}${['dash','manager','warehouse','hr','finance','admin'].map(r=>`<option value="${r}" ${cur===r?'selected':''}>${esc(roleL(r))}</option>`).join('')}</select>${S.branches.length?`<select class="ow-sel${cur.startsWith('branch:')?' on':''}" id="ownerBranch" aria-label="${esc(t('ow_branches'))}"><option value="" disabled ${cur.startsWith('branch:')?'':'selected'}>${esc(t('ow_branches'))}</option>${S.branches.map(b=>`<option value="branch:${esc(b)}" ${cur==='branch:'+b?'selected':''}>${esc(b)}</option>`).join('')}</select>`:''}</div>`}
   else el.innerHTML=`<div class="who"><span>${S.userName?`<b>${esc(S.userName)}</b> · `:''}${esc(roleL(S.role))}${S.role==='branch'?`: <b>${esc(S.branch||'')}</b>`:''}</span></div>`;
+  const bb=document.getElementById('bellBox');if(bb)bb.innerHTML=bellHtml();
   lo.innerHTML=`<button class="logout-btn" data-act="logout">${typeof ico==='function'?ico('logout','b-ic'):''}${esc(t('logout'))}</button>`;
 }
+/* the alerts bell in the header: each page of this department that has something waiting */
+function bellItems(){let tabs=[];try{tabs=tabsFor()}catch(e){}return tabs.filter(x=>+x.b>0)}
+function bellHtml(){const L=bellItems(),n=L.reduce((s0,x)=>s0+(+x.b||0),0),late=L.some(x=>x.late);
+  return`<div class="bell"><button class="bell-btn" data-act="bell" aria-expanded="${!!S.bellOpen}" aria-label="${esc(t('bell_title'))}${n?' ('+n+')':''}">${typeof ico==='function'?ico('bell'):'🔔'}${n?`<span class="bell-n num${late?' late':''}">${n>99?'99+':n}</span>`:''}</button>
+  ${S.bellOpen?`<div class="bell-pop" role="menu"><div class="bell-h">${esc(t('bell_title'))}</div>${L.length?L.map(x=>`<button class="bell-it" role="menuitem" data-act="tab" data-k="${esc(x.k)}"><span class="tab-ico${typeof NAV_WARM!=='undefined'&&NAV_WARM.has(x.k)?' warm':''}">${navIcon(x.k)}</span><span class="bell-l">${esc(x.l)}</span><span class="badge num${x.late?' late':''}">${x.b}</span></button>`).join(''):`<div class="bell-empty">${esc(t('bell_none'))}</div>`}</div>`:''}</div>`}
 function pinPad(){
   const L=S.pad;
   const setup=S.fb?!S.mainReady:!S.pins.manager;
@@ -612,6 +622,8 @@ function view(){
   const tb=S.tab,v=visible();
   if(tb==='mail'&&typeof mailView==='function'&&['branch','manager','dash'].includes(S.role))return mailView();
   if(S.role==='dash'&&window.dashboardView)return dashboardView();
+  if(typeof invStockView==='function'){if(S.role==='branch'&&tb==='bstock')return invStockView();if(S.role==='branch'&&tb==='prod')return invProdView();if(S.role==='branch'&&tb==='count')return invCountView();
+    if(S.role==='manager'&&tb==='recipes')return invRecipesView();if(S.role==='manager'&&tb==='prodAll')return invOpsProdView();if(S.role==='manager'&&tb==='bstockAll')return invOpsStockView()}
   if(tb==='stock'&&(S.role==='warehouse'||S.role==='manager')&&window.stockView)return stockView();
   if(S.role==='admin')return tb==='catalog'?catalogView():tb==='users'&&window.usersView?usersView():tb==='actlog'&&window.logView?logView():branchesView();
   if(S.role==='hr')return hrView(tb);
@@ -1219,8 +1231,8 @@ const A={
   menuOpen(){S.menuOpen=true;render()},
   menuClose(){S.menuOpen=false;render()},
   /* open or close the Reports group of the side menu */
-  navGrp(el){if(el.classList.contains('in'))return;S.navRep=el.getAttribute('aria-expanded')!=='true';render()},
-  tab(el){if(typeof phDropAll==='function')phDropAll();S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.open=null;S.openSup=null;S.openArc=null;S.openArcSecs=false;S.mlNewOpen=false;S.mlOpen=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=S.openStockRecv=S.openStock=S.openExp=S.openSi=S.openAsset=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
+  navGrp(el){if(el.classList.contains('in'))return;const g=el.dataset.g||'rep';(S.navOpen||(S.navOpen={}))[g]=el.getAttribute('aria-expanded')!=='true';render()},
+  tab(el){if(typeof phDropAll==='function')phDropAll();S.menuOpen=false;S.tab=el.dataset.k;LS.set('mk.tab',S.tab);S.bellOpen=false;S.openRc=null;S.openMi=null;S.openWaste=false;S.open=null;S.openSup=null;S.openArc=null;S.openArcSecs=false;S.mlNewOpen=false;S.mlOpen=null;S.openEmp=S.openContract=S.openLeave=S.openCust=S.openAdv=S.openEos=S.openLic=S.openCat=S.openLr=S.openStaff=S.openVc=S.openForm=S.openTpl=S.openUser=S.openStockRecv=S.openStock=S.openExp=S.openSi=S.openAsset=null;S.hrDraft=null;S.review=false;render();window.scrollTo(0,0)},
   logout(){if(S.fb){Store.fbSignOut();return}S.userId=null;S.userName=null;S.role=null;S.realRole=null;LS.set('mk.role',null);setAuth(null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render()},
   pinKey(el){const L=S.pad;if(L.val.length>=(codeLenSet()||6)||Date.now()<S.lockUntil||S.signingIn)return;L.val+=el.dataset.k;L.err='';
     render();if(L.step==='enter')scheduleCheck()},
@@ -1305,7 +1317,8 @@ const A={
     S.draft.kind='supply';saveDraft();render();toast(t('fcFilled',{n}))},
   clearDraft(){S.draft={kind:S.draft.kind,lines:{},stock:{},note:''};saveDraft();render()},
   review(){S.review=true;render()},
-  close(){if(typeof phDropSheets==='function')phDropSheets();S.openSl=null;S.openAp=null;S.openArc=null;S.openArcSecs=false;S.arcFile=null;S.mlNewOpen=false;S.mlOpen=null;S.mlDraft=null;S.mlCirc=null;S.imp=null;S.openSup=null;S.docImg=null;S.scanInfo=null;S.openAsset=null;S.openExp=null;S.openSi=null;S.siPay=null;S.openStockRecv=null;S.openStock=null;S.openUser=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
+  bell(){S.bellOpen=!S.bellOpen;render()},
+  close(){if(typeof phDropSheets==='function')phDropSheets();S.openRc=null;S.openMi=null;S.openWaste=false;S.rcDraft=null;S.openSl=null;S.openAp=null;S.openArc=null;S.openArcSecs=false;S.arcFile=null;S.mlNewOpen=false;S.mlOpen=null;S.mlDraft=null;S.mlCirc=null;S.imp=null;S.openSup=null;S.docImg=null;S.scanInfo=null;S.openAsset=null;S.openExp=null;S.openSi=null;S.siPay=null;S.openStockRecv=null;S.openStock=null;S.openUser=null;S.openVc=null;S.openForm=null;S.openTpl=null;S.openStaff=null;S.openLr=null;S.openCat=null;S.review=false;S.open=null;S.openMaint=null;S.openEmp=null;S.openContract=null;S.openLeave=null;S.openCust=null;S.openAdv=null;S.openEos=null;S.openLic=null;S.liFile=null;S.avPay=null;S.hrDraft=null;S.confirm=null;render()},
   veil(el,ev){if(ev.target===el)A.close()},
   filter(el){S.filter=el.dataset.k;render()},
   open(el){S.open=el.dataset.id;S.confirm=null;const o=S.orders.find(x=>x.id===S.open);if(o)initWork(o);render()},
@@ -1349,6 +1362,7 @@ const A={
     const f={status:'shipped',lines,shippedAt:tm,updatedAt:tm,shipNote:w.note.trim()};if(S.me)f.shippedBy=S.me;
     guard(async()=>{await Store.patch(o.id,f);
       if(o.kind!=='return'&&window.stockApply)await stockApply(lines.filter(l=>+l.sent>0).map(l=>[l.id,-(+l.sent)]),'issue',(o.num||o.id)+' — '+o.branch).catch(()=>{});
+      if(o.kind==='return'&&typeof bstockApply==='function')await bstockApply(o.branch,lines.filter(l=>+l.sent>0).map(l=>[l.id,-(+l.sent)]),'return',o.num||o.id).catch(()=>{});
       S.open=null;S.confirm=null},()=>t('t_shipped'));},
   receive(){const c=curWork();if(!c)return;const{o,w}=c;const tm=nowIso();
     const lines=o.lines.map(l=>{const x=w.lines[l.id];const n=Object.assign({},l,{received:x.received});if(x.note.trim())n.rnote=x.note.trim();else delete n.rnote;return n});
@@ -1356,6 +1370,7 @@ const A={
     const f={status:'received',lines,receivedAt:tm,updatedAt:tm,receiveNote:w.note.trim(),diffs};if(S.me)f.receivedBy=S.me;
     guard(async()=>{await Store.patch(o.id,f);
       if(o.kind==='return'&&window.stockApply)await stockApply(lines.filter(l=>+l.received>0).map(l=>[l.id,+l.received]),'return',(o.num||o.id)+' — '+o.branch).catch(()=>{});
+      if(o.kind!=='return'&&typeof bstockApply==='function')await bstockApply(o.branch,lines.filter(l=>+l.received>0).map(l=>[l.id,+l.received]),'recv',o.num||o.id).catch(()=>{});
       S.open=null},()=>diffs?t('t_recvDiff',{n:diffs}):t('t_recv'));},
   addBranch(){const n=S.newBranch.trim();if(!n||S.branches.includes(n))return;const list=[...S.branches,n];S.newBranch='';guard(()=>Store.saveBranches(list),()=>t('branchAdded'))},
   delBranch(el){const i=+el.dataset.i;const name=S.branches[i];const list=S.branches.filter((_,j)=>j!==i);
@@ -1364,6 +1379,7 @@ const A={
 };
 
 document.addEventListener('click',ev=>{
+  if(S.bellOpen&&!(ev.target.closest&&ev.target.closest('.bell'))){S.bellOpen=false;render()}
   const sc=ev.target.closest&&ev.target.closest('.sched-chip');
   if(sc){const inp=sc.querySelector('input');if(inp&&inp.showPicker){try{inp.showPicker()}catch(e){}}return}
   const el=ev.target.closest('[data-act]');if(!el)return;

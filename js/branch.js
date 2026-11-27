@@ -90,6 +90,7 @@ function xLoadDemo(){
   if(S.role==='dash'){S.emps=MEM('employees');S.leaveReqs=MEM('leaveReqs');S.forms=MEM('forms');S.licenses=MEM('licenses');S.leaves=MEM('leaves')}
   if(typeof arcLoadDemo==='function')arcLoadDemo();
   if(typeof mailLoadDemo==='function')mailLoadDemo();
+  if(typeof invLoadDemo==='function')invLoadDemo();
 }
 /* live subscriptions per role */
 function xStart(){
@@ -159,6 +160,8 @@ function xStart(){
   if(typeof arcStart==='function')arcStart(u,onErr);
   // correspondence between departments, branches and the general manager
   if(typeof mailStart==='function')mailStart(u,onErr);
+  // branch stock, production and counts; recipes, made items and units from operations
+  if(typeof invStart==='function')invStart(u,onErr);
 }
 function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.stock={};S.stockMoves=[];S.expenses=[];S.supInv=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 

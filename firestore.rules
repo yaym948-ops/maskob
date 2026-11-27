@@ -294,6 +294,23 @@ service cloud.firestore {
     match /appPays/{id} {
       allow read, write: if isRole('finance');
     }
+    // ---- branch stock, production and counts; recipes, made items and units (operations) ----
+    function brOwn(b) { return isBranch() && myBranch() == b; }
+    match /invItems/{id} { allow read: if valid(); allow write: if isMgr(); }
+    match /recipes/{id} { allow read: if valid(); allow write: if isMgr(); }
+    match /bstock/{b} { allow read, write: if isMgr() || brOwn(b) || isRole('warehouse'); }
+    match /bmoves/{id} {
+      allow read: if isMgr() || brOwn(resource.data.branch) || isRole('warehouse');
+      allow create: if isMgr() || brOwn(request.resource.data.branch) || isRole('warehouse');
+    }
+    match /prods/{id} {
+      allow read: if isMgr() || brOwn(resource.data.branch);
+      allow create: if isMgr() || brOwn(request.resource.data.branch);
+    }
+    match /bcounts/{id} {
+      allow read: if isMgr() || brOwn(resource.data.branch);
+      allow create: if isMgr() || brOwn(request.resource.data.branch);
+    }
     // ---- correspondence: only the parties of a thread (hr, ops, fin, gm, br:<branch>) ----
     function mailParty(p) { return (p.hasAny(['hr']) && isRole('hr')) || (p.hasAny(['ops']) && isRole('manager')) || (p.hasAny(['fin']) && isRole('finance'))
                               || isRole('owner') || (isBranch() && p.hasAny(['br:' + myBranch()])); }
