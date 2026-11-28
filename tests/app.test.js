@@ -284,11 +284,11 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   await d.signIn('6060');
   assert.equal(w.eval('S.role'), 'finance');
   const tabs = [...w.document.querySelectorAll('#tabsIn [data-act="tab"]')].map((b) => b.dataset.k);
-  assert.deepEqual(tabs, ['fsum', 'salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'kpi', 'menuEng', 'cash', 'expenses', 'suppliers', 'apps', 'vouchers', 'advances', 'costs', 'assets', 'poMatch', 'close', 'archive', 'mail']);
+  assert.deepEqual(tabs, ['fsum', 'expenses', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'kpi', 'salesAll', 'menuEng', 'cash', 'pcost', 'suppliers', 'apps', 'vouchers', 'advances', 'costs', 'assets', 'poMatch', 'close', 'archive', 'mail']);
   // the reports sit in one group of the side menu, closed until opened
   const grp = w.document.querySelector('#tabsIn [data-act="navGrp"]');
   assert.ok(grp, 'reports group shown');
-  assert.deepEqual([...w.document.querySelectorAll('#tabsIn .tab-sub [data-act="tab"]')].map((b) => b.dataset.k), ['salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'kpi', 'menuEng', 'cash']);
+  assert.deepEqual([...w.document.querySelectorAll('#tabsIn .tab-sub [data-act="tab"]')].map((b) => b.dataset.k), ['supinv', 'payroll', 'pnl', 'be', 'supst', 'kpi', 'salesAll', 'menuEng', 'cash', 'pcost']);
   assert.ok(w.document.querySelector('#tabsIn .tab-sub').hidden, 'group closed');
   d.click('[data-act="navGrp"]'); assert.ok(!w.document.querySelector('#tabsIn .tab-sub').hidden, 'group opens');
   d.click('[data-act="navGrp"]');
@@ -565,7 +565,7 @@ test('daily sales log: operations and finance see each day with its photo and ma
   w.eval('MEMSET')('sales', rows); S._demoPh = {}; S.phs = {}; w.eval('PH_STORE').put('sales', rows[0].id, 'p1', 'data:image/jpeg;base64,/9j/Z', 'القطيف');
   // finance
   await d.signIn('6060'); w.eval('xLoadDemo()'); w.eval('render()');
-  d.click('[data-act="tab"][data-k="salesLog"]');
+  d.click('[data-act="tab"][data-k="salesAll"]'); d.click('[data-act="slView"][data-k="days"]');
   assert.equal(w.document.querySelectorAll('[data-act="slLogOpen"]').length, 2, 'both branches listed');
   assert.ok(w.document.querySelector('.sl-nophoto'), 'a day without a photo is flagged');
   d.click(`[data-act="slLogOpen"][data-id="${rows[0].id}"]`); await sleep(50);
@@ -582,8 +582,8 @@ test('daily sales log: operations and finance see each day with its photo and ma
   d.click('[data-act="slLogSt"][data-k=""]');
   // operations sees the same log
   await d.signIn('9191'); d.setVal('ownerView', 'manager'); await sleep(200);
-  assert.ok(w.document.querySelector('#tabsIn [data-act="tab"][data-k="salesLog"]'), 'operations menu entry');
-  d.click('[data-act="tab"][data-k="salesLog"]');
+  assert.ok(w.document.querySelector('#tabsIn [data-act="tab"][data-k="salesAll"]'), 'operations menu entry');
+  d.click('[data-act="tab"][data-k="salesAll"]'); d.click('[data-act="slView"][data-k="days"]');
   d.click(`[data-act="slLogOpen"][data-id="${rows[1].id}"]`); d.click('[data-act="slRev"][data-k="ok"]'); await sleep(300);
   assert.equal(w.eval('S.sales').find((r) => r.id === rows[1].id).review.st, 'ok');
   d.setVal('ownerView', 'dash'); await sleep(200);
@@ -628,7 +628,7 @@ test('daily closing (DSR): Foodics reports read from photos, differences need a 
   assert.equal(row.dsrA, 1872); assert.equal(row.dsrDiff, -5); assert.equal(row.balPhotos, 1);
   assert.equal((await w.eval('PH_STORE').list('sales', id + '__bal')).length, 1, 'reconciliation photo kept with the day'); assert.equal(row.dsr.till.pm.short, 5);
   // finance sees the DSR, the shortage and the month by payment method
-  await d.signIn('6060'); w.eval('xLoadDemo()'); d.click('[data-act="tab"][data-k="salesLog"]');
+  await d.signIn('6060'); w.eval('xLoadDemo()'); d.click('[data-act="tab"][data-k="salesAll"]'); d.click('[data-act="slView"][data-k="days"]');
   assert.ok(w.document.querySelector('.fn-tbl'), 'month by payment method');
   d.click('[data-act="slLogOpen"][data-id="' + id + '"]'); await sleep(50);
   assert.ok(w.document.querySelector('.dsr-tbl'), 'DSR table in the day');
@@ -1086,4 +1086,34 @@ test('book features: indicators, item cost and menu engineering, stock value, pu
   d.click('[data-act="tab"][data-k="close"]'); d.click('[data-act="clTick"][data-k="bank"]'); await sleep(200);
   assert.equal(w.eval('S.closes').length, 1);
   d.setVal('ownerView', 'dash'); await sleep(200);
+});
+
+test('product cost sheet: stock and typed components, VAT columns; item sales take ingredients off branch stock once; sales report days; orders group', async () => {
+  const d = driver(w), S = w.eval('S'), b = w.eval('S.branches')[0], mk = w.eval('monthKey(Date.now())'), milk = w.eval('ITEMS[0].id');
+  w.eval('MEMSET')('products', [{ id: 'P1', name: 'لاتيه', price: 16.1, addons: [], lines: [] }]);
+  w.eval('MEMSET')('costs', { [milk]: 12 }); w.eval('MEMSET')('invUnits', { units: ['مل'], items: { [milk]: { rUnit: 'مل', rPer: 1000 } } });
+  w.eval('MEMSET')('psales', []); w.eval('MEMSET')('bstock', { [b]: { [milk]: 10 } }); w.eval('MEMSET')('bmoves', []);
+  await d.signIn('9191');
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  assert.ok(w.document.querySelector('[data-act="navGrp"][data-g="ord"]'), 'orders group in the menu');
+  d.click('[data-act="tab"][data-k="pcost"]'); d.click('[data-act="pcOpen"][data-id="P1"]'); await sleep(20);
+  Object.assign(S.pcLines[0], { item: milk, qty: '200' }); S.pcLines.push({ item: '', name: 'كوب ورقي 8 أونز', unit: 'حبة', qty: '1', price: '0.35' });
+  d.click('[data-act="pcSave"]'); await sleep(200);
+  const p = w.eval('S.products')[0];
+  assert.equal(w.eval('pcUnitPrice')(p.lines[0]), 0.012, '12 SAR per 1000 ml');
+  assert.ok(Math.abs(w.eval('prodCost')(p) - 2.75) < 1e-9, '200 ml × 0.012 + 0.35');
+  w.eval('render()'); assert.ok(w.document.querySelector('.pc-tbl'), 'cost table shown');
+  // item sales for the branch: 20 lattes → 4000 ml = 4 stock units off
+  const doc = { id: b + '_' + mk, branch: b, month: mk, rows: [{ name: 'لاتيه', qty: 20, pid: 'P1' }], applied: {} };
+  w.eval('MEMSET')('psales', [doc]); w.eval('xLoadDemo()');
+  await w.eval('meApplyStock')(doc); await sleep(100);
+  assert.equal(w.eval('invQty')(b, milk), 6, '10 − 4');
+  const again = w.eval('S.psales')[0];
+  await w.eval('meApplyStock')(Object.assign({}, again, { rows: [{ name: 'لاتيه', qty: 25, pid: 'P1' }] })); await sleep(100);
+  assert.equal(w.eval('invQty')(b, milk), 5, 'a fuller upload takes only the extra 5 lattes');
+  // finance: sales report with the days view, import/export allowed
+  d.setVal('ownerView', 'finance'); await sleep(200);
+  d.click('[data-act="tab"][data-k="salesAll"]'); d.click('[data-act="slView"][data-k="days"]');
+  assert.ok(w.eval('ioCan')('sales') && w.eval('ioCan')('payroll'), 'finance imports/exports sales and exports payroll');
+  S.slView = 'sum'; d.setVal('ownerView', 'dash'); await sleep(200);
 });

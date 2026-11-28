@@ -354,10 +354,10 @@ service cloud.firestore {
     match /menuOff/{b} { allow read, write: if isMgr() || brOwn(b); }
     match /invItems/{id} { allow read: if valid(); allow write: if isMgr(); }
     match /recipes/{id} { allow read: if valid(); allow write: if isMgr(); }
-    match /bstock/{b} { allow read, write: if isMgr() || brOwn(b) || isRole('warehouse'); }
+    match /bstock/{b} { allow read, write: if isMgr() || brOwn(b) || isRole('warehouse') || isRole('finance'); }
     match /bmoves/{id} {
       allow read: if isMgr() || brOwn(resource.data.branch) || isRole('warehouse');
-      allow create: if isMgr() || brOwn(request.resource.data.branch) || isRole('warehouse');
+      allow create: if isMgr() || brOwn(request.resource.data.branch) || isRole('warehouse') || isRole('finance');
     }
     match /prods/{id} {
       allow read: if isMgr() || brOwn(resource.data.branch);

@@ -68,12 +68,7 @@ function productSheet(){const d=S.pdDraft||{addons:[]},isNew=S.openPd==='new';
     <label><span class="hint">${t('mn_cat')}</span><select class="field" id="pd-cat" data-in="pdF" data-f="cat"><option value="">${esc(t('mn_noCat'))}</option>${menuCats().map(c=>`<option ${d.cat===c?'selected':''}>${esc(c)}</option>`).join('')}</select></label>
     <label><span class="hint">${t('mn_price')} (${t('sar')})</span><input class="field num" id="pd-price" data-in="pdF" data-f="price" inputmode="decimal" dir="ltr" value="${esc(d.price??'')}"></label></div>
   ${menuCats().length?'':`<p class="hint">${esc(t('mn_catHint'))}</p>`}
-  <h4 class="hr-sub">${t('me_ing')}</h4><p class="hint">${esc(t('me_ingHint'))}</p>
-  ${(d.lines||[]).map((l,i)=>`<div class="row" style="gap:8px;margin-top:6px"><select class="field" data-in="pdL" data-i="${i}" data-f="item" style="flex:2"><option value="">${esc(t('inv_pick'))}</option>${(typeof invAllItems==='function'?invAllItems():[]).map(id=>`<option value="${esc(id)}" ${l.item===id?'selected':''}>${esc(invItem(id).name)}</option>`).join('')}</select>
-    <input class="field num" data-in="pdL" data-i="${i}" data-f="qty" inputmode="decimal" dir="ltr" placeholder="0" value="${esc(l.qty??'')}" style="flex:1;min-width:70px"><span class="hint" style="min-width:44px">${esc(l.item&&typeof invRUnit==='function'?invRUnit(l.item):'')}</span>
-    <button class="btn btn-ghost rp-btn" data-act="pdLDel" data-i="${i}" aria-label="${esc(t('del'))}" title="${esc(t('del'))}"></button></div>`).join('')}
-  <button class="btn btn-ghost rp-btn" data-act="pdLAdd" style="margin-top:8px">+ ${t('inv_addLine')}</button>
-  ${(d.lines||[]).length&&typeof prodCost==='function'?`<p class="hint">${esc(t('me_costLine',{c:sar2(prodCost(d)),m:sar2(prodMargin(d)),p:prodNet(d)?sar2(prodCost(d)/prodNet(d)*100):'—'}))}</p>`:''}
+  ${!isNew&&typeof prodCost==='function'?`<div class="box" style="margin-top:10px"><b>${t('tab_pcost')}</b><div class="hint">${esc(t('me_costLine',{c:sar2(prodCost(d)),m:sar2(prodMargin(d)),p:prodNet(d)?sar2(prodCost(d)/prodNet(d)*100):'—'}))}</div><button class="btn btn-navy rp-btn" data-act="pcOpen" data-id="${esc(S.openPd)}" style="margin-top:6px">${t('pc_edit')}</button></div>`:''}
   <h4 class="hr-sub">${t('mn_addons')}</h4><p class="hint">${esc(t('mn_addonsHint'))}</p>
   ${(d.addons||[]).map((a,i)=>`<div class="row" style="gap:8px;margin-top:6px"><input class="field" data-in="pdA" data-i="${i}" data-f="name" dir="auto" placeholder="${esc(t('mn_addonName'))}" value="${esc(a.name||'')}" style="flex:2">
     <input class="field num" data-in="pdA" data-i="${i}" data-f="price" inputmode="decimal" dir="ltr" placeholder="0" value="${esc(a.price??'')}" style="flex:1;min-width:80px"><span class="hint">${t('sar')}</span>
@@ -119,7 +114,7 @@ Object.assign(A,{
     if(!name){toast(t('mn_needName'));return}if(!(price>0)){toast(t('mn_needPrice'));return}
     const addons=(d.addons||[]).filter(a=>String(a.name||'').trim()).map(a=>({name:String(a.name).trim(),price:num(a.price)}));
     const lines=(d.lines||[]).filter(l=>l.item&&num(l.qty)>0).map(l=>({item:l.item,qty:num(l.qty)}));
-    const id=S.openPd==='new'?'pd-'+Date.now().toString(36):S.openPd,data={name,cat:d.cat||'',price,img:d.img||'',addons,lines,updatedAt:nowIso()};
+    const id=S.openPd==='new'?'pd-'+Date.now().toString(36):S.openPd,data={name,cat:d.cat||'',price,img:d.img||'',addons,lines:(((S.products||[]).find(x=>x.id===S.openPd)||{}).lines)||[],updatedAt:nowIso()};
     guard(async()=>{await X.put('products',id,data);S.openPd=null;S.pdDraft=null},()=>t('st_saved'))},
   pdDel(){const id=S.openPd;if(!id||id==='new')return;if(S.confirm!=='pdDel'){S.confirm='pdDel';render();return}
     guard(async()=>{await X.del('products',id);S.openPd=null;S.confirm=null},()=>t('li_deleted'))},

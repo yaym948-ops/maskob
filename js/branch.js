@@ -263,6 +263,7 @@ function targetCard(b,st){
   </div>`;
 }
 function salesAllView(){
+  if(S.slView==='days'&&typeof salesLogView==='function')return slViewSwitch()+salesLogView(true);
   const mk=S.slMonth||monthKey(Date.now());
   const today=dayKey(Date.now()),items=checklistItems().length;
   const rows=S.branches.map(b=>{const st=salesStats(b,mk);const ck=(S.checks||[]).find(c=>c.branch===b&&c.date===today);return{b,st,ck:ck?(ck.done||0)/(ck.total||items):null}});
@@ -270,7 +271,7 @@ function salesAllView(){
   const tot=act.reduce((a,r)=>({s:a.s+r.st.sales,i:a.i+r.st.inv}),{s:0,i:0});
   const avgBranch=act.length?tot.s/act.length:0,avgTicket=tot.i?tot.s/tot.i:0;
   const maxS=Math.max(1,...rows.map(r=>Math.max(r.st.sales,r.st.target)));
-  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_sales')}</h2><div class="row">${ioBtns('sales')}<input class="field" type="month" id="slMonth" value="${esc(mk)}" style="width:auto"></div></div>
+  return slViewSwitch()+`<div class="row" style="justify-content:space-between"><h2>${t('tab_sales')}</h2><div class="row">${ioBtns('sales')}<input class="field" type="month" id="slMonth" value="${esc(mk)}" style="width:auto"></div></div>
   <div class="stats">${kpi(t('sl_totalAll'),sar(tot.s)+' '+t('sar'))}${kpi(t('sl_invCount'),sar(tot.i))}${kpi(t('sl_avgBranch'),sar(avgBranch)+' '+t('sar'))}${kpi(t('sl_avg'),sar2(avgTicket)+' '+t('sar'))}</div>
   <div class="rp-sec"><h3>${t('tg_cards')}</h3><div class="tg-cards">${rows.map(r=>targetCard(r.b,r.st)).join('')}</div></div>
   <div class="rp-sec"><h3>${t('sl_byBranch')}</h3><div class="cmp">${rows.map(r=>`<div class="cmp-row"><b>${esc(r.b)}</b><div class="cmp-bar"><i style="width:${Math.round(r.st.sales/maxS*100)}%"></i>${r.st.target?`<u style="inset-inline-start:${Math.round(r.st.target/maxS*100)}%"></u>`:''}</div><span class="num">${sar(r.st.sales)}</span></div>`).join('')}</div></div>
@@ -443,3 +444,8 @@ document.addEventListener('change',async ev=>{
   }
 });
 
+
+/* the sales report: month summary, or each day with its closing photos and finance's review */
+function slViewSwitch(){const v=S.slView==='days'?'days':'sum',n=typeof slWaiting==='function'?slWaiting():0;
+  return`<div class="kind" style="margin-bottom:12px">${[['sum','sl_vSum'],['days','sl_vDays']].map(([k,l])=>`<button aria-pressed="${v===k}" data-act="slView" data-k="${k}">${esc(t(l))}${k==='days'&&n?` <span class="badge num">${n}</span>`:''}</button>`).join('')}</div>`}
+A.slView=el=>{S.slView=el.dataset.k;render()};

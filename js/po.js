@@ -127,7 +127,7 @@ document.addEventListener('input',ev=>{const el=ev.target,k=el.dataset&&el.datas
   else if(k==='poL'&&S.poDraft){S.poDraft.lines[+el.dataset.i][el.dataset.f]=el.value}
   else if(k==='poE')(S.poEdit||(S.poEdit={}))[el.dataset.k]=el.value});
 document.addEventListener('change',ev=>{const el=ev.target;if(el.dataset&&((el.dataset.in==='poL'&&el.dataset.f==='item')||(el.dataset.in==='poE'&&el.dataset.k==='invoice')))render()});
-EXT.tabs.push({k:'poAll',l:'po_title',roles:['manager'],view:poOpsView,badge:()=>({b:(S.pos||[]).filter(p=>p.status==='pending').length})},
+EXT.tabs.push({k:'poAll',l:'po_title',roles:['manager'],g:'ord',view:poOpsView,badge:()=>({b:(S.pos||[]).filter(p=>p.status==='pending').length})},
   {k:'poMatch',l:'tab_poMatch',roles:['finance'],view:poMatchView,badge:()=>({b:(S.pos||[]).filter(p=>p.status==='received').length})});
 EXT.sheets.push(()=>S.openPoNew&&S.poDraft?poNewSheet():'',()=>S.openPo?poSheet():'');
 EXT.close.push(()=>{S.openPoNew=false;S.poDraft=null;S.openPo=null;S.poEdit=null});

@@ -24,7 +24,7 @@ function cfCalc(){const today=dayKey(Date.now()),w0=cfWeekStart(today),vat=VAT_R
   return{weeks,wSales,payM,expM,start}}
 function cashView(){const C=cfCalc(),low=C.weeks.find(w=>w.bal<0);
   return`<div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px"><h2>${t('tab_cash')}</h2>
-    <div class="row" style="gap:6px"><span class="hint">${t('cf_start')}</span><input class="field num" id="cfStart" inputmode="decimal" dir="ltr" value="${esc(C.start.amount??'')}" style="width:120px"><button class="btn btn-navy rp-btn" data-act="cfSaveStart">${t('waSave')}</button></div></div>
+    <div class="row" style="gap:6px"><button class="btn btn-ghost rp-btn" data-act="cfXls">${t('xlsExport')}</button><span class="hint">${t('cf_start')}</span><input class="field num" id="cfStart" inputmode="decimal" dir="ltr" value="${esc(C.start.amount??'')}" style="width:120px"><button class="btn btn-navy rp-btn" data-act="cfSaveStart">${t('waSave')}</button></div></div>
   <p class="hint">${esc(t('cf_hint'))}</p>
   <div class="stats">${kpi(t('cf_wSales'),sar2(C.wSales))}${kpi(t('cf_vatWeek'),sar2(C.wSales*VAT_RATE/(100+VAT_RATE)))}${kpi(t('cf_payM'),sar2(C.payM))}${kpi(t('cf_expM'),sar2(C.expM))}</div>
   ${low?`<div class="box" style="border-color:var(--late)"><b>${esc(t('cf_low',{d:dateLabel(low.ws)}))}</b></div>`:''}
@@ -56,3 +56,6 @@ Object.assign(A,{
     guard(async()=>{await X.put('closes',mk,{done,updatedAt:nowIso()})},()=>t('st_saved'))}});
 document.addEventListener('change',ev=>{const el=ev.target;if(el.id==='clMonth'&&/^\d{4}-\d{2}$/.test(el.value)){S.clMonth=el.value;render()}});
 EXT.tabs.push({k:'cash',l:'tab_cash',roles:['finance'],g:'rep',view:cashView},{k:'close',l:'tab_close',roles:['finance'],view:closeView});
+
+A.cfXls=()=>{const C=cfCalc(),f=v=>+(+v||0).toFixed(2);saveXlsx('maskob-cash-forecast.xlsx',[{name:t('tab_cash'),headers:[t('cf_week'),t('cf_in'),t('cf_sup'),t('cf_payroll'),t('cf_regular'),t('cf_out'),t('cf_vatSet'),t('cf_bal')],
+  rows:C.weeks.map(w=>[w.ws,f(w.inflow),f(w.sup+w.exp),f(w.pay),f(w.regular),f(w.out),f(w.vatSet),f(w.bal)])}])};

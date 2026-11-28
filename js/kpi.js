@@ -35,7 +35,7 @@ function kpiView(){const mk=S.kpiMonth||monthKey(Date.now()),rows=kpiCalc(mk),fu
     ['kp_hours',r=>r.hours?esc(sar2(r.hours)):'—'],['kp_splh',r=>r.splh==null?'—':esc(sar2(r.splh))]];
   const tot=rows.reduce((a,r)=>({sales:a.sales+r.sales,inv:a.inv+r.inv,hours:a.hours+r.hours}),{sales:0,inv:0,hours:0});
   const best=rows.filter(r=>r.splh!=null).sort((a,c)=>c.splh-a.splh);
-  return`<div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px"><h2>${t('tab_kpi')}</h2><input class="field" type="month" id="kpiMonth" value="${esc(mk)}" style="width:auto"></div>
+  return`<div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px"><h2>${t('tab_kpi')}</h2><div class="row" style="gap:6px"><button class="btn btn-ghost rp-btn" data-act="kpXls">${t('xlsExport')}</button><input class="field" type="month" id="kpiMonth" value="${esc(mk)}" style="width:auto"></div></div>
   <p class="hint">${esc(t(full?'kp_hint':'kp_hintOps'))}</p>
   <div class="stats">${kpi(t('kp_sales'),sar2(tot.sales)+' '+t('sar'))}${kpi(t('kp_inv'),sar2(tot.inv))}${kpi(t('kp_hours'),sar2(tot.hours))}${kpi(t('kp_splh'),tot.hours?sar2(tot.sales/tot.hours):'—')}</div>
   <div class="scroll"><table class="tbl fn-tbl"><thead><tr><th>${t('r_branch')}</th>${cols.map(([l])=>`<th>${esc(t(l))}</th>`).join('')}</tr></thead><tbody>
@@ -50,3 +50,8 @@ function kpiLoadDemo(){if(S.role==='finance'){S.shifts=MEM('shifts');S.staff=MEM
 function kpiStart(u,onErr){if(S.role!=='finance')return;
   u.push(db.collection('shifts').onSnapshot(s=>{S.shifts=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},onErr));
   u.push(db.collection('staff').onSnapshot(s=>{S.staff=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},onErr))}
+
+A.kpXls=()=>{const mk=S.kpiMonth||monthKey(Date.now()),R=kpiCalc(mk),f=v=>v==null?'':+(+v).toFixed(2);
+  saveXlsx('maskob-indicators-'+mk+'.xlsx',[{name:t('tab_kpi'),headers:[t('r_branch'),t('kp_sales'),t('kp_inv'),t('kp_avg'),t('kp_cogs')+' %',t('kp_labour')+' %',t('kp_prime')+' %',t('kp_rent')+' %',t('kp_net')+' %',t('kp_hours'),t('kp_splh')],
+    rows:R.map(r=>[r.b,f(r.sales),r.inv,f(r.avg),f(r.cogs),f(r.labour),f(r.prime),f(r.rent),f(r.net),f(r.hours),f(r.splh)])}])};
+EXT.tabs.push({k:'salesAll',l:'tab_sales',roles:['finance'],g:'rep',view:()=>salesAllView(),badge:()=>({b:typeof slWaiting==='function'?slWaiting():0})});

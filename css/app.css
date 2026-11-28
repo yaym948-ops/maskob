@@ -893,3 +893,11 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
 .cf-order{margin:6px 0;padding-inline-start:22px;line-height:1.9}
 .link{border:0;background:transparent;color:var(--navy);text-decoration:underline;cursor:pointer;font:inherit;padding:0}
 @media (max-width:560px){.me-grid{grid-template-columns:1fr}}
+
+/* ---------- product cost sheets ---------- */
+.pc-card{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:10px 12px;margin-bottom:12px;break-inside:avoid}
+.pc-title{margin-bottom:6px}
+.pc-tbl th{background:var(--soft);font-size:12.5px;white-space:nowrap}
+.pc-tbl td{font-size:13.5px}
+.pc-sum td{font-weight:700;background:var(--soft)}
+.pc-foot{justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px}

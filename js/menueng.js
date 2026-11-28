@@ -9,7 +9,7 @@
 function unitCostOf(id,depth){depth=depth||0;const c=+itemCost(id)||0;if(c>0||depth>3)return c;
   const r=(S.recipes||[]).find(x=>x.out===id);if(!r||!(+r.yield>0))return 0;
   return(r.lines||[]).reduce((s0,l)=>s0+invToStock(l.item,+l.qty||0)*unitCostOf(l.item,depth+1),0)/(+r.yield)}
-const prodCost=p=>(p.lines||[]).reduce((s0,l)=>s0+invToStock(l.item,+l.qty||0)*unitCostOf(l.item),0);
+const prodCost=p=>(p.lines||[]).reduce((s0,l)=>s0+(typeof pcLineCost==='function'?pcLineCost(l):invToStock(l.item,+l.qty||0)*unitCostOf(l.item)),0);
 const prodNet=p=>(+p.price||0)/(1+VAT_RATE/100);
 const prodMargin=p=>prodNet(p)-prodCost(p);
 const meKey=(b,mk)=>b+'_'+mk;
@@ -34,7 +34,7 @@ function meRows(mk,b){const docs=(S.psales||[]).filter(x=>x.month===mk&&(!b||x.b
 function menuEngView(){
   const mk=S.meMonth||monthKey(Date.now()),bf=S.meBranch||'',tb=S.meTab||'eng',{L,avgQ,avgM}=meRows(mk,bf);
   const docs=(S.psales||[]).filter(x=>x.month===mk),unmatched=docs.flatMap(d=>(d.rows||[]).filter(r=>!r.pid&&!meMatch(r.name)).map(r=>({d,r})));
-  const head=`<div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px"><h2>${t('tab_menuEng')}</h2><div class="row" style="gap:8px"><input class="field" type="month" id="meMonth" value="${esc(mk)}" style="width:auto"></div></div>
+  const head=`<div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px"><h2>${t('tab_menuEng')}</h2><div class="row" style="gap:8px"><button class="btn btn-ghost rp-btn" data-act="meXls">${t('xlsExport')}</button><input class="field" type="month" id="meMonth" value="${esc(mk)}" style="width:auto"></div></div>
   <div class="kind" style="margin:8px 0">${[['eng','me_tEng'],['cost','me_tCost'],['upload','me_tUpload']].map(([k,l])=>`<button aria-pressed="${tb===k}" data-act="meTab" data-k="${k}">${esc(t(l))}</button>`).join('')}</div>`;
   if(tb==='cost'){const fee=Math.max(0,...((typeof DSR_APPS!=='undefined'?DSR_APPS:[]).map(k=>typeof appFee==='function'?appFee(k):0)));
     const P=[...(S.products||[])].sort((a,c)=>prodMargin(c)-prodMargin(a));
@@ -57,7 +57,17 @@ function menuEngView(){
 async function meUpload(file,b,mk){await ensureXlsx();const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
   const aoa=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''});const rows=meParse(aoa);if(!rows||!rows.length)throw new Error('format');
   rows.forEach(r=>{r.pid=meMatch(r.name)});const id=meKey(b,mk),data={branch:b,month:mk,rows,at:nowIso(),by:S.userName||roleL(S.realRole||S.role)};
-  if(S.fb)await db.doc('psales/'+id).set(data);else{MEMSET('psales',MEM('psales').filter(x=>x.id!==id).concat([Object.assign({id},data)]));meLoadDemo()}return rows.length}
+  const old=(S.psales||[]).find(x=>x.id===id);data.applied=(old&&old.applied)||{};
+  if(S.fb)await db.doc('psales/'+id).set(data);else{MEMSET('psales',MEM('psales').filter(x=>x.id!==id).concat([Object.assign({id},data)]));meLoadDemo()}
+  await meApplyStock(Object.assign({id},data));return rows.length}
+/* stock the sold products used: quantity sold × each stock-item component, in stock units */
+function meWanted(doc){const want={};(doc.rows||[]).forEach(r=>{const p=(S.products||[]).find(x=>x.id===(r.pid||meMatch(r.name)));if(!p)return;
+  (p.lines||[]).forEach(l=>{if(!l.item)return;want[l.item]=(want[l.item]||0)+invToStock(l.item,+l.qty||0)*(+r.qty||0)})});return want}
+async function meApplyStock(doc){if(typeof bstockApply!=='function')return;const want=meWanted(doc),had=doc.applied||{},pairs=[];
+  new Set([...Object.keys(want),...Object.keys(had)]).forEach(id=>{const d=Math.round(((want[id]||0)-(+had[id]||0))*1000)/1000;if(d)pairs.push([id,-d])});
+  if(!pairs.length)return;await bstockApply(doc.branch,pairs,'sale',t('mv_saleRef',{m:doc.month}));
+  const applied={};Object.keys(want).forEach(id=>{if(want[id])applied[id]=Math.round(want[id]*1000)/1000});
+  if(S.fb)await db.doc('psales/'+doc.id).update({applied});else{MEMSET('psales',MEM('psales').map(x=>x.id===doc.id?Object.assign({},x,{applied}):x));meLoadDemo()}}
 function meLoadDemo(){S.psales=['manager','finance'].includes(S.role)?MEM('psales'):[]}
 function meStart(u,onErr){if(!['manager','finance'].includes(S.role))return;
   u.push(db.collection('psales').onSnapshot(s=>{S.psales=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},onErr));
@@ -73,5 +83,8 @@ document.addEventListener('change',async ev=>{const el=ev.target;
     try{const n=await meUpload(el.files[0],b,mk);toast(t('me_upDone',{n}))}catch(e){toast(t(String(e&&e.message)==='format'?'me_badFile':'saveFail'))}el.value='';render()}
   if(el.dataset&&el.dataset.in==='meMap'&&el.value){const d=(S.psales||[]).find(x=>x.id===el.dataset.k);if(!d)return;
     const rows=(d.rows||[]).map(r=>r.name===el.dataset.n?Object.assign({},r,{pid:el.value}):r);
-    guard(async()=>{if(S.fb)await db.doc('psales/'+d.id).update({rows});else{MEMSET('psales',MEM('psales').map(x=>x.id===d.id?Object.assign({},x,{rows}):x));meLoadDemo()}},()=>t('st_saved'))}});
+    guard(async()=>{if(S.fb)await db.doc('psales/'+d.id).update({rows});else{MEMSET('psales',MEM('psales').map(x=>x.id===d.id?Object.assign({},x,{rows}):x));meLoadDemo()}
+      await meApplyStock(Object.assign({},d,{rows}))},()=>t('st_saved'))}});
+A.meXls=()=>{const P=[...(S.products||[])];saveXlsx('maskob-item-margins.xlsx',[{name:t('me_tCost'),headers:[t('mn_name'),t('mn_cat'),t('me_netPrice'),t('me_cost'),t('me_costPct'),t('me_margin')],
+  rows:P.map(p=>{const c=prodCost(p),n=prodNet(p);return[p.name,p.cat||'',+n.toFixed(2),+c.toFixed(2),n?+(c/n*100).toFixed(1):'',+(n-c).toFixed(2)]})}])};
 EXT.tabs.push({k:'menuEng',l:'tab_menuEng',roles:['manager'],g:'menu',view:menuEngView},{k:'menuEng',l:'tab_menuEng',roles:['finance'],g:'rep',view:menuEngView});

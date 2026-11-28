@@ -7,8 +7,8 @@ const slRevState=r=>r.review&&r.review.st?r.review.st:'wait';
 const slNoPhoto=r=>!(+r.photos>0);
 /* days waiting for review (with figures) in the last 31 days: the menu badge */
 const slWaiting=()=>{const from=dayKey(Date.now()-31*864e5);return(S.sales||[]).filter(r=>r.date>=from&&slRevState(r)==='wait').length};
-function salesLogView(){
-  const mk=S.slLogMonth||monthKey(Date.now()),bf=S.slLogBranch||'',sf=S.slLogSt||'';
+function salesLogView(emb){
+  const mk=(emb?S.slMonth:null)||S.slLogMonth||monthKey(Date.now()),bf=S.slLogBranch||'',sf=S.slLogSt||'';
   const all=(S.sales||[]).filter(r=>String(r.date).startsWith(mk));
   const list=all.filter(r=>(!bf||r.branch===bf)&&(!sf||(sf==='nophoto'?slNoPhoto(r):slRevState(r)===sf)))
     .sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(a.branch).localeCompare(String(b.branch),'ar'));
@@ -16,7 +16,7 @@ function salesLogView(){
   const days=[...new Set(list.map(r=>r.date))];
   const ic=n=>typeof ico==='function'?ico(n):'';
   const chip=(k,l,n)=>`<button class="chip" aria-pressed="${sf===k}" data-act="slLogSt" data-k="${k}">${esc(t(l))}${n!=null?` <span class="c num">(${n})</span>`:''}</button>`;
-  return`<div class="row" style="justify-content:space-between"><h2>${t('tab_slLog')}</h2><div class="row"><input class="field" type="month" id="slLogMonth" value="${esc(mk)}" style="width:auto"></div></div>
+  return`<div class="row" style="justify-content:space-between"><h2>${t(emb?'tab_sales':'tab_slLog')}</h2><div class="row"><input class="field" type="month" id="${emb?'slMonth':'slLogMonth'}" value="${esc(mk)}" style="width:auto"></div></div>
   <div class="stats">${kpi(t('sl_totalAll'),sar(list.reduce((s,r)=>s+(+r.sales||0),0))+' '+t('sar'))}${kpi(t('slr_wait'),sar(cnt('wait')),cnt('wait')?'hot':'')}${kpi(t('slr_diff'),sar(cnt('diff')),cnt('diff')?'hot':'')}${kpi(t('slr_nophoto'),sar(cnt('nophoto')))}</div>
   <div class="filters"><button class="chip" aria-pressed="${!bf}" data-act="slLogBranch" data-k="">${t('f_all')}</button>${S.branches.map(b=>`<button class="chip" aria-pressed="${bf===b}" data-act="slLogBranch" data-k="${esc(b)}">${esc(b)}</button>`).join('')}</div>
   <div class="filters">${chip('',"f_all")}${chip('wait','slr_wait',cnt('wait'))}${chip('ok','slr_ok',cnt('ok'))}${chip('diff','slr_diff',cnt('diff'))}${chip('nophoto','slr_nophoto',cnt('nophoto'))}</div>

@@ -66,7 +66,7 @@ const IO={
       ['status','hr_status',{open:'ms_open',progress:'ms_progress',done:'ms_done'}],['createdAt','c_created'],['opsNote','m_reply']],
     get:(m,k)=>k==='urgent'?(m.urgent?'yes':'no'):k==='createdAt'?fmtDT(m.createdAt):m[k]}
 };
-const ioCan=k=>(S.role==='finance'&&['vouchers','advances','expenses','supinv'].includes(k))||({employees:'hr',leaves:'hr',custody:'hr',advances:'hr',licenses:'hr',vouchers:'hr',stock:'warehouse',targets:'manager',maint:'manager',catalog:'admin'}[k]||(k==='sales'?(S.role==='manager'||S.role==='branch')&&S.role:null))===S.role;
+const ioCan=k=>(S.role==='finance'&&['vouchers','advances','expenses','supinv','sales','payroll'].includes(k))||({employees:'hr',leaves:'hr',custody:'hr',advances:'hr',licenses:'hr',vouchers:'hr',stock:'warehouse',targets:'manager',maint:'manager',catalog:'admin'}[k]||(k==='sales'?(S.role==='manager'||S.role==='branch')&&S.role:null))===S.role;
 /* one drop-down per list: export, import (and any extra item) */
 function ioBtns(k,extra){
   if(!ioCan(k))return'';
@@ -199,3 +199,7 @@ document.addEventListener('change',ev=>{
   if(ioCan(k))ioRead(k,f);
 });
 
+
+/* payroll of the chosen month, for export */
+IO.payroll={name:()=>t('tab_pr'),readOnly:true,list:()=>{const P=typeof payrollCalc==='function'?payrollCalc(S.prMonth||monthKey(Date.now())):{rows:[]};return P.rows},
+  cols:[['name','hr_name'],['no','hr_no'],['branch','hr_branch','place'],['days','pr_days','num'],['basic','hr_salary','num'],['allow','al_title','num'],['gross','pr_gross','num'],['reward','fm_reward','num'],['ot','pr_ot','num'],['add','pr_add','num'],['formDed','pr_formDed','num'],['unpaid','pr_unpaid','num'],['adv','tab_adv','num'],['gosi','pr_gosi','num'],['ded','pr_ded','num'],['net','pr_net','num'],['iban','bk_iban']]};
