@@ -1,0 +1,11 @@
+{
+  "name": "maskob-print-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Maskob print bridge: sends the branch's print queue to Wi-Fi / network receipt printers (port 9100).",
+  "type": "module",
+  "main": "bridge.js",
+  "scripts": { "start": "node bridge.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "firebase": "^10.12.2" }
+}

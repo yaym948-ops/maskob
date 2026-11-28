@@ -356,6 +356,12 @@ service cloud.firestore {
     match /bstock/{b} { allow read, write: if posOwn(b); }
     match /bmoves/{id} { allow create: if posOwn(request.resource.data.branch); }
     match /menuOff/{b} { allow read: if posOwn(b); }
+    // ---- network printers: the branch lists them; the bridge (signed in with the branch code) prints the queue ----
+    match /bprinters/{b} { allow read, write: if posOwn(b) || isMgr(); }
+    match /printJobs/{id} {
+      allow read, update, delete: if posOwn(resource.data.branch);
+      allow create: if posOwn(request.resource.data.branch) && request.resource.data.data is string && request.resource.data.data.size() < 900000;
+    }
     match /config/supList { allow read: if valid(); allow write: if isRole('finance'); }
     // ---- monthly product sales from Foodics (menu engineering) and the monthly close ----
     match /psales/{id} { allow read, write: if isMgr() || isRole('finance'); }

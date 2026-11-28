@@ -1247,3 +1247,29 @@ test('invoice QR (ZATCA phase 1 TLV) and thermal raster encoding', () => {
   assert.equal(JSON.stringify([...out.slice(0, 10)]), JSON.stringify([0x1b, 0x40, 0x1d, 0x76, 0x30, 0, 2, 0, 2, 0]), 'init + GS v 0 header');
   assert.equal(JSON.stringify([...out.slice(10, 14)]), JSON.stringify([0xff, 0x00, 0xff, 0x00]), 'black left byte, white right byte');
 });
+
+test('network printers: branch adds printers (IP checked); invoice to the invoice printer, kitchen tickets split by category; bridge hashes codes like the app', async () => {
+  const d = driver(w), S = w.eval('S'), b = w.eval('S.branches')[0];
+  const crypto = require('node:crypto');
+  assert.equal(await w.eval('hashPin')('branch:' + b, '4321'), crypto.createHash('sha256').update('maskob:branch:' + b + ':4321', 'utf8').digest('hex'), 'bridge sign-in hash = app hash');
+  w.eval('MEMSET')('bprinters', {}); w.eval('MEMSET')('printJobs', []);
+  w.eval('MEMSET')('menuCats', { cats: ['مشروبات', 'فطائر'] });
+  w.eval('MEMSET')('products', [{ id: 'D1', name: 'شاي', cat: 'مشروبات', price: 6, addons: [] }, { id: 'F1', name: 'فطيرة', cat: 'فطائر', price: 11, addons: [] }]);
+  await d.signIn('9191'); d.setVal('ownerBranch', 'branch:' + b); await sleep(200);
+  d.click('[data-act="tab"][data-k="bprinters"]'); d.click('[data-act="bpNew"]'); await sleep(20);
+  d.setVal('bp-name', 'الكاشير'); d.setVal('bp-ip', '192.168.1.300'); d.setVal('bp-kind', 'receipt'); d.click('[data-act="bpSave"]'); await sleep(100);
+  assert.equal(w.eval('bpList()').length, 0, 'bad IP refused');
+  d.setVal('bp-ip', '192.168.1.50'); d.click('[data-act="bpSave"]'); await sleep(200);
+  await w.eval('bpSaveList')([...w.eval('bpList()'), { id: 'bar', name: 'البار', ip: '192.168.1.51', port: 9100, width: 80, kind: 'kitchen', cats: ['مشروبات'] }, { id: 'kit', name: 'المطبخ', ip: '192.168.1.52', port: 9100, width: 58, kind: 'kitchen', cats: ['فطائر'] }]);
+  assert.equal(w.eval('bpList()').length, 3);
+  // drawing needs a real canvas: stand-ins here
+  w.eval("receiptCanvas=async()=>({width:8,height:1,getContext:()=>({getImageData:()=>({data:new Uint8ClampedArray(32)})})})");
+  const o = { id: 'x', branch: b, no: 7, at: new Date().toISOString(), type: 'in', lines: [{ pid: 'D1', name: 'شاي', qty: 2, price: 6, addons: [] }], total: 12, vat: 1.57, payments: [], change: 0 };
+  assert.equal(await w.eval('bpPrint')('receipt', o), true);
+  assert.equal(await w.eval('bpPrint')('kitchen', o), true);
+  const J = w.eval('MEM')('printJobs');
+  assert.equal(J.length, 2, 'invoice + one ticket (only drinks ordered)');
+  assert.equal(J[0].printer, w.eval('bpList()')[0].id); assert.equal(J[1].printer, 'bar');
+  assert.ok(J.every((j) => j.status === 'new' && typeof j.data === 'string' && j.data.length > 0), 'queued ESC/POS data');
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});

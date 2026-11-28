@@ -34,7 +34,7 @@ async function receiptHTML(m){const qr=m.qr?await qrMatrix(m.qr).catch(()=>null)
   ${m.payments.map(p=>`<tr><td>${esc(p.name)}</td><td class="n">${(+p.amount).toFixed(2)}</td></tr>`).join('')}${m.change?`<tr><td>الباقي</td><td class="n">${m.change.toFixed(2)}</td></tr>`:''}</table>
   <div class="c">${qrImg}</div><div class="c s">${esc(m.footer)}</div>`}</body></html>`}
 /* the same receipt drawn on a canvas, for raster printing (576 dots = 80 mm, 384 = 58 mm) */
-async function receiptCanvas(m){const W=prnCfg().width>=80?576:384,k=m.kind==='kitchen',c=document.createElement('canvas');c.width=W;c.height=3000;const g=c.getContext('2d');
+async function receiptCanvas(m,width){const W=(width||prnCfg().width)>=80?576:384,k=m.kind==='kitchen',c=document.createElement('canvas');c.width=W;c.height=3000;const g=c.getContext('2d');
   g.fillStyle='#fff';g.fillRect(0,0,W,c.height);g.fillStyle='#000';g.direction='rtl';let y=10;const pad=8;
   const font=(px,b)=>{g.font=`${b?'bold ':''}${px}px Tahoma, Arial, sans-serif`};
   const center=(txt,px,b)=>{font(px,b);g.textAlign='center';y+=px+6;g.fillText(txt,W/2,y)};
@@ -69,6 +69,7 @@ async function prnSend(bytes){
   throw new Error('noprinter')}
 /* print: direct when a printer is connected on this device, else the print window */
 async function prnPrint(kind,o){const m=receiptModel(o,kind),cfg=prnCfg();
+  if(cfg.mode==='network'&&typeof bpPrint==='function'){try{if(await bpPrint(kind,o))return}catch(e){toast(t('prn_fail'))}if(kind==='kitchen')return}
   try{if(cfg.mode!=='browser'&&prnConnected()){await prnSend(escposRaster(await receiptCanvas(m)));return}}catch(e){toast(t('prn_fail'))}
   const html=await receiptHTML(m),f=document.createElement('iframe');f.style.cssText='position:fixed;width:0;height:0;border:0;opacity:0';document.body.appendChild(f);
   f.contentDocument.open();f.contentDocument.write(html);f.contentDocument.close();setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(e){}setTimeout(()=>f.remove(),2000)},400)}
@@ -79,15 +80,17 @@ function prnAuto(kind,o){const cfg=prnCfg(),key='mk.printed.'+kind,done=LS.get(k
 
 function printerView(){const c=prnCfg(),con=prnConnected();
   return`<h2>${t('tab_printer')}</h2><p class="hint">${esc(t('prn_hint'))}</p>
-  <div class="box"><b>${t('prn_mode')}</b><div class="kind" style="margin-top:8px">${[['browser','prn_browser'],['direct','prn_direct']].map(([k,l])=>`<button aria-pressed="${(c.mode==='browser'?'browser':'direct')===k}" data-act="prnMode" data-k="${k}">${esc(t(l))}</button>`).join('')}</div>
-    ${c.mode!=='browser'?`<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">${prnCan.bt?`<button class="btn btn-navy rp-btn" data-act="prnBT">${t('prn_bt')}</button>`:''}${prnCan.serial?`<button class="btn btn-navy rp-btn" data-act="prnSerial">${t('prn_usb')}</button>`:''}
+  <div class="box"><b>${t('prn_mode')}</b><div class="kind" style="margin-top:8px">${[['browser','prn_browser'],['network','prn_network'],['direct','prn_direct']].map(([k,l])=>`<button aria-pressed="${c.mode===k||(k==='direct'&&!['browser','network'].includes(c.mode))}" data-act="prnMode" data-k="${k}">${esc(t(l))}</button>`).join('')}</div>
+    ${c.mode==='network'?`<div style="margin-top:10px">${typeof bpList==='function'&&bpList().length?`<label><span class="hint">${t('prn_netReceipt')}</span><select class="field" id="prnNetReceipt">${bpList().filter(p=>p.kind!=='kitchen').map(p=>`<option value="${esc(p.id)}" ${c.netReceipt===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></label>
+      <p class="hint">${esc(t('prn_netHint'))}</p><span class="pill ${bpOnline()?'ms-done':'ms-open'}">${esc(bpOnline()?t('bp_on',{n:bpDoc().bridgeName||''}):t('bp_off'))}</span>`:`<p class="hint" style="color:var(--late)">${esc(t('bp_noPrinters'))}</p>`}</div>`:''}
+    ${!['browser','network'].includes(c.mode)?`<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">${prnCan.bt?`<button class="btn btn-navy rp-btn" data-act="prnBT">${t('prn_bt')}</button>`:''}${prnCan.serial?`<button class="btn btn-navy rp-btn" data-act="prnSerial">${t('prn_usb')}</button>`:''}
       <span class="pill ${con?'ms-done':'ms-open'}">${esc(con?t('prn_on',{n:S.prnName||''}):t('prn_off'))}</span></div>
       ${prnCan.bt||prnCan.serial?'':`<p class="hint" style="color:var(--late)">${esc(t('prn_noApi'))}</p>`}<p class="hint">${esc(t('prn_directHint'))}</p>`:''}</div>
   <div class="box"><b>${t('prn_paper')}</b><div class="kind" style="margin-top:8px">${[80,58].map(w=>`<button aria-pressed="${c.width===w}" data-act="prnWidth" data-k="${w}">${w} mm</button>`).join('')}</div></div>
   <div class="box">${[['autoReceipt','prn_autoReceipt'],['kitchenCopy','prn_kitchenCopy'],['autoKitchen','prn_autoKitchen']].map(([k,l])=>`<label class="row" style="gap:8px;margin:6px 0"><input type="checkbox" data-prn="${k}" ${c[k]?'checked':''} style="width:20px;height:20px"><span>${esc(t(l))}</span></label>`).join('')}</div>
   <button class="btn btn-sun" data-act="prnTest">${t('prn_test')}</button>`}
 Object.assign(A,{
-  prnMode(el){const c=prnCfg();c.mode=el.dataset.k==='browser'?'browser':'direct';prnSave(c)},
+  prnMode(el){const c=prnCfg();c.mode=['browser','network'].includes(el.dataset.k)?el.dataset.k:'direct';prnSave(c)},
   prnWidth(el){const c=prnCfg();c.width=+el.dataset.k;prnSave(c)},
   async prnBT(){try{S.prnName=await prnConnectBT();toast(t('prn_connected'))}catch(e){if(!(e&&e.name==='NotFoundError'))toast(t('prn_connFail'))}render()},
   async prnSerial(){try{S.prnName=await prnConnectSerial();toast(t('prn_connected'))}catch(e){if(!(e&&e.name==='NotFoundError'))toast(t('prn_connFail'))}render()},

@@ -6,3 +6,7 @@ desktop.ini
 *.log
 node_modules/
 tests/node_modules/
+
+bridge/node_modules/
+bridge/config.json
+bridge/bridge.log
