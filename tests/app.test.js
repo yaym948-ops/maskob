@@ -855,3 +855,34 @@ test('products menu: operations adds a product with add-ons; the branch sees it 
   assert.equal(Object.keys(w.eval('menuOffOf')('القطيف')).length, 0, 'available again');
   d.setVal('ownerView', 'dash'); await sleep(200);
 });
+
+test('transfers: sender sends, nothing moves until the receiver confirms; then added there and taken off the sender', async () => {
+  const d = driver(w), S = w.eval('S');
+  for (const k of ['transfers', 'bmoves']) w.eval('MEMSET')(k, []); w.eval('MEMSET')('bstock', {});
+  await d.signIn('9191');
+  if (w.eval('S.branches').length < 2) { await w.eval('Store.saveBranches')([...w.eval('S.branches'), 'فرع التحويل']); await sleep(200); }
+  const [A1, B1] = w.eval('S.branches').slice(0, 2), it = w.eval('ITEMS[0].id');
+  d.setVal('ownerBranch', 'branch:' + A1); await sleep(200);
+  await w.eval('bstockApply')(A1, [[it, 10]], 'recv', 'T'); await sleep(50);
+  d.click('[data-act="tab"][data-k="xfer"]'); d.click('[data-act="xfNew"]'); await sleep(20);
+  d.setVal('xf-to', B1); Object.assign(S.xfDraft.lines[0], { item: it, qty: '4' });
+  d.click('[data-act="xfSend"]'); await sleep(200);
+  assert.equal(w.eval('invQty')(A1, it), 10, 'nothing moves on sending');
+  d.setVal('ownerBranch', 'branch:' + B1); await sleep(200);
+  assert.equal(w.eval('xfIncoming()').length, 1, 'receiver sees it waiting');
+  assert.ok(w.eval('bellItems()').some((x) => x.k === 'xfer'), 'the bell counts it');
+  d.click('[data-act="tab"][data-k="xfer"]'); d.click('[data-act="xfOpen"]'); await sleep(20);
+  S.xfRecv = { 0: '3' }; d.click('[data-act="xfConfirm"]'); await sleep(300);
+  assert.equal(w.eval('invQty')(B1, it), 3, 'added to the receiver as confirmed');
+  d.setVal('ownerBranch', 'branch:' + A1); await sleep(300);
+  assert.equal(w.eval('invQty')(A1, it), 7, 'taken off the sender once');
+  w.eval('xLoadDemo()'); await sleep(100);
+  assert.equal(w.eval('invQty')(A1, it), 7, 'not twice');
+  // operations sees the transfer and a read-only work schedule
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  assert.equal(w.eval('S.transfers').length, 1);
+  d.click('[data-act="tab"][data-k="work"]');
+  assert.ok(!w.document.querySelector('[data-act="shCell"]'), 'operations cannot change the schedule');
+  assert.equal(w.eval("t('tab_shifts')"), 'جدول العمل');
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});

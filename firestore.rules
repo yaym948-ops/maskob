@@ -296,6 +296,16 @@ service cloud.firestore {
     }
     // ---- branch stock, production and counts; recipes, made items and units (operations) ----
     function brOwn(b) { return isBranch() && myBranch() == b; }
+    // ---- stock transfers: the sender writes, the receiver confirms or rejects, the sender's stock is lowered once ----
+    function xfSame() { return request.resource.data.from == resource.data.from && request.resource.data.to == resource.data.to; }
+    match /transfers/{id} {
+      allow read: if isMgr() || brOwn(resource.data.from) || brOwn(resource.data.to);
+      allow create: if brOwn(request.resource.data.from) && request.resource.data.status == 'sent' && request.resource.data.to != request.resource.data.from;
+      allow update: if xfSame() && (
+          (brOwn(resource.data.to) && resource.data.status == 'sent' && request.resource.data.status in ['received', 'rejected'])
+       || (brOwn(resource.data.from) && resource.data.status == 'sent' && request.resource.data.status == 'cancelled')
+       || ((brOwn(resource.data.from) || isMgr()) && resource.data.status == 'received' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outApplied', 'outAt'])));
+    }
     match /config/invUnits { allow read: if valid(); allow write: if isMgr(); }
     // ---- products menu: operations writes it, every signed-in role reads it; each branch marks its own unavailable items ----
     match /products/{id} { allow read: if valid(); allow write: if isMgr(); }
@@ -371,7 +381,8 @@ service cloud.firestore {
 
     // leave requests: a branch files and can withdraw its own pending ones; HR decides
     match /leaveReqs/{id} {
-      allow read: if isRole('hr') || (isBranch() && resource.data.branch == myBranch());
+      // operations reads them only to mark leave days on the work schedule
+      allow read: if isRole('hr') || isMgr() || (isBranch() && resource.data.branch == myBranch());
       allow create: if isBranch() && request.resource.data.branch == myBranch() && request.resource.data.status == 'pending';
       allow update: if isRole('hr');
       allow delete: if isRole('hr') || (isBranch() && resource.data.branch == myBranch() && resource.data.status == 'pending');

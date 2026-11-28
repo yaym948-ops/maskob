@@ -63,6 +63,7 @@ const LINE_ICONS={
   send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
   logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
   copy:'<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  swap:'<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>',
   coffee:'<path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/>',
   bell:'<path d="M10.27 21a2 2 0 0 0 3.46 0"/><path d="M3.26 15.33A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.67C19.41 13.96 18 12.5 18 8A6 6 0 0 0 6 8c0 4.5-1.41 5.96-2.74 7.33"/>',
   flask:'<path d="M10 2v7.53a2 2 0 0 1-.21.9L4.72 20.55A1 1 0 0 0 5.62 22h12.76a1 1 0 0 0 .9-1.45l-5.07-10.12a2 2 0 0 1-.21-.9V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/>',
@@ -81,7 +82,7 @@ const LINE_ICONS={
 const ico=(name,cls)=>`<svg class="ic${cls?' '+cls:''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LINE_ICONS[name]||LINE_ICONS.dot}</svg>`;
 
 /* side menu pages */
-const NAV_ICON={menu:'coffee',products:'coffee',menuOff:'ban',inv:'box',bstock:'box',bstockAll:'box',prod:'flask',prodAll:'flask',count:'listCheck',recipes:'book',rep:'pie',new:'cart',tasks:'inbox',orders:'clipboard',sales:'register',maint:'wrench',checks:'listCheck',lr:'calClock',forms:'filePen',
+const NAV_ICON={xfer:'swap',xferAll:'swap',work:'calClock',menu:'coffee',products:'coffee',menuOff:'ban',inv:'box',bstock:'box',bstockAll:'box',prod:'flask',prodAll:'flask',count:'listCheck',recipes:'book',rep:'pie',new:'cart',tasks:'inbox',orders:'clipboard',sales:'register',maint:'wrench',checks:'listCheck',lr:'calClock',forms:'filePen',
   pending:'clock',report:'fileText',all:'list',salesAll:'bars',maintAll:'wrench',stock:'box',prep:'clipCheck',sched:'cal',incoming:'truck',done:'history',
   branches:'sliders',users:'users',actlog:'activity',catalog:'tag',emps:'users',docs:'idCard',leaves:'calCheck',custody:'key',advances:'wallet',lic:'shield',
   payroll:'cash',vouchers:'receipt',dash:'dash',fsum:'dash',expenses:'receipt',supinv:'fileSheet',suppliers:'truck',pnl:'trend',be:'target',supst:'book',salesLog:'register',apps:'bike',archive:'folder',mail:'mail',

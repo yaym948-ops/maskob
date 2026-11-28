@@ -7,7 +7,7 @@ const SHIFT_CODES=['m','e','n','off'];
 const SHIFT_TIMES={m:'06:00-14:00',e:'14:00-22:00',n:'22:00-06:00'};
 const weekStart=k=>{const d=fromKey(k);d.setDate(d.getDate()-d.getDay());return dayKey(d)};
 const addDays=(k,n)=>{const d=fromKey(k);d.setDate(d.getDate()+n);return dayKey(d)};
-const activeStaff=()=>{const L=(S.staff||[]).filter(x=>x.active!==false),hr=L.filter(x=>x.fromHR);
+const activeStaff=b=>{const L=(S.staff||[]).filter(x=>x.active!==false&&(!b||x.branch===b)),hr=L.filter(x=>x.fromHR);
   return L.filter(x=>x.fromHR||!hr.some(h=>(x.no&&h.no&&String(h.no)===String(x.no))||h.name===x.name)).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'))};
 /* approved leave from HR for a staff member on a day */
 const onLeaveDay=(st,day)=>(S.leaveReqs||[]).some(r=>r.status==='approved'&&(r.staffId===st.id||(!r.staffId&&r.empName===st.name))&&r.from<=day&&r.to>=day);
@@ -17,27 +17,34 @@ function branchStaffTab(tb){
   const nav=`<div class="kind sh-nav" role="tablist">${[['sched','sh_sched'],['leave','sh_leave'],['staff','sh_staff']].map(([k,l])=>`<button aria-pressed="${sub===k}" data-act="shSub" data-k="${k}">${esc(t(l))}${k==='leave'&&pend?` <span class="c num">(${pend})</span>`:''}${k==='staff'?` <span class="c num">(${activeStaff().length})</span>`:''}</button>`).join('')}</div>`;
   return`<h2>${t('tab_shifts')}</h2>${nav}`+(sub==='leave'?branchLeaveView(true):sub==='staff'?branchStaffList():shiftView());
 }
-function shiftView(){
-  const wk=S.shWeek||weekStart(dayKey(Date.now()));const id=S.branch+'_'+wk;
+/* o.ro: operations looks at a branch's schedule without changing it */
+function shiftView(o){o=o||{};const ro=!!o.ro,br=o.branch||S.branch;
+  const wk=S.shWeek||weekStart(dayKey(Date.now()));const id=br+'_'+wk;
   const doc=(S.shifts||[]).find(x=>x.id===id)||{};
-  if(!S.shDraft||S.shDraft.id!==id)S.shDraft={id,cells:JSON.parse(JSON.stringify(doc.cells||{})),times:Object.assign({},SHIFT_TIMES,doc.times||{})};
-  const d=S.shDraft,staff=activeStaff(),days=[0,1,2,3,4,5,6].map(i=>addDays(wk,i)),today=dayKey(Date.now());
+  if(!ro&&(!S.shDraft||S.shDraft.id!==id))S.shDraft={id,cells:JSON.parse(JSON.stringify(doc.cells||{})),times:Object.assign({},SHIFT_TIMES,doc.times||{})};
+  const d=ro?{id,cells:doc.cells||{},times:Object.assign({},SHIFT_TIMES,doc.times||{})}:S.shDraft,staff=activeStaff(ro?br:null),days=[0,1,2,3,4,5,6].map(i=>addDays(wk,i)),today=dayKey(Date.now());
+  if(!staff.length&&ro)return`<div class="empty" style="margin-top:12px">${esc(t('wk_noStaff'))}</div>`;
   if(!staff.length)return`<div class="empty" style="margin-top:12px">${esc(t('sh_noStaff'))} <button class="btn btn-sun rp-btn" data-act="shSub" data-k="staff">${t('sh_addStaff')}</button></div>`;
   const cnt=days.map((_,i)=>staff.filter(st=>['m','e','n'].includes((d.cells[st.id]||{})[i])&&!onLeaveDay(st,days[i])).length);
   const lbl=dt=>{try{return fromKey(dt).toLocaleDateString(LOCALE[LANG],{weekday:'short',day:'numeric',month:'numeric'})}catch(e){return dt}};
   return`<div class="row sh-bar"><button class="btn btn-ghost rp-btn" data-act="shWeek" data-n="-7" aria-label="${esc(t('sh_prev'))}">→</button>
     <b>${esc(t('sh_weekOf',{d:dateLabel(wk)}))}</b><button class="btn btn-ghost rp-btn" data-act="shWeek" data-n="7" aria-label="${esc(t('sh_next'))}">←</button>
     ${wk!==weekStart(today)?`<button class="btn btn-ghost rp-btn" data-act="shWeek" data-n="0">${t('sh_thisWeek')}</button>`:''}
-    <span class="spacer"></span><button class="btn btn-ghost rp-btn" data-act="shCopyPrev">${t('sh_copyPrev')}</button><button class="btn btn-ghost rp-btn" data-act="shXls">${t('xlsExport')}</button></div>
-  <div class="sh-times">${['m','e','n'].map(k=>`<label><span class="sh-c sh-${k}">${esc(t('sh_'+k))}</span><input class="field" id="shT-${k}" data-in="shT" data-k="${k}" value="${esc(d.times[k]||'')}" dir="ltr"></label>`).join('')}</div>
-  <p class="hint">${esc(t('sh_hint'))}</p>
+    <span class="spacer"></span>${ro?'':`<button class="btn btn-ghost rp-btn" data-act="shCopyPrev">${t('sh_copyPrev')}</button><button class="btn btn-ghost rp-btn" data-act="shXls">${t('xlsExport')}</button>`}</div>
+  <div class="sh-times">${['m','e','n'].map(k=>`<label><span class="sh-c sh-${k}">${esc(t('sh_'+k))}</span>${ro?`<b class="num" dir="ltr">${esc(d.times[k]||'')}</b>`:`<input class="field" id="shT-${k}" data-in="shT" data-k="${k}" value="${esc(d.times[k]||'')}" dir="ltr">`}</label>`).join('')}</div>
+  <p class="hint">${esc(t(ro?(doc.updatedAt?'wk_roHint':'wk_empty'):'sh_hint',{d:doc.updatedAt?when(doc.updatedAt):''}))}</p>
   <div class="scroll"><table class="tbl sh-grid"><thead><tr><th>${t('lv_emp')}</th>${days.map(x=>`<th class="${x===today?'sh-today':''}">${esc(lbl(x))}</th>`).join('')}</tr></thead><tbody>
   ${staff.map(st=>`<tr><td><b>${esc(st.name)}</b>${st.job?`<div class="hint">${esc(st.job)}</div>`:''}</td>${days.map((x,i)=>{
     if(onLeaveDay(st,x))return`<td><span class="sh-c sh-L">${esc(t('sh_L'))}</span></td>`;
     const c=(d.cells[st.id]||{})[i]||'';
+    if(ro)return`<td><span class="sh-c sh-${c||'none'}">${c?esc(t('sh_'+c)):'—'}</span></td>`;
     return`<td><button class="sh-c sh-${c||'none'}" data-act="shCell" data-s="${esc(st.id)}" data-i="${i}" aria-label="${esc(st.name+' '+lbl(x))}">${c?esc(t('sh_'+c)):'+'}</button></td>`}).join('')}</tr>`).join('')}
   <tr class="sh-sum"><td>${t('sh_working')}</td>${cnt.map(n=>`<td class="n">${n}</td>`).join('')}</tr></tbody></table></div>`;
 }
+/* operations: the work schedule of each branch, read only */
+function opsWorkView(){const b=S.wkBranch&&S.branches.includes(S.wkBranch)?S.wkBranch:S.branches[0];if(!b)return`<h2>${t('tab_shifts')}</h2>`;
+  return`<h2>${t('tab_shifts')}</h2><div class="filters">${S.branches.map(x=>`<button class="chip" aria-pressed="${x===b}" data-act="wkBranch" data-k="${esc(x)}">${esc(x)}</button>`).join('')}</div>`+shiftView({ro:true,branch:b})}
+A.wkBranch=el=>{S.wkBranch=el.dataset.k;render()};
 function branchStaffList(){
   const all=[...(S.staff||[])].sort((a,b)=>(+(b.active!==false)-+(a.active!==false))||String(a.name).localeCompare(String(b.name),'ar'));
   return`<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn btn-sun" data-act="stNew">+ ${t('sh_addStaff')}</button></div>

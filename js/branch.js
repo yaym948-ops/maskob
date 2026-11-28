@@ -84,7 +84,7 @@ function xLoadDemo(){
   const mine=a=>S.role==='branch'?a.filter(x=>x.branch===S.branch):a;
   S.sales=mine(MEM('sales'));S.maint=mine(MEM('maintenance'));
   S.checks=mine(MEM('checks'));S.targets=Object.assign({},MEM('targets'));S.checklist=MEM('checklist');
-  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];S.leaveReqs=S.role==='hr'||S.role==='branch'?mine(MEM('leaveReqs')):[];S.staff=S.role==='hr'||S.role==='branch'?mine(MEM('staff')):[];if(S.role==='hr')hrSyncStaff();S.shifts=S.role==='branch'?mine(MEM('shifts')):[];S.vouchers=S.role==='hr'?MEM('vouchers'):[];S.payroll=S.role==='hr'?MEM('payroll'):[];S.forms=S.role==='hr'||S.role==='branch'?mine(MEM('forms')):[];
+  S.emps=S.role==='hr'?MEM('employees'):[];S.leaves=S.role==='hr'?MEM('leaves'):[];S.custody=S.role==='hr'?MEM('custody'):[];S.advances=S.role==='hr'?MEM('advances'):[];S.licenses=S.role==='hr'?MEM('licenses'):[];S.leaveReqs=S.role==='hr'||S.role==='branch'||S.role==='manager'?mine(MEM('leaveReqs')):[];S.staff=S.role==='hr'||S.role==='branch'||S.role==='manager'?mine(MEM('staff')):[];if(S.role==='hr')hrSyncStaff();S.shifts=S.role==='branch'||S.role==='manager'?mine(MEM('shifts')):[];S.vouchers=S.role==='hr'?MEM('vouchers'):[];S.payroll=S.role==='hr'?MEM('payroll'):[];S.forms=S.role==='hr'||S.role==='branch'?mine(MEM('forms')):[];
   {const c=S.role==='hr'?MEM('hrcfg'):null;S.hrCfg=c&&!Array.isArray(c)?c:{}}
   if(S.role==='finance'){S.emps=MEM('employees');S.leaves=MEM('leaves');S.forms=MEM('forms');S.advances=MEM('advances');S.payroll=MEM('payroll');S.vouchers=MEM('vouchers');S.expenses=MEM('expenses');S.supInv=MEM('supInvoices');S.suppliers=MEM('suppliers');S.appPays=MEM('appPays');S.sales=MEM('sales')}
   if(S.role==='dash'){S.emps=MEM('employees');S.leaveReqs=MEM('leaveReqs');S.forms=MEM('forms');S.licenses=MEM('licenses');S.leaves=MEM('leaves')}
@@ -92,6 +92,7 @@ function xLoadDemo(){
   if(typeof mailLoadDemo==='function')mailLoadDemo();
   if(typeof invLoadDemo==='function')invLoadDemo();
   if(typeof menuLoadDemo==='function')menuLoadDemo();
+  if(typeof xfLoadDemo==='function')xfLoadDemo();
 }
 /* live subscriptions per role */
 function xStart(){
@@ -115,7 +116,7 @@ function xStart(){
     u.push(db.doc('targets/'+S.branch).onSnapshot(s=>{S.targets={[S.branch]:s.exists?s.data():{}};render()},onErr));
   }
   if(S.role==='manager'){
-    list('sales',a=>S.sales=a);list('maintenance',a=>S.maint=a);
+    list('sales',a=>S.sales=a);list('maintenance',a=>S.maint=a);list('staff',a=>S.staff=a);list('shifts',a=>S.shifts=a);list('leaveReqs',a=>S.leaveReqs=a);
     u.push(db.collection('checks').where('date','==',dayKey(Date.now())).onSnapshot(s=>{S.checks=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},onErr));
   }
   if(S.role==='hr'){
@@ -165,6 +166,8 @@ function xStart(){
   if(typeof invStart==='function')invStart(u,onErr);
   // the products menu and what each branch has marked unavailable
   if(typeof menuStart==='function')menuStart(u,onErr);
+  // stock transfers between branches
+  if(typeof xfStart==='function')xfStart(u,onErr);
 }
 function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.stock={};S.stockMoves=[];S.expenses=[];S.supInv=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
