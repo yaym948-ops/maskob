@@ -306,6 +306,15 @@ service cloud.firestore {
        || (brOwn(resource.data.from) && resource.data.status == 'sent' && request.resource.data.status == 'cancelled')
        || ((brOwn(resource.data.from) || isMgr()) && resource.data.status == 'received' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outApplied', 'outAt'])));
     }
+    // ---- branch visits: operations plans and documents them; the branch reads its own once closed ----
+    match /visits/{id} {
+      allow read: if isMgr() || (brOwn(resource.data.branch) && resource.data.status == 'closed');
+      allow write: if isMgr();
+      match /photos/{p} {
+        allow read: if isMgr() || brOwn(resource.data.branch);
+        allow create, delete: if isMgr();
+      }
+    }
     match /config/invUnits { allow read: if valid(); allow write: if isMgr(); }
     // ---- products menu: operations writes it, every signed-in role reads it; each branch marks its own unavailable items ----
     match /products/{id} { allow read: if valid(); allow write: if isMgr(); }
@@ -374,7 +383,9 @@ service cloud.firestore {
     // deduction / warning / reward forms: a branch files for its staff, HR approves (or issues its own)
     match /forms/{id} {
       allow read: if isRole('hr') || isRole('finance') || (isBranch() && resource.data.branch == myBranch());
-      allow create: if isRole('hr') || (isBranch() && request.resource.data.branch == myBranch() && request.resource.data.status == 'pending' && request.resource.data.by == 'branch');
+      allow create: if isRole('hr') || (isBranch() && request.resource.data.branch == myBranch() && request.resource.data.status == 'pending' && request.resource.data.by == 'branch')
+                    // a warning or deduction decided on a branch visit by operations goes straight to HR as approved
+                    || (isMgr() && request.resource.data.by == 'ops' && request.resource.data.status == 'approved' && request.resource.data.type in ['warning', 'deduction'] && request.resource.data.visit is string);
       allow update: if isRole('hr');
       allow delete: if isRole('hr') || (isBranch() && resource.data.branch == myBranch() && resource.data.status == 'pending');
     }

@@ -89,11 +89,13 @@ function empSheet(){
   const used=isNew?0:(S.leaves||[]).filter(l=>l.emp===e.id&&l.type==='annual'&&l.status==='approved'&&String(l.from).startsWith(yr)).reduce((a,l)=>a+leaveDays(l),0);
   const docs=isNew?'':HR_DOCS.filter(k=>e[k]).map(k=>{const n=dayDiff(dayKey(Date.now()),e[k]);return n<=HR_WARN?`<span class="tag ${n<0?'ret':''}">${esc(t(HR_DOC_L[k]))}: ${esc(leftLabel(n))}</span>`:''}).join('');
   const body=`${isNew?'':`<div class="row" style="gap:8px;margin-bottom:12px">${docs}<span class="tag">${esc(t('hr_annualUsed'))}: ${esc(t('hr_days',{n:used}))}</span>${empFormTags(e)}${(()=>{const cu=(S.custody||[]).filter(c=>c.emp===e.id&&custOut(c)).length,av=(S.advances||[]).filter(a=>a.emp===e.id).reduce((s,a)=>s+advRemain(a),0);return(cu?`<span class="tag">${esc(t('cu_ofEmp',{n:cu}))}</span>`:'')+(av>0?`<span class="tag ret">${esc(t('av_ofEmp',{n:sar2(av)}))}</span>`:'')})()}</div>`}
+  ${typeof idScanBlock==='function'?idScanBlock():''}
   <div class="sl-grid hr-grid">
     ${hrIn('name',t('hr_name'))}${hrIn('no',t('hr_no'),'text','dir="ltr"')}
     ${hrSel('branch',t('hr_branch'),hrPlaces().map(p=>[p,placeL(p)]))}${hrIn('job',t('hr_job'))}
     ${hrIn('nat',t('hr_nat'))}${hrIn('phone',t('hr_phone'),'tel')}
     ${hrIn('idNo',t('hr_id'),'tel')}${hrIn('idExp',t('hr_idExp'),'date')}
+    ${hrIn('passNo',t('hr_passNo'),'text','dir="ltr"')}${hrIn('passExp',t('hr_passExp'),'date')}${hrIn('birth',t('hr_birth'),'date')}
     ${hrIn('healthExp',t('hr_health'),'date')}${hrIn('contractEnd',t('hr_contract'),'date')}
     ${hrIn('hire',t('hr_hire'),'date')}${hrIn('salary',t('hr_salary')+' ('+t('sar')+')','number')}
     ${hrSel('status',t('hr_status'),[['active',t('es_active')],['left',t('es_left')]])}
@@ -143,9 +145,9 @@ const ibanFmt=v=>normIban(v).replace(/(.{4})/g,'$1 ').trim();
 function empData(d,id){
   const tm=nowIso();
   const data={name:String(d.name||'').trim(),status:d.status==='left'?'left':'active',updatedAt:tm};
-  ['no','branch','job','nat','phone','idNo','note','bank'].forEach(k=>data[k]=String(d[k]??'').trim());
+  ['no','branch','job','nat','phone','idNo','passNo','note','bank'].forEach(k=>data[k]=String(d[k]??'').trim());
   data.iban=normIban(d.iban);
-  ['idExp','healthExp','contractEnd','hire'].forEach(k=>data[k]=isDay(d[k])?d[k]:'');
+  ['idExp','passExp','birth','healthExp','contractEnd','hire'].forEach(k=>data[k]=isDay(d[k])?d[k]:'');
   ['salary',...ALLOWANCES].forEach(k=>data[k]=d[k]===''||d[k]==null?null:num(d[k]));
   data.gosi=d.gosi==='yes'||d.gosi===true;data.gosiRate=d.gosiRate===''||d.gosiRate==null?null:num(d.gosiRate);data.gosiEmp=d.gosiEmp===''||d.gosiEmp==null?null:num(d.gosiEmp);
   const old=empById(id)||{};data.createdAt=old.createdAt||tm;if(old.contract)data.contract=old.contract;

@@ -93,6 +93,7 @@ function xLoadDemo(){
   if(typeof invLoadDemo==='function')invLoadDemo();
   if(typeof menuLoadDemo==='function')menuLoadDemo();
   if(typeof xfLoadDemo==='function')xfLoadDemo();
+  if(typeof vsLoadDemo==='function')vsLoadDemo();
 }
 /* live subscriptions per role */
 function xStart(){
@@ -168,6 +169,8 @@ function xStart(){
   if(typeof menuStart==='function')menuStart(u,onErr);
   // stock transfers between branches
   if(typeof xfStart==='function')xfStart(u,onErr);
+  // branch visits by operations
+  if(typeof vsStart==='function')vsStart(u,onErr);
 }
 function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.stock={};S.stockMoves=[];S.expenses=[];S.supInv=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 

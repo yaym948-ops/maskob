@@ -886,3 +886,42 @@ test('transfers: sender sends, nothing moves until the receiver confirms; then a
   assert.equal(w.eval("t('tab_shifts')"), 'جدول العمل');
   d.setVal('ownerView', 'dash'); await sleep(200);
 });
+
+test('visits: operations schedules, documents with a deduction on the branch manager; it lands in payroll; the branch sees it closed', async () => {
+  const d = driver(w), S = w.eval('S');
+  const b = w.eval('S.branches')[0], today = w.eval('dayKey(Date.now())');
+  w.eval('MEMSET')('visits', []); w.eval('MEMSET')('forms', []);
+  w.eval('MEMSET')('employees', w.eval('MEM')('employees').filter((e) => e.id !== 'E-VS').concat([{ id: 'E-VS', name: 'خالد المدير', branch: b, job: 'مدير فرع', salary: 5000, status: 'active', hire: '2025-01-01', phone: '0551234567' }]));
+  w.eval('MEMSET')('staff', w.eval('MEM')('staff').filter((x) => x.id !== 'emp_E-VS').concat([{ id: 'emp_E-VS', branch: b, name: 'خالد المدير', job: 'مدير فرع', phone: '0551234567', fromHR: true, emp: 'E-VS', active: true }]));
+  await d.signIn('9191');
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  d.click('[data-act="tab"][data-k="visits"]'); d.click('[data-act="vsNew"]'); await sleep(20);
+  d.setVal('vs-branch', b); d.setVal('vs-date', today); d.click('[data-act="vsAdd"]'); await sleep(200);
+  const v = w.eval('S.visits')[0];
+  assert.equal(v.status, 'planned');
+  assert.ok(w.eval('bellItems()').some((x) => x.k === 'visits'), 'due visit in the bell');
+  d.click('[data-act="vsOpen"]'); await sleep(20);
+  assert.equal(S.vsDoc.staffId, 'emp_E-VS', 'branch manager chosen first');
+  d.setVal('vs-notes', 'الأرضية غير نظيفة'); d.click('[data-act="vsAct"][data-k="deduction"]'); d.setVal('vs-amount', '150');
+  d.click('[data-act="vsClose"]'); d.click('[data-act="vsClose"]'); await sleep(300);
+  const v2 = w.eval('S.visits')[0];
+  assert.equal(v2.status, 'closed'); assert.equal(v2.amount, 150);
+  const f = w.eval('MEM')('forms').find((x) => x.visit === v.id);
+  assert.ok(f && f.status === 'approved' && f.emp === 'E-VS' && f.amount === 150, 'approved HR deduction');
+  assert.ok(w.eval('vsWaLink')(v2).startsWith('https://wa.me/966551234567?text='), 'WhatsApp link to the manager');
+  d.setVal('ownerView', 'hr'); await sleep(200);
+  const row = w.eval('payrollCalc')(today.slice(0, 7)).rows.find((r) => r.id === 'E-VS');
+  assert.equal(row.formDed, 150, 'deducted in the month payroll');
+  d.setVal('ownerBranch', 'branch:' + b); await sleep(200);
+  assert.equal(w.eval('S.visits').length, 1, 'branch sees the closed visit');
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});
+
+test('ID reading: the model answer fills the employee form (Hijri dates converted, passport kept apart)', () => {
+  const r = w.eval('idFromAI')({ kind: 'iqama', nameAr: 'محمد  رحمن', idNumber: '2 345 678 901', nationality: 'بنجلاديش', profession: 'عامل قهوة', birth: { date: '1995-03-12', calendar: 'gregorian' }, expiry: { date: '1448-05-01', calendar: 'hijri' } });
+  assert.equal(r.name, 'محمد رحمن'); assert.equal(r.idNo, '2345678901'); assert.equal(r.job, 'عامل قهوة'); assert.equal(r.birth, '1995-03-12');
+  assert.match(r.idExp, /^2026-(09|10)-\d\d$/, 'Hijri 1448-05-01 is in autumn 2026: ' + r.idExp);
+  const p = w.eval('idFromAI')({ kind: 'passport', nameEn: 'RAHMAN MD', idNumber: 'bx1234567', nationality: 'BANGLADESHI', expiry: { date: '2030-01-31', calendar: 'gregorian' } });
+  assert.equal(p.passNo, 'BX1234567'); assert.equal(p.passExp, '2030-01-31'); assert.ok(!p.idNo);
+  assert.equal(w.eval('idFromAI')({ kind: 'national', nameAr: 'سعد', idNumber: '1012345678' }).nat, 'سعودي');
+});

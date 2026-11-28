@@ -868,3 +868,8 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
 .mn-edit-img{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .mn-edit-img img,.mn-edit-img .mn-noimg{width:120px;height:90px;object-fit:cover;border-radius:12px;background:var(--soft);flex:none}
 @media (max-width:520px){.mn-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mn-name{font-size:14px}}
+
+/* ---------- ID reading (HR) ---------- */
+.id-scan{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:var(--soft);margin-bottom:12px}
+.id-scan .busy{opacity:.7;pointer-events:none}
+.id-res{flex-basis:100%;font-size:13.5px}
