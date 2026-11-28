@@ -967,3 +967,62 @@ test('periodic maintenance: operations adds dated items per branch, records it d
   assert.equal(w.document.querySelectorAll('[data-act="pmOpen"]').length, 1, 'branch sees its item');
   S.mSub = 'req'; d.setVal('ownerView', 'dash'); await sleep(200);
 });
+
+test('cancel deduction: before approval it drops out; after approval it comes back as an addition next month; operations cancels its visit deduction', async () => {
+  const d = driver(w), S = w.eval('S');
+  const b = w.eval('S.branches')[0], mk = '2026-10', nm = '2026-11';
+  w.eval('MEMSET')('employees', w.eval('MEM')('employees').filter((e) => e.id !== 'E-DC').concat([{ id: 'E-DC', name: 'سامي', branch: b, salary: 3000, status: 'active', hire: '2025-01-01' }]));
+  w.eval('MEMSET')('forms', [
+    { id: 'F-A', emp: 'E-DC', empName: 'سامي', branch: b, type: 'deduction', date: mk + '-05', amount: 100, status: 'approved', by: 'hr', reason: 'x', createdAt: '2026-10-05T08:00:00Z' },
+    { id: 'F-B', emp: 'E-DC', empName: 'سامي', branch: b, type: 'deduction', date: nm + '-03', amount: 50, status: 'approved', by: 'ops', visit: 'VS-X', reason: 'y', createdAt: '2026-11-03T08:00:00Z' }]);
+  w.eval('MEMSET')('payroll', [{ id: mk, status: 'approved', approvedAt: '2026-11-01T08:00:00Z', adj: {}, rows: { 'E-DC': { name: 'سامي', formDed: 100, net: 2900 } } }]);
+  w.eval('MEMSET')('visits', [{ id: 'VS-X', branch: b, date: nm + '-03', status: 'closed', action: 'deduction', amount: 50, form: 'F-B', notes: 'n', empName: 'سامي' }]);
+  await d.signIn('9191');
+  d.setVal('ownerView', 'hr'); await sleep(200);
+  const row = () => w.eval('payrollCalc')(nm).rows.find((r) => r.id === 'E-DC');
+  assert.equal(row().formDed, 50, 'November deduction counted');
+  // HR cancels the October deduction (payroll already approved) → paid back in November
+  d.click('[data-act="tab"][data-k="forms"]'); S.openForm = 'F-A'; S.hrDraft = {}; w.eval('render()');
+  d.click('[data-act="fmCancel"]'); await sleep(20);
+  assert.equal(w.eval('MEM')('forms').find((f) => f.id === 'F-A').status, 'approved', 'reason required');
+  d.setVal('hr-cancelReason', 'خطأ في الخصم'); d.click('[data-act="fmCancel"]'); d.click('[data-act="fmCancel"]'); await sleep(300);
+  assert.equal(w.eval('MEM')('forms').find((f) => f.id === 'F-A').status, 'cancelled');
+  assert.equal(row().add, 100, 'October deduction paid back in November');
+  d.click('[data-act="close"]');
+  // operations cancels the November visit deduction → it drops out (payroll not approved)
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  d.click('[data-act="tab"][data-k="visits"]'); d.click('[data-act="vsOpen"][data-id="VS-X"]'); await sleep(20);
+  d.setVal('vs-cancel', 'اعتراض مقبول'); d.click('[data-act="vsDedCancel"]'); d.click('[data-act="vsDedCancel"]'); await sleep(300);
+  assert.ok(w.eval('S.visits').find((v) => v.id === 'VS-X').dedCancelled);
+  d.click('[data-act="close"]');
+  d.setVal('ownerView', 'hr'); await sleep(200);
+  assert.equal(row().formDed, 0, 'cancelled visit deduction drops out');
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});
+
+test('vehicles: HR adds a vehicle with documents; oil change and expiry alerts; a fine deducted from the driver', async () => {
+  const d = driver(w), S = w.eval('S');
+  const b = w.eval('S.branches')[0];
+  w.eval('MEMSET')('vehicles', []); w.eval('MEMSET')('forms', []);
+  w.eval('MEMSET')('employees', w.eval('MEM')('employees').filter((e) => e.id !== 'E-DR').concat([{ id: 'E-DR', name: 'فهد السائق', branch: '@wh', salary: 4000, status: 'active', hire: '2025-01-01' }]));
+  await d.signIn('9191');
+  d.setVal('ownerView', 'hr'); await sleep(200);
+  d.click('[data-act="tab"][data-k="vehicles"]'); d.click('[data-act="vhNew"]'); await sleep(20);
+  d.setVal('hr-plate', 'أ ب ج 1234'); d.setVal('hr-make', 'تويوتا'); d.setVal('hr-model', 'هايلكس'); d.setVal('hr-driver', 'E-DR');
+  d.setVal('hr-insExp', w.eval('addDays(dayKey(Date.now()),20)')); d.setVal('hr-km', '50000'); d.setVal('hr-oilKm', '50300');
+  d.click('[data-act="vhSave"]'); await sleep(300);
+  const v = w.eval('S.vehicles')[0];
+  assert.equal(v.driver, 'E-DR');
+  assert.deepEqual(w.eval('vhIssues')(v).map((x) => x.k).sort().join(), 'insExp,oil', 'insurance soon and oil due');
+  assert.ok(w.eval('bellItems()').some((x) => x.k === 'vehicles'), 'bell');
+  d.click('[data-act="vhTab"][data-k="fines"]'); await sleep(20);
+  d.setVal('vhe-no', '9988'); d.setVal('vhe-desc', 'تجاوز السرعة'); d.setVal('vhe-amount', '300');
+  const cb = w.document.getElementById('vhe-ded'); cb.checked = true; cb.dispatchEvent(new w.Event('change', { bubbles: true }));
+  d.click('[data-act="vhAdd"]'); await sleep(300);
+  const fine = w.eval('S.vehicles')[0].fines[0], f = w.eval('MEM')('forms').find((x) => x.id === fine.form);
+  assert.ok(f && f.status === 'approved' && f.emp === 'E-DR' && f.amount === 300, 'approved deduction on the driver');
+  d.click('[data-act="vhTab"][data-k="fuel"]'); await sleep(20);
+  d.setVal('vhe-km', '50400'); d.setVal('vhe-amount', '120'); d.click('[data-act="vhAdd"]'); await sleep(300);
+  assert.equal(w.eval('S.vehicles')[0].km, 50400, 'odometer follows the fill-up');
+  d.click('[data-act="close"]'); d.setVal('ownerView', 'dash'); await sleep(200);
+});

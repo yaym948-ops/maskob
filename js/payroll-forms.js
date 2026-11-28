@@ -45,7 +45,8 @@ function payrollCalc(mk){
     const unpaid=r2p(unpaidDays*daily);
     const advList=(S.advances||[]).filter(a=>a.emp===e.id&&advRemain(a)>0&&+a.monthly>0&&(!a.date||a.date<=end));
     const adv=r2p(advList.reduce((s,a)=>s+Math.min(+a.monthly,advRemain(a)),0));
-    const m=adj[e.id]||{};const add=r2p(num(m.add)),ded=r2p(num(m.ded));
+    const refund=r2p((S.forms||[]).filter(x=>x.emp===e.id&&dedRefundMonth(x)===mk).reduce((s,x)=>s+(+x.amount||0)+(+x.days||0)*daily,0));
+    const m=adj[e.id]||{};const add=r2p(num(m.add)+refund),ded=r2p(num(m.ded));
     const hpd=+(e.contract&&e.contract.hours)||8,otHours=r2p(num(m.otHours));
     const otRate=r2p(payTotal(e)/30/hpd+0.5*(+e.salary||0)/30/hpd),ot=r2p(otHours*otRate);
     const gross=r2p(basic+allow);
@@ -245,7 +246,12 @@ function printTemplate(k,e,day,win){
   <table><thead><tr><th>الجهة / Department</th><th>ملاحظات / Notes</th><th>الاسم والتوقيع / Name & signature</th></tr></thead><tbody>${depts.map(d=>`<tr><td>${d[0]} / ${d[1]}</td><td style="height:38px"></td><td></td></tr>`).join('')}</tbody></table>`,[['الموظف / Employee',e.name]],win);
 }
 /* ---------- forms: shared list card ---------- */
-const formPill=st=>lrPill(st);
+const formPill=st=>st==='cancelled'?`<span class="pill li-expired">${esc(t('ls_cancelled'))}</span>`:lrPill(st);
+/* a deduction cancelled after its month's payroll was approved is paid back as an addition in a later payroll:
+   the month after, or the month it was cancelled in if later. Before approval it simply drops out of the payroll. */
+function dedRefundMonth(x){if(x.type!=='deduction'||x.status!=='cancelled'||!x.cancelledAt)return null;const om=String(x.date||'').slice(0,7);
+  const P=(S.payroll||[]).find(p=>p.id===om);if(!P||P.status!=='approved'||!(String(P.approvedAt||'')<String(x.cancelledAt)))return null;
+  const [y,mo]=om.split('-').map(Number),nm=new Date(Date.UTC(y,mo,1)).toISOString().slice(0,7),cm=String(x.cancelledAt).slice(0,7);return cm>nm?cm:nm}
 function formCard(f,act){
   const det=f.type==='warning'?(LVL[f.level]||LVL[1])[0]:f.type==='deduction'?[+f.days?t('hr_days',{n:f.days}):'',+f.amount?sar2(f.amount)+' '+t('sar'):''].filter(Boolean).join(' + '):(+f.amount?sar2(f.amount)+' '+t('sar'):'');
   return`<button class="oc ${positiveForm(f.type)?'fm-reward':''}" data-act="${act}" data-id="${esc(f.id)}">
@@ -277,6 +283,8 @@ function formSheet(){
     const emps=(S.emps||[]).filter(e=>e.status!=='left'||e.id===d.emp).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
     const body=`<div class="box">${formCard(f,'').replace(/^<button/,'<div').replace(/<\/button>$/,'</div>')}</div>
     ${f.reason?`<div class="box"><h4>${t(positiveForm(f.type)?'fm_reasonReward':'fm_reason')}</h4><div dir="auto" style="white-space:pre-wrap">${esc(f.reason)}</div></div>`:''}
+    ${f.status==='cancelled'?`<div class="box"><h4>${t('fm_cancelled')}</h4><div dir="auto">${esc(f.cancelReason||'')}</div><div class="hint">${esc(when(f.cancelledAt))}${f.cancelledBy?' · '+esc(f.cancelledBy):''}${dedRefundMonth(f)?' · '+esc(t('fm_refundIn',{m:dedRefundMonth(f)})):''}</div></div>`:''}
+    ${hr&&f.type==='deduction'&&f.status==='approved'?`<div class="box"><h4>${t('fm_cancelTitle')}</h4><label style="display:block"><span class="hint">${t('fm_cancelReason')}</span><textarea class="field" id="hr-cancelReason" rows="2" dir="auto" data-in="hrF" data-f="cancelReason">${esc(d.cancelReason||'')}</textarea></label><p class="hint">${esc(t('fm_cancelHint'))}</p><div class="row" style="justify-content:flex-end"><button class="btn btn-bad rp-btn" data-act="fmCancel">${S.confirm==='fmCancel'?t('fm_cancelSure'):t('fm_cancel')}</button></div></div>`:''}
     ${f.hrNote&&!(hr&&pending)?`<div class="box"><h4>${t('lr_hrNote')}</h4><div dir="auto">${esc(f.hrNote)}</div></div>`:''}
     ${hr&&pending?`<div class="sl-grid hr-grid">${hrSel('emp',t('lr_linkEmp'),[['',t('hr_pickEmp')],...emps.map(e=>[e.id,e.name+(e.no?' #'+e.no:'')+' — '+placeL(e.branch)])])}</div>
       <label style="display:block;margin-top:10px"><span class="hint">${t('lr_hrNote')}</span><textarea class="field" id="hr-hrNote" rows="2" dir="auto" data-in="hrF" data-f="hrNote">${esc(d.hrNote||'')}</textarea></label>`:''}`;
@@ -344,6 +352,9 @@ Object.assign(A,{
     const fid=hrId('F');
     guard(async()=>{await X.put('forms',fid,data);if(typeof phCommit==='function')await phCommit('forms',null,fid,branch);S.openForm=null;S.hrDraft=null},()=>t(hr?'fm_saved':'fm_sent'));
   },
+  fmCancel(){const f=(S.forms||[]).find(x=>x.id===S.openForm);if(!f||f.type!=='deduction'||f.status!=='approved')return;const r=String((S.hrDraft||{}).cancelReason||'').trim();
+    if(!r){toast(t('fm_needCancelReason'));return}if(S.confirm!=='fmCancel'){S.confirm='fmCancel';render();return}
+    guard(async()=>{await dedCancel(f.id,r);S.confirm=null},()=>t('fm_cancelDone'))},
   fmDecide(el){const f=(S.forms||[]).find(x=>x.id===S.openForm);if(!f)return;const d=S.hrDraft||{};const st=el.dataset.k;
     if(st==='approved'&&!d.emp){toast(t('lr_pickFirst'));return}
     guard(async()=>{await X.upd('forms',f.id,{status:st,emp:d.emp||f.emp||'',hrNote:String(d.hrNote||'').trim(),decidedAt:nowIso()});S.openForm=null;S.hrDraft=null},()=>t(st==='approved'?'fm_approved':'lr_rejected'))},
@@ -369,3 +380,6 @@ document.addEventListener('input',ev=>{const el=ev.target;if(!(S.openForm&&el.da
   if(x[2]&&x[2].days&&(S.hrDraft.type||'deduction')==='deduction'){S.hrDraft.days=x[2].days;const dd=document.getElementById('hr-days');if(dd)dd.value=x[2].days}});
 document.addEventListener('change',ev=>{const el=ev.target;if(el.id==='vcMonth'&&/^[0-9]{4}-[0-9]{2}$/.test(el.value)){S.vcMonth=el.value;render()}});
 
+
+/* cancel an approved deduction (HR, or operations for one it made on a branch visit) */
+async function dedCancel(id,reason){await X.upd('forms',id,{status:'cancelled',cancelReason:reason,cancelledAt:nowIso(),cancelledBy:S.userName||roleL(S.realRole||S.role)})}

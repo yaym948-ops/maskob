@@ -95,6 +95,7 @@ function xLoadDemo(){
   if(typeof xfLoadDemo==='function')xfLoadDemo();
   if(typeof vsLoadDemo==='function')vsLoadDemo();
   if(typeof pmLoadDemo==='function')pmLoadDemo();
+  if(typeof vhLoadDemo==='function')vhLoadDemo();
 }
 /* live subscriptions per role */
 function xStart(){
@@ -174,6 +175,8 @@ function xStart(){
   if(typeof vsStart==='function')vsStart(u,onErr);
   // periodic maintenance and safety dates
   if(typeof pmStart==='function')pmStart(u,onErr);
+  // company vehicles (HR)
+  if(typeof vhStart==='function')vhStart(u,onErr);
 }
 function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.stock={};S.stockMoves=[];S.expenses=[];S.supInv=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 

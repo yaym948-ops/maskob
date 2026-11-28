@@ -308,6 +308,11 @@ service cloud.firestore {
     }
     // ---- branch visits: operations plans and documents them; the branch reads its own once closed ----
     // ---- periodic maintenance and safety: operations writes, each branch reads its own ----
+    // ---- company vehicles: HR only ----
+    match /vehicles/{id} {
+      allow read, write: if isRole('hr');
+      match /photos/{p} { allow read, create, delete: if isRole('hr'); }
+    }
     match /pm/{id} {
       allow read: if isMgr() || brOwn(resource.data.branch);
       allow write: if isMgr();
@@ -395,7 +400,10 @@ service cloud.firestore {
       allow create: if isRole('hr') || (isBranch() && request.resource.data.branch == myBranch() && request.resource.data.status == 'pending' && request.resource.data.by == 'branch')
                     // a warning or deduction decided on a branch visit by operations goes straight to HR as approved
                     || (isMgr() && request.resource.data.by == 'ops' && request.resource.data.status == 'approved' && request.resource.data.type in ['warning', 'deduction'] && request.resource.data.visit is string);
-      allow update: if isRole('hr');
+      allow update: if isRole('hr')
+                    // operations may cancel a deduction it decided on a branch visit
+                    || (isMgr() && resource.data.by == 'ops' && resource.data.type == 'deduction' && resource.data.status == 'approved' && request.resource.data.status == 'cancelled'
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelReason', 'cancelledAt', 'cancelledBy']));
       allow delete: if isRole('hr') || (isBranch() && resource.data.branch == myBranch() && resource.data.status == 'pending');
     }
 

@@ -49,7 +49,9 @@ function visitSheet(){const v=vsById(S.openVs);if(!v)return'';const edit=S.role=
     ${typeof phBlock==='function'?phBlock('visits',v.id,{readOnly:true,title:'vs_photos',branch:v.branch}):''}
     <h4 class="hr-sub">${t('vs_action')}</h4><p>${act?`<span class="pill ${act==='deduction'?'ms-open':'ms-progress'}">${esc(t('vs_a_'+act))}</span> ${esc(v.empName||'')}${act==='deduction'?' · <b class="num">'+esc(sar2(v.amount))+'</b> '+esc(t('sar')):''}`:esc(t('vs_a_none'))}</p>
     ${act&&S.role==='manager'?`<p class="hint">${esc(t(act==='deduction'?'vs_inPayroll':'vs_inHR'))}</p>`:''}
-    ${S.role==='manager'&&act?(wa?`<a class="btn btn-ok" href="${esc(wa)}" target="_blank" rel="noopener">${typeof ico==='function'?ico('send','b-ic'):''}${esc(t('vs_wa'))}</a>`:`<p class="hint">${esc(t('vs_noPhone'))}</p>`):''}`;
+    ${S.role==='manager'&&act==='deduction'&&v.form?(v.dedCancelled?`<div class="box"><b>${t('fm_cancelled')}</b><div dir="auto">${esc(v.cancelReason||'')}</div><div class="hint">${esc(when(v.cancelledAt))}</div></div>`
+      :`<div class="box"><label style="display:block"><span class="hint">${t('fm_cancelReason')}</span><textarea class="field" id="vs-cancel" data-in="vsC" rows="2" dir="auto">${esc(S.vsCancel||'')}</textarea></label><p class="hint">${esc(t('fm_cancelHint'))}</p><div class="row" style="justify-content:flex-end"><button class="btn btn-bad rp-btn" data-act="vsDedCancel">${S.confirm==='vsDedCancel'?t('fm_cancelSure'):t('fm_cancel')}</button></div></div>`):''}
+    ${S.role==='manager'&&act&&!v.dedCancelled?(wa?`<a class="btn btn-ok" href="${esc(wa)}" target="_blank" rel="noopener">${typeof ico==='function'?ico('send','b-ic'):''}${esc(t('vs_wa'))}</a>`:`<p class="hint">${esc(t('vs_noPhone'))}</p>`):''}`;
     return hrSheetWrap(t('vs_title',{b:v.branch}),body,'')}
   const staff=vsStaff(v.branch),act=d.action||'none';
   const body=`<div class="box"><b>${esc(v.branch)}</b> · ${esc(dateLabel(v.date))}</div>
@@ -93,9 +95,13 @@ Object.assign(A,{
           status:'approved',by:'ops',visit:v.id,createdAt:tm,decidedAt:tm})}
       await X.upd('visits',v.id,Object.assign({notes,action:act,staffId:st?st.id:'',emp:st?(st.emp||''):'',empName:st?st.name:'',phone:st?(st.phone||''):'',amount:act==='deduction'?amount:null,form,status:'closed',closedAt:tm,by},n!=null?{photos:n}:{}));
       S.confirm=null},()=>t('vs_closed'))},
+  vsDedCancel(){const v=vsById(S.openVs);if(!v||!v.form||v.dedCancelled)return;const r=String(S.vsCancel||'').trim();if(!r){toast(t('fm_needCancelReason'));return}
+    if(S.confirm!=='vsDedCancel'){S.confirm='vsDedCancel';render();return}
+    guard(async()=>{await dedCancel(v.form,r);await X.upd('visits',v.id,{dedCancelled:true,cancelReason:r,cancelledAt:nowIso()});S.confirm=null;S.vsCancel=''},()=>t('fm_cancelDone'))},
   vsDel(){const v=vsById(S.openVs);if(!v||v.status!=='planned')return;if(S.confirm!=='vsDel'){S.confirm='vsDel';render();return}
     guard(async()=>{await X.del('visits',v.id);S.openVs=null;S.confirm=null},()=>t('li_deleted'))}
 });
 document.addEventListener('input',ev=>{const el=ev.target,k=el.dataset&&el.dataset.in;if(!k)return;
   if(k==='vsF'&&S.vsDraft)S.vsDraft[el.dataset.f]=el.value;
-  else if(k==='vsD'&&S.vsDoc)S.vsDoc[el.dataset.f]=el.value});
+  else if(k==='vsD'&&S.vsDoc)S.vsDoc[el.dataset.f]=el.value;
+  else if(k==='vsC')S.vsCancel=el.value});

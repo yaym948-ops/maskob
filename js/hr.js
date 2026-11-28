@@ -24,9 +24,10 @@ function hrDocAlerts(){
 const leftLabel=n=>n<0?t('hr_daysAgo',{n:-n}):n===0?t('hr_today'):t('hr_daysLeft',{n});
 function hrTabs(){
   const al=hrDocAlerts(),pend=(S.leaves||[]).filter(l=>l.status==='pending').length+(S.leaveReqs||[]).filter(r=>r.status==='pending').length;
-  return[{k:'emps',l:t('tab_emps')},{k:'docs',l:t('tab_docs'),b:al.length,late:al.some(a=>a.left<0)},{k:'leaves',l:t('tab_leaves'),b:pend},{k:'custody',l:t('tab_custody'),b:(S.custody||[]).filter(custOut).length},{k:'advances',l:t('tab_adv'),b:(S.advances||[]).filter(a=>advRemain(a)>0).length},{k:'lic',l:t('tab_lic'),b:(S.licenses||[]).filter(l=>['expired','soon'].includes(licState(l))).length,late:(S.licenses||[]).some(l=>licState(l)==='expired')},{k:'payroll',l:t('tab_pr')},{k:'vouchers',l:t('tab_vc')},{k:'forms',l:t('tab_forms'),b:(S.forms||[]).filter(f=>f.status==='pending').length},...(typeof archiveView==='function'?[{k:'archive',l:t('tab_archive'),b:arcAlerts().length,late:arcAlerts().some(x=>arcExp(x)==='out')}]:[]),...(typeof mailView==='function'?[{k:'mail',l:t('tab_mail'),b:mailUnreadN()}]:[])];
+  return[{k:'emps',l:t('tab_emps')},{k:'docs',l:t('tab_docs'),b:al.length,late:al.some(a=>a.left<0)},{k:'leaves',l:t('tab_leaves'),b:pend},{k:'custody',l:t('tab_custody'),b:(S.custody||[]).filter(custOut).length},{k:'advances',l:t('tab_adv'),b:(S.advances||[]).filter(a=>advRemain(a)>0).length},...(typeof vehiclesView==='function'?[{k:'vehicles',l:t('tab_vehicles'),b:vhAlerts().length,late:vhAlerts().some(v=>vhIssues(v).some(x=>x.late))}]:[]),{k:'lic',l:t('tab_lic'),b:(S.licenses||[]).filter(l=>['expired','soon'].includes(licState(l))).length,late:(S.licenses||[]).some(l=>licState(l)==='expired')},{k:'payroll',l:t('tab_pr')},{k:'vouchers',l:t('tab_vc')},{k:'forms',l:t('tab_forms'),b:(S.forms||[]).filter(f=>f.status==='pending').length},...(typeof archiveView==='function'?[{k:'archive',l:t('tab_archive'),b:arcAlerts().length,late:arcAlerts().some(x=>arcExp(x)==='out')}]:[]),...(typeof mailView==='function'?[{k:'mail',l:t('tab_mail'),b:mailUnreadN()}]:[])];
 }
 function hrView(tb){
+  if(tb==='vehicles'&&typeof vehiclesView==='function')return vehiclesView();
   if(tb==='mail'&&typeof mailView==='function')return mailView();
   if(tb==='archive'&&typeof archiveView==='function')return archiveView();
   if(tb==='docs')return hrDocsView();
