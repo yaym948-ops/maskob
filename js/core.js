@@ -244,7 +244,7 @@ function pinEntries(){
 const hashForKey=key=>{const h=key.startsWith('branch:')?(S.pins.br||{})[key.slice(7)]:S.pins[key];return h&&!String(h).startsWith('off:')?h:undefined};
 S.auth=LS.get('mk.auth',null);
 /* full-access accounts (role 'owner') look at the app as one department or branch at a time */
-function applyOwnerView(){const v=LS.get('mk.ownerView',{role:'dash'})||{role:'dash'};S.realRole='owner';S.role=v.role||'dash';S.branch=v.role==='branch'?(v.branch||S.branches[0]||null):S.branch}
+function applyOwnerView(){const v=LS.get('mk.ownerView',{role:'dash'})||{role:'dash'};S.realRole='owner';S.role=v.role||'dash';S.branch=['branch','cashier','kitchen','display'].includes(v.role)?(v.branch||S.branches[0]||null):S.branch}
 if(S.role==='owner')applyOwnerView();
 function setAuth(a){S.auth=a;LS.set('mk.auth',a)}
 const saveDraft=()=>LS.set('mk.draft',S.draft);
@@ -373,7 +373,7 @@ const Store={
     this.fbStop();
     xStart();
     this._unsubC=db.doc('config/contact').onSnapshot(s=>{S.contact=s.exists?s.data():{};render()},()=>{});
-    if(S.role==='hr'||S.role==='finance'){S.loaded=true;render();return}   // finance: no orders either   // human resources: employees and leave only, no orders
+    if(['hr','finance','cashier','kitchen','display'].includes(S.role)){S.loaded=true;render();return}   // finance: no orders either   // human resources: employees and leave only, no orders
     if(S.role==='admin'){            // system admin: settings only, no orders
       S.loaded=true;
       this._unsubP=db.doc('config/pins').onSnapshot(s=>{S.pins=s.exists?Object.assign({},s.data()):{};S.pinsReadable=true;render()},
@@ -399,7 +399,7 @@ const Store={
     S.role=null;S.realRole=null;S.auth=null;S.userId=null;S.userName=null;LS.set('mk.role',null);S.open=null;S.review=false;S.pad={val:'',step:'enter',first:'',err:''};render();
   },
   async fbTrySession(role,branch,h,user,name){
-    const d={role,h,at:new Date().toISOString()};if(role==='branch')d.branch=branch;if(user){d.user=user;d.name=name||''}
+    const d={role,h,at:new Date().toISOString()};if(['branch','cashier','kitchen','display'].includes(role))d.branch=branch;if(user){d.user=user;d.name=name||''}
     if(role==='owner'){const v=LS.get('mk.ownerView',null);if(v&&v.role==='branch'&&v.branch)d.branch=v.branch}   // the branch the general manager works as
     try{await db.doc('sessions/'+S.uid).set(d);return true}catch(e){return false}
   },
@@ -597,7 +597,7 @@ function renderWho(authed){
   const lo=document.getElementById('logoutBox');
   if(!authed){el.innerHTML='';lo.innerHTML='';const b0=document.getElementById('bellBox');if(b0)b0.innerHTML='';return}
   if(S.realRole==='owner'){const cur=S.role==='branch'?'branch:'+S.branch:S.role;
-    el.innerHTML=`<div class="who ow"><span>${S.userName?`<b>${esc(S.userName)}</b>`:esc(roleL('owner'))}</span><select class="ow-sel" id="ownerView" aria-label="${esc(t('ow_view'))}">${cur.startsWith('branch:')?`<option value="" selected disabled>${esc(t('ow_depts'))}</option>`:''}${['dash','manager','warehouse','hr','finance','admin'].map(r=>`<option value="${r}" ${cur===r?'selected':''}>${esc(roleL(r))}</option>`).join('')}</select>${S.branches.length?`<select class="ow-sel${cur.startsWith('branch:')?' on':''}" id="ownerBranch" aria-label="${esc(t('ow_branches'))}"><option value="" disabled ${cur.startsWith('branch:')?'':'selected'}>${esc(t('ow_branches'))}</option>${S.branches.map(b=>`<option value="branch:${esc(b)}" ${cur==='branch:'+b?'selected':''}>${esc(b)}</option>`).join('')}</select>`:''}</div>`}
+    el.innerHTML=`<div class="who ow"><span>${S.userName?`<b>${esc(S.userName)}</b>`:esc(roleL('owner'))}</span><select class="ow-sel" id="ownerView" aria-label="${esc(t('ow_view'))}">${cur.startsWith('branch:')?`<option value="" selected disabled>${esc(t('ow_depts'))}</option>`:''}${['dash','manager','warehouse','hr','finance','admin','cashier','kitchen','display'].map(r=>`<option value="${r}" ${cur===r?'selected':''}>${esc(roleL(r))}</option>`).join('')}</select>${S.branches.length?`<select class="ow-sel${cur.startsWith('branch:')?' on':''}" id="ownerBranch" aria-label="${esc(t('ow_branches'))}"><option value="" disabled ${cur.startsWith('branch:')?'':'selected'}>${esc(t('ow_branches'))}</option>${S.branches.map(b=>`<option value="branch:${esc(b)}" ${cur==='branch:'+b?'selected':''}>${esc(b)}</option>`).join('')}</select>`:''}</div>`}
   else el.innerHTML=`<div class="who"><span>${S.userName?`<b>${esc(S.userName)}</b> · `:''}${esc(roleL(S.role))}${S.role==='branch'?`: <b>${esc(S.branch||'')}</b>`:''}</span></div>`;
   const bb=document.getElementById('bellBox');if(bb)bb.innerHTML=bellHtml();
   lo.innerHTML=`<button class="logout-btn" data-act="logout">${typeof ico==='function'?ico('logout','b-ic'):''}${esc(t('logout'))}</button>`;
@@ -1168,9 +1168,9 @@ async function guard(fn,ok){
   S.busy=false;render();
 }
 function loginOk(r,h,br,user,name){
-  if(r==='branch'){S.branch=br;LS.set('mk.branch',br)}
+  if(['branch','cashier','kitchen','display'].includes(r)){S.branch=br;LS.set('mk.branch',br)}
   S.userId=user||null;S.userName=name||null;if(name)S.me=name;
-  const a=r==='branch'?{role:r,branch:br,h}:{role:r,h};if(user){a.user=user;a.name=name||''}
+  const a=['branch','cashier','kitchen','display'].includes(r)?{role:r,branch:br,h}:{role:r,h};if(user){a.user=user;a.name=name||''}
   S.role=r;S.realRole=null;LS.set('mk.role',r);setAuth(a);if(r==='owner')applyOwnerView();S.pad={val:'',step:'enter',first:'',err:''};S.tab=null;
   if(S.fb)Store.fbStart();else xLoadDemo();
 }

@@ -16,11 +16,11 @@ function menuGroups(list){const cats=menuCats(),g={};list.forEach(p=>{const k=ca
 
 /* data: demo / live (called from branch.js) */
 function menuLoadDemo(){S.products=MEM('products');const c=MEM('menuCats');S.menuCats=c&&!Array.isArray(c)?c:{};
-  const o=MEM('menuOff');S.menuOff=o&&!Array.isArray(o)?o:{};if(S.role==='branch')S.menuOff={[S.branch]:S.menuOff[S.branch]||{}}}
-function menuStart(u,onErr){if(!['branch','manager'].includes(S.role))return;
+  const o=MEM('menuOff');S.menuOff=o&&!Array.isArray(o)?o:{};if(['branch','cashier','kitchen','display'].includes(S.role))S.menuOff={[S.branch]:S.menuOff[S.branch]||{}}}
+function menuStart(u,onErr){if(!['branch','manager','cashier','kitchen','display'].includes(S.role))return;
   u.push(db.collection('products').onSnapshot(s=>{S.products=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));render()},onErr));
   u.push(db.doc('config/menuCats').onSnapshot(s=>{S.menuCats=s.exists?s.data():{};render()},onErr));
-  if(S.role==='branch'){const b=S.branch;u.push(db.doc('menuOff/'+b).onSnapshot(s=>{S.menuOff={[b]:s.exists?(s.data().items||{}):{}};render()},onErr))}
+  if(['branch','cashier','kitchen','display'].includes(S.role)){const b=S.branch;u.push(db.doc('menuOff/'+b).onSnapshot(s=>{S.menuOff={[b]:s.exists?(s.data().items||{}):{}};render()},onErr))}
   else u.push(db.collection('menuOff').onSnapshot(s=>{const m={};s.docs.forEach(d=>m[d.id]=d.data().items||{});S.menuOff=m;render()},onErr))}
 
 /* ---------- a product card (menu look) ---------- */

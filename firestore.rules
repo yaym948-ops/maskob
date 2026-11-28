@@ -36,7 +36,7 @@ service cloud.firestore {
         && get(userPath(d.user)).data.h == d.h
         && get(userPath(d.user)).data.active == true
         && get(userPath(d.user)).data.role == d.role
-        && (d.role != 'branch' || get(userPath(d.user)).data.branch == d.get('branch', ''));
+        && (!(d.role in ['branch', 'cashier', 'kitchen', 'display']) || get(userPath(d.user)).data.branch == d.get('branch', ''));
     }
     // a session (or a session being created) is backed either by an account or by a shared code
     function codeMatches(d) {
@@ -113,6 +113,8 @@ service cloud.firestore {
     // the general manager acts as the branch it has chosen (stored in its session)
     function isBranch() { return valid() && (sess().role == 'branch' || (sess().role == 'owner' && 'branch' in sess())); }
     function myBranch() { return sess().branch; }
+    // the branch's own cashier, kitchen and order screen (and the branch account, and the general manager)
+    function posOwn(b) { return valid() && ((sess().role in ['cashier', 'kitchen', 'display', 'branch'] && sess().get('branch', '') == b) || sess().role == 'owner'); }
 
     // daily sales: a branch writes and reads its own days; operations reads and corrects all
     match /sales/{id} {
@@ -326,6 +328,34 @@ service cloud.firestore {
     // ---- Foodics sales-by-branch summaries and the branch name map ----
     match /fsales/{id} { allow read: if isRole('finance') || isMgr(); allow write: if isRole('finance'); }
     match /config/foodicsMap { allow read: if isRole('finance') || isMgr(); allow write: if isRole('finance'); }
+    // ---- point of sale ----
+    match /config/payMethods { allow read: if valid(); allow write: if isAdmin(); }
+    match /config/posCfg { allow read: if valid(); allow write: if isAdmin(); }
+    match /posOrders/{id} {
+      allow read: if posOwn(resource.data.branch) || isMgr() || isRole('finance');
+      allow create: if posOwn(request.resource.data.branch);
+      allow update: if posOwn(resource.data.branch) && request.resource.data.branch == resource.data.branch;
+    }
+    match /posSeq/{id} { allow read, write: if posOwn(id.split('_')[0]); }
+    match /posShifts/{id} {
+      allow read: if posOwn(resource.data.branch) || isMgr() || isRole('finance');
+      allow create: if posOwn(request.resource.data.branch);
+      allow update: if posOwn(resource.data.branch) && request.resource.data.branch == resource.data.branch;
+    }
+    // a cashier's closed shift writes the day's sales (a branch closing keeps its figures), the month's item sales and the stock
+    match /sales/{id} {
+      allow read: if posOwn(resource.data.branch);
+      allow create: if posOwn(request.resource.data.branch);
+      allow update: if posOwn(resource.data.branch) && request.resource.data.branch == resource.data.branch
+                    && (!('dsr' in resource.data) || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pos']));
+    }
+    match /psales/{id} {
+      allow read: if posOwn(resource.data.branch);
+      allow create, update: if posOwn(request.resource.data.branch);
+    }
+    match /bstock/{b} { allow read, write: if posOwn(b); }
+    match /bmoves/{id} { allow create: if posOwn(request.resource.data.branch); }
+    match /menuOff/{b} { allow read: if posOwn(b); }
     match /config/supList { allow read: if valid(); allow write: if isRole('finance'); }
     // ---- monthly product sales from Foodics (menu engineering) and the monthly close ----
     match /psales/{id} { allow read, write: if isMgr() || isRole('finance'); }

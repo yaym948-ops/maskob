@@ -7,7 +7,7 @@
    sessions/{uid} gets {user, name} as well; firestore.rules accepts the session only while the
    account exists, is active, and still has that code and role.
    log/{id}:    {at, uid, user, name, role, branch, op, col, doc}  — read by the system admin only. */
-const USER_ROLES=['owner','manager','warehouse','branch','hr','finance','admin'];
+const USER_ROLES=['owner','manager','warehouse','branch','cashier','kitchen','display','hr','finance','admin'];
 const usersList=()=>[...(S.users||[])].sort((a,b)=>(+(b.active!==false)-+(a.active!==false))||String(a.name).localeCompare(String(b.name),'ar'));
 const userRoleL=u=>roleL(u.role)+(u.role==='branch'&&u.branch?': '+u.branch:'');
 
@@ -24,7 +24,7 @@ function usersView(){
 function userSheet(){
   const isNew=S.openUser==='new';const d=S.hrDraft||{};
   const body=`<div class="sl-grid hr-grid">${hrIn('name',t('us_name'))}${hrSel('role',t('us_role'),USER_ROLES.map(r=>[r,roleL(r)]))}
-    ${d.role==='branch'?hrSel('branch',t('r_branch'),S.branches.map(b=>[b,b])):''}
+    ${['branch','cashier','kitchen','display'].includes(d.role)?hrSel('branch',t('r_branch'),S.branches.map(b=>[b,b])):''}
     <label><span class="hint">${esc(isNew?t('us_code'):t('us_newCode'))}</span><input class="field" type="password" inputmode="numeric" id="hr-pin" data-in="hrF" data-f="pin" maxlength="${codeLenSet()||6}" autocomplete="new-password" placeholder="${esc(codePh())}" value="${esc(d.pin||'')}" style="direction:ltr;text-align:center;letter-spacing:.3em"></label></div>
   ${isNew?'':`<div class="kind" style="margin-top:12px">${[['on','es_active'],['off','cat_off']].map(([k,l])=>`<button aria-pressed="${(d.active===false?'off':'on')===k}" data-act="usActive" data-k="${k}">${esc(t(l))}</button>`).join('')}</div>`}
   <p class="hint" style="margin-top:8px">${esc(t(isNew?'us_codeHint':'us_codeKeep'))}</p>`;
@@ -62,7 +62,7 @@ Object.assign(A,{
     const isNew=S.openUser==='new';const id=isNew?'U-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6):S.openUser;
     const old=(S.users||[]).find(x=>x.id===id)||{};const pin=String(d.pin||'').trim();
     if(!name){toast(t('hr_needName'));return}
-    if(role==='branch'&&!S.branches.includes(d.branch)){toast(t('us_pickBranch'));return}
+    if(['branch','cashier','kitchen','display'].includes(role)&&!S.branches.includes(d.branch)){toast(t('us_pickBranch'));return}
     if(isNew&&!pin){toast(codeLenMsg());return}
     let h=old.h;
     if(pin){
@@ -72,7 +72,7 @@ Object.assign(A,{
       h=await hashPin('u',pin);
     }
     const active=isNew?true:d.active!==false,tm=nowIso();
-    const data={name,role,branch:role==='branch'?d.branch:'',h,active,createdAt:old.createdAt||tm,updatedAt:tm};
+    const data={name,role,branch:['branch','cashier','kitchen','display'].includes(role)?d.branch:'',h,active,createdAt:old.createdAt||tm,updatedAt:tm};
     guard(async()=>{
       await X.put('users',id,data);
       if(S.fb){
@@ -104,7 +104,7 @@ A.delShared=function(el){
 
 document.addEventListener('change',async ev=>{
   const el=ev.target;if(!(el.id==='ownerView'||el.id==='ownerBranch')||!el.value||S.realRole!=='owner')return;
-  const v=el.value.startsWith('branch:')?{role:'branch',branch:el.value.slice(7)}:{role:el.value};
+  const v=el.value.startsWith('branch:')?{role:'branch',branch:el.value.slice(7)}:['cashier','kitchen','display'].includes(el.value)?{role:el.value,branch:S.branch||S.branches[0]}:{role:el.value};
   LS.set('mk.ownerView',v);S.role=v.role;if(v.branch)S.branch=v.branch;S.tab=null;S.open=null;S.menuOpen=false;
   if(S.fb){const a=Object.assign({},S.auth||{},{role:'owner',at:nowIso()});delete a.branch;if(v.branch)a.branch=v.branch;
     try{await db.doc('sessions/'+S.uid).set(a);S.auth=a}catch(e){toast(t('noPerm'))}

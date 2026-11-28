@@ -1191,3 +1191,59 @@ test('Foodics in the sales report: a long period shows as its own full table (un
   assert.ok(txt.includes('10,000') || txt.includes('10٬000') || txt.includes('10000'), 'period total shown');
   S.fxPer = null; d.setVal('ownerView', 'dash'); await sleep(200);
 });
+
+test('point of sale: cashier sells (cash with change), kitchen readies, order screen hands over; closing the shift writes sales, item sales and stock', async () => {
+  const d = driver(w), S = w.eval('S'), b = w.eval('S.branches')[0], milk = w.eval('ITEMS[0].id'), today = w.eval('dayKey(Date.now())');
+  w.eval('LS').set('mk.printer', { mode: 'browser', width: 80, autoReceipt: false, autoKitchen: false });
+  w.eval('MEMSET')('products', [{ id: 'P1', name: 'لاتيه', cat: '', price: 16, addons: [], lines: [{ item: milk, qty: 200 }] }, { id: 'P2', name: 'شاي مسكوب', cat: '', price: 6, addons: [{ name: 'نعناع', price: 0 }, { name: 'زجاج', price: 2 }], lines: [] }]);
+  w.eval('MEMSET')('invUnits', { units: ['مل'], items: { [milk]: { rUnit: 'مل', rPer: 1000 } } });
+  for (const k of ['posOrders', 'posShifts', 'psales', 'bmoves']) w.eval('MEMSET')(k, []);
+  w.eval('MEMSET')('posSeq', {}); w.eval('MEMSET')('bstock', { [b]: { [milk]: 10 } });
+  w.eval('MEMSET')('sales', w.eval('MEM')('sales').filter((r) => !(r.branch === b && r.date === today)));
+  await d.signIn('9191');
+  d.setVal('ownerBranch', 'branch:' + b); await sleep(200);
+  d.setVal('ownerView', 'cashier'); await sleep(200);
+  assert.equal(w.eval('S.role'), 'cashier'); assert.equal(w.eval('S.branch'), b);
+  d.click('[data-act="tab"][data-k="pos"]');
+  w.document.getElementById('posOpenCash').value = '100'; d.click('[data-act="posOpenShift"]'); await sleep(200);
+  assert.ok(w.eval('posOpenShift()'), 'shift open');
+  d.click('[data-act="posAdd"][data-id="P1"]'); d.click('[data-act="posAdd"][data-id="P1"]');
+  d.click('[data-act="posAdd"][data-id="P2"]'); await sleep(20);
+  d.click('[data-act="posAddonT"][data-i="0"]'); d.click('[data-act="posAddonT"][data-i="1"]'); d.click('[data-act="posPickAdd"]');
+  assert.equal(w.eval('cartTotal(S.posCart)'), 40, '2 × 16 + (6 + 2)');
+  d.click('[data-act="posPayOpen"]'); d.click('[data-act="posPayM"][data-k="cash"]'); d.click('[data-act="posCashFast"][data-k="50"]'); await sleep(20);
+  d.click('[data-act="posPayDone"]'); await sleep(300);
+  const o = w.eval('S.posOrders')[0];
+  assert.equal(o.no, 1); assert.equal(o.total, 40); assert.equal(o.change, 10); assert.ok(Math.abs(o.vat - 5.22) < 0.01, 'VAT inside the total');
+  // kitchen, then the hand-off screen
+  d.setVal('ownerView', 'kitchen'); await sleep(200);
+  d.click('[data-act="tab"][data-k="kds"]'); d.click('[data-act="kdsSet"][data-k="ready"]'); await sleep(200);
+  d.setVal('ownerView', 'display'); await sleep(200);
+  d.click('[data-act="tab"][data-k="ods"]'); d.click('[data-act="odsDone"]'); await sleep(200);
+  assert.equal(w.eval('S.posOrders')[0].status, 'done');
+  // close the shift
+  d.setVal('ownerView', 'cashier'); await sleep(200);
+  d.click('[data-act="tab"][data-k="posShift"]'); S.posCounted = '140';
+  d.click('[data-act="posCloseShift"]'); d.click('[data-act="posCloseShift"]'); await sleep(500);
+  const sale = w.eval('MEM')('sales').find((r) => r.id === b + '_' + today);
+  assert.ok(sale && sale.sales === 40 && sale.invoices === 1 && sale.pos.m.cash === 40, 'day sales written (cash net of change)');
+  const ps = w.eval('MEM')('psales').find((x) => x.id === b + '_' + today.slice(0, 7));
+  assert.equal(ps.rows.find((r) => r.pid === 'P1').qty, 2);
+  assert.equal(w.eval('MEM')('bstock')[b][milk], 9.6, '2 lattes × 200 ml = 0.4 off');
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});
+
+test('invoice QR (ZATCA phase 1 TLV) and thermal raster encoding', () => {
+  const b64 = w.eval('zatcaTLV')('مسكوب', '300000000000003', '2026-11-28T10:00:00Z', 40, 5.22);
+  const bytes = Uint8Array.from(Buffer.from(b64, 'base64'));
+  assert.equal(bytes[0], 1); const nameLen = bytes[1];
+  assert.equal(Buffer.from(bytes.slice(2, 2 + nameLen)).toString('utf8'), 'مسكوب');
+  let i = 2 + nameLen; assert.equal(bytes[i], 2); assert.equal(Buffer.from(bytes.slice(i + 2, i + 2 + bytes[i + 1])).toString(), '300000000000003');
+  const tags = []; i = 0; while (i < bytes.length) { tags.push(bytes[i]); i += 2 + bytes[i + 1]; }
+  assert.equal(tags.join(), '1,2,3,4,5');
+  // a 16×2 canvas: left half black
+  const data = new Uint8ClampedArray(16 * 2 * 4); for (let y = 0; y < 2; y++) for (let x = 0; x < 8; x++) { const k = (y * 16 + x) * 4; data[k + 3] = 255; }
+  const out = w.eval('escposRaster')({ width: 16, height: 2, getContext: () => ({ getImageData: () => ({ data }) }) });
+  assert.equal(JSON.stringify([...out.slice(0, 10)]), JSON.stringify([0x1b, 0x40, 0x1d, 0x76, 0x30, 0, 2, 0, 2, 0]), 'init + GS v 0 header');
+  assert.equal(JSON.stringify([...out.slice(10, 14)]), JSON.stringify([0xff, 0x00, 0xff, 0x00]), 'black left byte, white right byte');
+});
