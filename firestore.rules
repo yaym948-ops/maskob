@@ -296,6 +296,11 @@ service cloud.firestore {
     }
     // ---- branch stock, production and counts; recipes, made items and units (operations) ----
     function brOwn(b) { return isBranch() && myBranch() == b; }
+    match /config/invUnits { allow read: if valid(); allow write: if isMgr(); }
+    // ---- products menu: operations writes it, every signed-in role reads it; each branch marks its own unavailable items ----
+    match /products/{id} { allow read: if valid(); allow write: if isMgr(); }
+    match /config/menuCats { allow read: if valid(); allow write: if isMgr(); }
+    match /menuOff/{b} { allow read, write: if isMgr() || brOwn(b); }
     match /invItems/{id} { allow read: if valid(); allow write: if isMgr(); }
     match /recipes/{id} { allow read: if valid(); allow write: if isMgr(); }
     match /bstock/{b} { allow read, write: if isMgr() || brOwn(b) || isRole('warehouse'); }

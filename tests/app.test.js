@@ -824,3 +824,34 @@ test('stock: operations sets units, a made item and a recipe; the branch receive
   w.eval('render()'); assert.ok(w.document.querySelector('#bellBox .bell-btn'), 'bell shown');
   d.setVal('ownerView', 'dash'); await sleep(200);
 });
+
+test('products menu: operations adds a product with add-ons; the branch sees it and only marks it unavailable with a reason', async () => {
+  const d = driver(w), S = w.eval('S');
+  w.eval('MEMSET')('products', []); w.eval('MEMSET')('menuCats', {}); w.eval('MEMSET')('menuOff', {});
+  await d.signIn('9191');
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  w.eval('menuSaveCats')(['مشروبات حارة']); await sleep(200);
+  d.click('[data-act="tab"][data-k="products"]'); d.click('[data-act="pdNew"]'); await sleep(20);
+  d.setVal('pd-name', 'لاتيه'); d.setVal('pd-cat', 'مشروبات حارة'); d.setVal('pd-price', '16');
+  d.click('[data-act="pdAAdd"]'); d.click('[data-act="pdAAdd"]');
+  Object.assign(S.pdDraft.addons[0], { name: 'شوت إضافي', price: '3' }); Object.assign(S.pdDraft.addons[1], { name: 'قرفة', price: '' });
+  d.click('[data-act="pdSave"]'); await sleep(200);
+  const p = w.eval('S.products')[0];
+  assert.equal(p.price, 16); assert.equal(JSON.stringify(p.addons), JSON.stringify([{ name: 'شوت إضافي', price: 3 }, { name: 'قرفة', price: 0 }]), 'empty add-on price is 0');
+  d.setVal('ownerBranch', 'branch:القطيف'); await sleep(200);
+  d.click('[data-act="tab"][data-k="menu"]');
+  assert.ok(w.document.querySelector('.mn-card'), 'menu card shown');
+  assert.ok(!w.document.querySelector('[data-act="pdOpen"]'), 'branch cannot edit');
+  d.click('[data-act="mnOffOpen"]'); await sleep(20);
+  d.click('[data-act="mnOffSave"]'); await sleep(50);
+  assert.equal(Object.keys(w.eval('menuOffOf')('القطيف')).length, 0, 'reason required');
+  d.click('[data-act="mnReasonPick"][data-k="mn_r1"]'); d.click('[data-act="mnOffSave"]'); await sleep(200);
+  assert.ok(w.eval('menuOffOf')('القطيف')[p.id], 'marked unavailable');
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  assert.equal(w.eval('menuOffAll()').length, 1, 'operations sees it');
+  assert.ok(w.eval('bellItems()').some((x) => x.k === 'menuOff'), 'the bell counts it');
+  d.setVal('ownerBranch', 'branch:القطيف'); await sleep(200);
+  d.click('[data-act="tab"][data-k="menu"]'); d.click('[data-act="mnOn"]'); await sleep(200);
+  assert.equal(Object.keys(w.eval('menuOffOf')('القطيف')).length, 0, 'available again');
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});

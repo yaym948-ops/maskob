@@ -129,7 +129,7 @@ function recipeSheet(){const d=S.rcDraft||{lines:[]},isNew=S.openRc==='new',ids=
   <h4 class="hr-sub">${t('inv_ingredients')}</h4>
   ${(d.lines||[]).map((l,i)=>`<div class="row" style="gap:8px;margin-top:6px"><select class="field" data-in="rcL" data-i="${i}" data-f="item" style="flex:2"><option value="">${esc(t('inv_pick'))}</option>${ids.map(id=>`<option value="${esc(id)}" ${l.item===id?'selected':''}>${esc(invItem(id).name)}</option>`).join('')}</select>
     <input class="field num" data-in="rcL" data-i="${i}" data-f="qty" inputmode="decimal" dir="ltr" value="${esc(l.qty??'')}" placeholder="0" style="flex:1;min-width:80px"><span class="hint" style="min-width:52px">${esc(l.item?invRUnit(l.item):'')}</span>
-    <button class="btn btn-ghost rp-btn" data-act="rcLDel" data-i="${i}" aria-label="${esc(t('del'))}">×</button></div>`).join('')}
+    <button class="btn btn-ghost rp-btn" data-act="rcLDel" data-i="${i}" aria-label="${esc(t('del'))}" title="${esc(t('del'))}"></button></div>`).join('')}
   <button class="btn btn-ghost rp-btn" data-act="rcLAdd" style="margin-top:8px">+ ${t('inv_addLine')}</button>`;
   const foot=`${isNew?'':`<button class="btn btn-bad" data-act="rcDel">${S.confirm==='rcDel'?t('li_delConfirm'):t('del')}</button>`}<span class="spacer"></span><button class="btn btn-sun" data-act="rcSave" ${S.busy?'disabled':''}>${t('waSave')}</button>`;
   return hrSheetWrap(isNew?t('inv_newRecipe'):(d.name||''),body,foot)}

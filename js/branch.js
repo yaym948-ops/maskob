@@ -91,6 +91,7 @@ function xLoadDemo(){
   if(typeof arcLoadDemo==='function')arcLoadDemo();
   if(typeof mailLoadDemo==='function')mailLoadDemo();
   if(typeof invLoadDemo==='function')invLoadDemo();
+  if(typeof menuLoadDemo==='function')menuLoadDemo();
 }
 /* live subscriptions per role */
 function xStart(){
@@ -162,6 +163,8 @@ function xStart(){
   if(typeof mailStart==='function')mailStart(u,onErr);
   // branch stock, production and counts; recipes, made items and units from operations
   if(typeof invStart==='function')invStart(u,onErr);
+  // the products menu and what each branch has marked unavailable
+  if(typeof menuStart==='function')menuStart(u,onErr);
 }
 function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S.stock={};S.stockMoves=[];S.expenses=[];S.supInv=[];S._hrEmpsIn=S._hrStaffIn=false;S.emps=[];S.leaves=[];S.custody=[];S.advances=[];S.licenses=[];S.leaveReqs=[];S.staff=[];S.shifts=[];S.vouchers=[];S.forms=[];S.payroll=[];S.sales=[];S.maint=[];S.checks=[];S.targets={};S.checklist=null}
 
