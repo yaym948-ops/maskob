@@ -1167,3 +1167,8 @@ test('Foodics sales-by-branch report: a day becomes daily sales (own closing kep
   assert.equal(R.f.netVat, 990); assert.equal(R.f.orders, 70);
   d.setVal('ownerView', 'dash'); await sleep(200);
 });
+
+test('Foodics report through the general import menu of the sales report goes to the Foodics import', async () => {
+  const src = w.eval('ioRead.toString()');
+  assert.ok(src.includes('fxParse') && src.includes('fxImport'), 'the general sales import recognises the Foodics report');
+});

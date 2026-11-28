@@ -130,6 +130,10 @@ async function ioRead(k,file){
   let aoa;
   try{const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''})}
   catch(e){toast(t('io_readFail'));return}
+  /* the Foodics "sales by branch" report goes through its own import, whichever button it came from */
+  if(k==='sales'&&typeof fxParse==='function'&&typeof fxImport==='function'){const fx=fxParse(aoa.map(r=>r.map(v=>v==null?'':String(v))));
+    if(fx&&fx.rows.length){try{const r=await fxImport(file);toast(t(r.day?'fx_doneDay':'fx_donePeriod',{n:r.n})+(r.unmatched?' · '+t('fx_unmatched',{n:r.unmatched}):''));if(!r.day)S.slView='sum'}
+      catch(e){toast(t(String(e&&e.message)==='range'?'fx_noRange':'saveFail'))}render();return}}
   const known=new Set(def.cols.flatMap(c=>[c[0].toLowerCase(),...labelsOf(c[1])]));
   let hi=-1,best=0;
   aoa.slice(0,25).forEach((r,i)=>{const n=r.filter(v=>known.has(normH(v))).length;if(n>best){best=n;hi=i}});
