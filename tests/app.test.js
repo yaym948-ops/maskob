@@ -935,8 +935,10 @@ test('products menu: the printed Maskob menu is added in one tap (smallest size 
   d.click('[data-act="menuSeed"]'); d.click('[data-act="menuSeed"]'); await sleep(800);
   const P = w.eval('S.products'), n = w.eval('MENU_SEED.length');
   assert.equal(P.length, n, 'all printed items added');
-  const mint = P.find((p) => p.name === 'نعناع');
-  assert.equal(mint.price, 6); assert.equal(JSON.stringify(mint.addons), JSON.stringify([{ name: 'ورق كبير', price: 1 }, { name: 'زجاج', price: 2 }]));
+  assert.ok(!P.some((p) => ['نعناع', 'حبق', 'وزاب'].includes(p.name)), 'flavours are not products');
+  const tea = P.find((p) => p.name === 'شاي مسكوب');
+  assert.equal(tea.price, 6); assert.equal(JSON.stringify(tea.addons), JSON.stringify([{ name: 'نعناع', price: 0 }, { name: 'حبق', price: 0 }, { name: 'وزاب', price: 0 }, { name: 'ورق كبير', price: 1 }, { name: 'زجاج', price: 2 }]));
+  assert.ok(P.some((p) => p.name === 'عراقي' && p.price === 7), 'other teas stay products');
   assert.equal(w.eval('menuCats()')[0], 'شاي مسكوب');
   w.eval('render()'); assert.ok(!w.document.querySelector('[data-act="menuSeed"]'), 'button gone once added');
   d.setVal('ownerView', 'dash'); await sleep(200);
@@ -1116,4 +1118,33 @@ test('product cost sheet: stock and typed components, VAT columns; item sales ta
   d.click('[data-act="tab"][data-k="salesAll"]'); d.click('[data-act="slView"][data-k="days"]');
   assert.ok(w.eval('ioCan')('sales') && w.eval('ioCan')('payroll'), 'finance imports/exports sales and exports payroll');
   S.slView = 'sum'; d.setVal('ownerView', 'dash'); await sleep(200);
+});
+
+test('menu fix: old mint/basil/wazzab products become free add-ons of Maskob tea; product cost and production recipes import from the exported Excel layout', async () => {
+  const d = driver(w), S = w.eval('S'), milk = w.eval('ITEMS[0].id'), milkName = w.eval('invItem(ITEMS[0].id).name');
+  w.eval('MEMSET')('products', [
+    { id: 'A1', name: 'نعناع', cat: 'شاي مسكوب', price: 6, addons: [{ name: 'ورق كبير', price: 1 }, { name: 'زجاج', price: 2 }] },
+    { id: 'A2', name: 'حبق', cat: 'شاي مسكوب', price: 6, addons: [] }, { id: 'A3', name: 'وزاب', cat: 'شاي مسكوب', price: 6, addons: [] },
+    { id: 'A4', name: 'عراقي', cat: 'شاي مسكوب', price: 7, addons: [] }]);
+  w.eval('MEMSET')('recipes', []); w.eval('MEMSET')('invItems', []); w.eval('MEMSET')('costs', { [milk]: 12 }); w.eval('MEMSET')('invUnits', { units: ['مل'], items: { [milk]: { rUnit: 'مل', rPer: 1000 } } });
+  await d.signIn('9191');
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  d.click('[data-act="tab"][data-k="products"]'); d.click('[data-act="menuFixFlavours"]'); await sleep(400);
+  const P = w.eval('S.products'), tea = P.find((p) => p.name === 'شاي مسكوب');
+  assert.ok(tea && !P.some((p) => ['نعناع', 'حبق', 'وزاب'].includes(p.name)), 'merged into Maskob tea');
+  assert.deepEqual(tea.addons.map((a) => a.name).join(), 'نعناع,حبق,وزاب,ورق كبير,زجاج');
+  assert.ok(tea.addons.slice(0, 3).every((a) => a.price === 0), 'flavours free');
+  assert.ok(P.some((p) => p.name === 'عراقي'), 'Iraqi tea stays');
+  // import: products sheet + recipes sheet in the exported layout
+  const R = w.eval('pcParse')([
+    [['المنتج', 'المكوّن', 'الكمية', 'الوحدة', 'سعر الوحدة', 'الإجمالي قبل الضريبة'], ['عراقي', milkName, 150, 'مل', 0.012, 1.8], ['عراقي', 'كوب ورقي', 1, 'حبة', 0.35, 0.35], ['عراقي', 'تكلفة المنتج', '', '', '', 2.15], ['غير موجود', milkName, 1, 'مل', '', 0]],
+    [['الوصفة', 'الصنف الناتج', 'وحدة الناتج', 'الناتج للدفعة', 'المكوّن', 'الكمية'], ['شاي عراقي مركز', 'شاي مركز', 'لتر', 5, milkName, 2000], ['شاي عراقي مركز', 'شيء مجهول', 'لتر', 5, 'xyz', 1]]]);
+  assert.equal(JSON.stringify(R.products['عراقي']), JSON.stringify([{ item: milk, qty: 150 }, { name: 'كوب ورقي', unit: 'حبة', qty: 1, price: 0.35 }]), 'auto price not frozen, typed price kept');
+  assert.equal(R.recipes['شاي عراقي مركز'].lines.length, 1); assert.ok(R.skipped.length === 1, 'unknown component reported');
+  // the full import writes them
+  w.eval('window').__pcR = R;
+  const res = await w.eval(`(async()=>{const P=window.__pcR,tm=nowIso();for(const name of Object.keys(P.products)){const p=(S.products||[]).find(x=>meNorm(x.name)===meNorm(name));if(p)await X.upd('products',p.id,{lines:P.products[name],updatedAt:tm})}return true})()`);
+  assert.ok(res);
+  assert.ok(Math.abs(w.eval('prodCost')(w.eval('S.products').find((p) => p.name === 'عراقي')) - 2.15) < 1e-9, '150 ml × 0.012 + 0.35');
+  d.setVal('ownerView', 'dash'); await sleep(200);
 });
