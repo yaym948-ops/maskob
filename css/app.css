@@ -873,3 +873,23 @@ body{background:var(--bg) var(--grad-page) fixed no-repeat;background-size:100% 
 .id-scan{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:var(--soft);margin-bottom:12px}
 .id-scan .busy{opacity:.7;pointer-events:none}
 .id-res{flex-basis:100%;font-size:13.5px}
+
+/* ---------- indicators, menu engineering, cash ---------- */
+.kpi-v{font-weight:700;padding:1px 6px;border-radius:6px}
+.kpi-v.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.kpi-v.mid{color:#b86b00;background:color-mix(in srgb,#f0a020 16%,transparent)}
+.kpi-v.bad{color:var(--late);background:color-mix(in srgb,var(--late) 12%,transparent)}
+.stat.bad b{color:var(--late)}
+.kpi-ranges{display:flex;flex-wrap:wrap;gap:6px}
+.me-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.me-box{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--card)}
+.me-box>b{font-size:15px}
+.me-star{border-color:color-mix(in srgb,var(--ok) 50%,var(--line))}
+.me-horse{border-color:color-mix(in srgb,#f0a020 50%,var(--line))}
+.me-puzzle{border-color:color-mix(in srgb,var(--navy) 40%,var(--line))}
+.me-dog{border-color:color-mix(in srgb,var(--late) 45%,var(--line))}
+.me-it{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;padding:3px 0;border-top:1px dashed var(--line)}
+.me-t-star{background:color-mix(in srgb,var(--ok) 14%,transparent)}.me-t-horse{background:color-mix(in srgb,#f0a020 18%,transparent)}.me-t-dog{background:color-mix(in srgb,var(--late) 14%,transparent)}
+.cf-order{margin:6px 0;padding-inline-start:22px;line-height:1.9}
+.link{border:0;background:transparent;color:var(--navy);text-decoration:underline;cursor:pointer;font:inherit;padding:0}
+@media (max-width:560px){.me-grid{grid-template-columns:1fr}}

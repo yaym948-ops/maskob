@@ -284,11 +284,11 @@ test('finance department: expenses, supplier invoice paid by voucher, monthly su
   await d.signIn('6060');
   assert.equal(w.eval('S.role'), 'finance');
   const tabs = [...w.document.querySelectorAll('#tabsIn [data-act="tab"]')].map((b) => b.dataset.k);
-  assert.deepEqual(tabs, ['fsum', 'salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'expenses', 'suppliers', 'apps', 'vouchers', 'advances', 'costs', 'assets', 'archive', 'mail']);
+  assert.deepEqual(tabs, ['fsum', 'salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'kpi', 'menuEng', 'cash', 'expenses', 'suppliers', 'apps', 'vouchers', 'advances', 'costs', 'assets', 'poMatch', 'close', 'archive', 'mail']);
   // the reports sit in one group of the side menu, closed until opened
   const grp = w.document.querySelector('#tabsIn [data-act="navGrp"]');
   assert.ok(grp, 'reports group shown');
-  assert.deepEqual([...w.document.querySelectorAll('#tabsIn .tab-sub [data-act="tab"]')].map((b) => b.dataset.k), ['salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst']);
+  assert.deepEqual([...w.document.querySelectorAll('#tabsIn .tab-sub [data-act="tab"]')].map((b) => b.dataset.k), ['salesLog', 'supinv', 'payroll', 'pnl', 'be', 'supst', 'kpi', 'menuEng', 'cash']);
   assert.ok(w.document.querySelector('#tabsIn .tab-sub').hidden, 'group closed');
   d.click('[data-act="navGrp"]'); assert.ok(!w.document.querySelector('#tabsIn .tab-sub').hidden, 'group opens');
   d.click('[data-act="navGrp"]');
@@ -1025,4 +1025,65 @@ test('vehicles: HR adds a vehicle with documents; oil change and expiry alerts; 
   d.setVal('vhe-km', '50400'); d.setVal('vhe-amount', '120'); d.click('[data-act="vhAdd"]'); await sleep(300);
   assert.equal(w.eval('S.vehicles')[0].km, 50400, 'odometer follows the fill-up');
   d.click('[data-act="close"]'); d.setVal('ownerView', 'dash'); await sleep(200);
+});
+
+test('book features: indicators, item cost and menu engineering, stock value, purchase order three-way match, cash forecast, monthly close', async () => {
+  const d = driver(w), S = w.eval('S'), b = w.eval('S.branches')[0], mk = w.eval('monthKey(Date.now())');
+  const milk = w.eval('ITEMS[0].id');
+  // ---- purchase order: branch → operations → branch receives → finance matches ----
+  w.eval('MEMSET')('pos', []); w.eval('MEMSET')('supList', { list: [{ id: 'SP1', name: 'مورد الحليب', phone: '0551112222' }] });
+  w.eval('MEMSET')('bstock', {}); w.eval('MEMSET')('bmoves', []);
+  await d.signIn('9191');
+  d.setVal('ownerBranch', 'branch:' + b); await sleep(200);
+  d.click('[data-act="tab"][data-k="orders"]'); d.click('[data-act="poNew"]'); await sleep(20);
+  d.setVal('po-sup', 'SP1'); Object.assign(S.poDraft.lines[0], { item: milk, qty: '10', price: '20' });
+  d.click('[data-act="poSend"]'); await sleep(300);
+  let p = w.eval('S.pos')[0];
+  assert.equal(p.status, 'pending'); assert.equal(p.supplier, 'مورد الحليب');
+  assert.ok(w.eval('poWaLink')(p).startsWith('https://wa.me/966551112222?text='), 'WhatsApp list to the supplier');
+  d.click('[data-act="close"]');
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  assert.ok(w.eval('bellItems()').some((x) => x.k === 'poAll'), 'operations bell');
+  d.click('[data-act="tab"][data-k="poAll"]'); d.click('[data-act="poOpen"]'); await sleep(20);
+  d.click('[data-act="poApprove"]'); await sleep(200);
+  d.setVal('ownerBranch', 'branch:' + b); await sleep(200);
+  d.click('[data-act="tab"][data-k="orders"]'); d.click('[data-act="poOpen"]'); await sleep(20);
+  S.poEdit = { r0: '9' }; d.click('[data-act="poRecv"]'); await sleep(300);
+  assert.equal(w.eval('invQty')(b, milk), 9, 'received items added to branch stock');
+  d.click('[data-act="close"]');
+  w.eval('MEMSET')('supInvoices', [{ id: 'SI-1', supplier: 'مورد الحليب', supplierId: 'SP1', number: '77', date: w.eval('dayKey(Date.now())'), amount: 180, vat: 0, payments: [], status: 'open' }]);
+  d.setVal('ownerView', 'finance'); await sleep(300);
+  d.click('[data-act="tab"][data-k="poMatch"]'); d.click('[data-act="poOpen"]'); await sleep(20);
+  S.poEdit = { invoice: 'SI-1' }; w.eval('render()');
+  assert.ok(w.document.querySelector('#sheet').textContent.includes(w.eval("t('po_matchDiff')")), 'order 200 vs received 180 → flagged');
+  d.click('[data-act="poMatch"]'); await sleep(200);
+  assert.equal(w.eval('S.pos')[0].status, 'matched');
+  d.click('[data-act="close"]');
+  // ---- indicators ----
+  const k = w.eval('kpiCalc')(mk).find((r) => r.b === b);
+  assert.ok(k && 'splh' in k && 'cogs' in k, 'indicators for the branch');
+  assert.equal(w.eval('shiftHours')('22:00-06:00'), 8, 'overnight shift');
+  // ---- menu engineering ----
+  const rows = w.eval('meParse')([['Name', 'Quantity', 'Net Sales'], ['لاتيه', 100, 1400], ['Total', 100, 1400]]);
+  assert.equal(JSON.stringify(rows), JSON.stringify([{ name: 'لاتيه', qty: 100, sales: 1400 }]));
+  w.eval('MEMSET')('products', [{ id: 'P1', name: 'لاتيه', price: 16.1, lines: [{ item: milk, qty: 1 }], addons: [] }, { id: 'P2', name: 'شاي', price: 5.75, lines: [], addons: [] }]);
+  w.eval('MEMSET')('costs', { [milk]: 2 }); w.eval('MEMSET')('invUnits', {});
+  w.eval('MEMSET')('psales', [{ id: b + '_' + mk, branch: b, month: mk, rows: [{ name: 'لاتيه', qty: 100, pid: 'P1' }, { name: 'شاي', qty: 300, pid: 'P2' }] }]);
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  assert.equal(w.eval('prodCost')(w.eval('S.products')[0]), 2);
+  assert.ok(Math.abs(w.eval('prodMargin')(w.eval('S.products')[0]) - 12) < 0.01, 'margin 14 − 2');
+  const E = w.eval('meRows')(mk, '');
+  assert.equal(E.L.find((x) => x.p.id === 'P1').cls, 'puzzle', 'high margin, fewer sold');
+  assert.equal(E.L.find((x) => x.p.id === 'P2').cls, 'horse', 'many sold, low margin');
+  // ---- stock value ----
+  const sv = w.eval('svRows')(b).find((x) => x.id === milk);
+  assert.equal(sv.value, 18, '9 × 2 SAR');
+  // ---- cash forecast and close ----
+  d.setVal('ownerView', 'finance'); await sleep(200);
+  const C = w.eval('cfCalc')();
+  assert.equal(C.weeks.length, 13);
+  assert.ok(C.weeks.some((x) => x.sup === 180), 'unpaid supplier invoice in its week');
+  d.click('[data-act="tab"][data-k="close"]'); d.click('[data-act="clTick"][data-k="bank"]'); await sleep(200);
+  assert.equal(w.eval('S.closes').length, 1);
+  d.setVal('ownerView', 'dash'); await sleep(200);
 });

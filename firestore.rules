@@ -212,7 +212,7 @@ service cloud.firestore {
     }
     // branch staff list (no salaries): the branch manages its own; HR and operations read
     match /staff/{id} {
-      allow read: if isRole('hr') || isMgr() || (isBranch() && resource.data.branch == myBranch());
+      allow read: if isRole('hr') || isMgr() || isRole('finance') || (isBranch() && resource.data.branch == myBranch());
       // entries copied from HR (fromHR) can only be changed by HR
       allow create: if isRole('hr') || (isBranch() && request.resource.data.branch == myBranch() && !request.resource.data.get('fromHR', false));
       allow update: if isRole('hr') || (isBranch() && resource.data.branch == myBranch() && !resource.data.get('fromHR', false) && request.resource.data.branch == myBranch() && !request.resource.data.get('fromHR', false));
@@ -220,7 +220,7 @@ service cloud.firestore {
     }
     // weekly shift schedule per branch
     match /shifts/{id} {
-      allow read: if isRole('hr') || isMgr() || (isBranch() && resource.data.branch == myBranch());
+      allow read: if isRole('hr') || isMgr() || isRole('finance') || (isBranch() && resource.data.branch == myBranch());
       allow create: if isBranch() && request.resource.data.branch == myBranch();
       allow update: if isBranch() && resource.data.branch == myBranch() && request.resource.data.branch == myBranch();
       allow delete: if isMgr();
@@ -309,6 +309,24 @@ service cloud.firestore {
     // ---- branch visits: operations plans and documents them; the branch reads its own once closed ----
     // ---- periodic maintenance and safety: operations writes, each branch reads its own ----
     // ---- company vehicles: HR only ----
+    // ---- purchase orders: the branch orders, operations approves, the branch receives, finance matches ----
+    match /pos/{id} {
+      allow read: if isMgr() || isRole('finance') || brOwn(resource.data.branch);
+      allow create: if brOwn(request.resource.data.branch) && request.resource.data.status == 'pending';
+      allow update: if (isMgr() && resource.data.status == 'pending' && request.resource.data.status in ['approved', 'rejected'])
+                    || (brOwn(resource.data.branch) && resource.data.status == 'approved' && request.resource.data.status == 'received'
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lines', 'status', 'recvAt', 'recvBy', 'recvNote']))
+                    || (isRole('finance') && resource.data.status == 'received' && request.resource.data.status == 'matched'
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'invoice', 'matchAt', 'matchBy', 'matchNote']));
+      match /photos/{p} {
+        allow read: if isMgr() || isRole('finance') || brOwn(resource.data.branch);
+        allow create: if brOwn(request.resource.data.branch) || isMgr();
+      }
+    }
+    match /config/supList { allow read: if valid(); allow write: if isRole('finance'); }
+    // ---- monthly product sales from Foodics (menu engineering) and the monthly close ----
+    match /psales/{id} { allow read, write: if isMgr() || isRole('finance'); }
+    match /closes/{id} { allow read, write: if isRole('finance'); }
     match /vehicles/{id} {
       allow read, write: if isRole('hr');
       match /photos/{p} { allow read, create, delete: if isRole('hr'); }

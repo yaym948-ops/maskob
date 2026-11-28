@@ -43,7 +43,7 @@ function invStart(u,onErr){if(!['branch','manager'].includes(S.role))return;
   if(S.role==='branch'){const b=S.branch;
     u.push(db.doc('bstock/'+b).onSnapshot(s=>{S.bstock={[b]:s.exists?(s.data().items||{}):{}};render()},onErr));
     for(const [col,key] of [['bmoves','bmoves'],['prods','prods'],['bcounts','bcounts']])list(db.collection(col).where('branch','==',b),key)}
-  else{u.push(db.collection('bstock').onSnapshot(s=>{const m={};s.docs.forEach(d=>m[d.id]=d.data().items||{});S.bstock=m;render()},onErr));
+  else{list(db.collection('bmoves'),'bmoves');u.push(db.collection('bstock').onSnapshot(s=>{const m={};s.docs.forEach(d=>m[d.id]=d.data().items||{});S.bstock=m;render()},onErr));
     for(const [col,key] of [['prods','prods'],['bcounts','bcounts']])list(db.collection(col),key)}}
 
 /* ---------- branch: stock ---------- */
@@ -89,10 +89,10 @@ function invProdView(){
 function invCountView(){
   const b=S.branch,st=(S.bstock||{})[b]||{},d=S.countDraft||(S.countDraft={});
   const ids=[...new Set([...Object.keys(st),...(S.recipes||[]).flatMap(r=>[r.out,...(r.lines||[]).map(l=>l.item)])])].filter(Boolean);
-  const rows=ids.map(invItem).sort((a,c)=>a.name.localeCompare(c.name,'ar'));
+  const hv=typeof svHv==='function'?svHv():[],rows=ids.filter(id=>!S.countHvOnly||hv.includes(id)).map(invItem).sort((a,c)=>a.name.localeCompare(c.name,'ar'));
   const last=[...(S.bcounts||[])].sort((a,c)=>String(c.at).localeCompare(String(a.at)));
   return`<div class="row" style="justify-content:space-between"><h2>${t('tab_count')}</h2><button class="btn btn-sun" data-act="countSave" ${S.busy?'disabled':''}>${t('inv_countSave')}</button></div>
-  <p class="hint">${esc(t('inv_countHint'))}</p>
+  <p class="hint">${esc(t('inv_countHint'))}</p>${hv.length?`<div class="filters"><button class="chip" aria-pressed="${!!S.countHvOnly}" data-act="countHv">★ ${esc(t('sv_hvDaily',{n:hv.length}))}${typeof svHvDue==='function'&&svHvDue()?` <span class="badge num late">${svHvDue()}</span>`:''}</button></div>`:''}
   <div class="scroll"><table class="tbl fn-tbl"><thead><tr><th>${t('inv_item')}</th><th>${t('inv_expected')}</th><th>${t('inv_counted')}</th><th>${t('inv_used')}</th></tr></thead><tbody>
   ${rows.length?rows.map(x=>{const exp=+st[x.id]||0,v=d[x.id],df=v!=null&&v!==''?Math.round((exp-(+v||0))*1000)/1000:null;
     return`<tr><td><b>${esc(x.name)}</b> <span class="hint">${esc(x.unit)}</span></td><td class="n">${esc(invFmt(exp))}</td>
