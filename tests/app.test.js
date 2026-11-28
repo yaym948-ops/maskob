@@ -925,3 +925,19 @@ test('ID reading: the model answer fills the employee form (Hijri dates converte
   assert.equal(p.passNo, 'BX1234567'); assert.equal(p.passExp, '2030-01-31'); assert.ok(!p.idNo);
   assert.equal(w.eval('idFromAI')({ kind: 'national', nameAr: 'سعد', idNumber: '1012345678' }).nat, 'سعودي');
 });
+
+test('products menu: the printed Maskob menu is added in one tap (smallest size + bigger sizes as add-ons), once', async () => {
+  const d = driver(w);
+  w.eval('MEMSET')('products', []); w.eval('MEMSET')('menuCats', {});
+  await d.signIn('9191');
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  d.click('[data-act="tab"][data-k="products"]');
+  d.click('[data-act="menuSeed"]'); d.click('[data-act="menuSeed"]'); await sleep(800);
+  const P = w.eval('S.products'), n = w.eval('MENU_SEED.length');
+  assert.equal(P.length, n, 'all printed items added');
+  const mint = P.find((p) => p.name === 'نعناع');
+  assert.equal(mint.price, 6); assert.equal(JSON.stringify(mint.addons), JSON.stringify([{ name: 'ورق كبير', price: 1 }, { name: 'زجاج', price: 2 }]));
+  assert.equal(w.eval('menuCats()')[0], 'شاي مسكوب');
+  w.eval('render()'); assert.ok(!w.document.querySelector('[data-act="menuSeed"]'), 'button gone once added');
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});
