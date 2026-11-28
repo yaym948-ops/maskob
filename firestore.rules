@@ -307,6 +307,15 @@ service cloud.firestore {
        || ((brOwn(resource.data.from) || isMgr()) && resource.data.status == 'received' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outApplied', 'outAt'])));
     }
     // ---- branch visits: operations plans and documents them; the branch reads its own once closed ----
+    // ---- periodic maintenance and safety: operations writes, each branch reads its own ----
+    match /pm/{id} {
+      allow read: if isMgr() || brOwn(resource.data.branch);
+      allow write: if isMgr();
+      match /photos/{p} {
+        allow read: if isMgr() || brOwn(resource.data.branch);
+        allow create, delete: if isMgr();
+      }
+    }
     match /visits/{id} {
       allow read: if isMgr() || (brOwn(resource.data.branch) && resource.data.status == 'closed');
       allow write: if isMgr();

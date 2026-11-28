@@ -941,3 +941,29 @@ test('products menu: the printed Maskob menu is added in one tap (smallest size 
   w.eval('render()'); assert.ok(!w.document.querySelector('[data-act="menuSeed"]'), 'button gone once added');
   d.setVal('ownerView', 'dash'); await sleep(200);
 });
+
+test('periodic maintenance: operations adds dated items per branch, records it done with the next date; the branch sees its own; the bell counts near ones', async () => {
+  const d = driver(w), S = w.eval('S'), b = w.eval('S.branches')[0];
+  w.eval('MEMSET')('pm', []);
+  const soon = w.eval('addDays(dayKey(Date.now()),10)'), later = w.eval('addDays(dayKey(Date.now()),120)');
+  await d.signIn('9191');
+  d.setVal('ownerView', 'manager'); await sleep(200);
+  d.click('[data-act="tab"][data-k="maintAll"]'); d.click('[data-act="mSub"][data-k="pm"]');
+  d.click('[data-act="pmNew"]'); await sleep(20);
+  d.setVal('hr-branch', b); d.setVal('hr-type', 'extinguisher'); d.setVal('hr-company', 'شركة السلامة'); d.setVal('hr-due', soon);
+  d.click('[data-act="pmSave"]'); await sleep(200);
+  assert.equal(w.eval('S.pm').length, 1);
+  assert.equal(w.eval('pmAlerts()').length, 1, 'due in 10 days → alert');
+  assert.ok(w.eval('bellItems()').some((x) => x.k === 'maintAll'), 'bell');
+  d.click('[data-act="pmOpen"]'); d.click('[data-act="pmDone"]'); await sleep(20);
+  d.setVal('pm-dn', later); d.click('[data-act="pmDoneSave"]'); await sleep(200);
+  const x = w.eval('S.pm')[0];
+  assert.equal(x.due, later); assert.equal(x.log.length, 1);
+  assert.equal(w.eval('pmAlerts()').length, 0, 'no alert after the next date moved');
+  d.click('[data-act="close"]');
+  d.setVal('ownerBranch', 'branch:' + b); await sleep(200);
+  d.click('[data-act="tab"][data-k="maint"]'); d.click('[data-act="mSub"][data-k="pm"]');
+  assert.ok(!w.document.querySelector('[data-act="pmNew"]'), 'branch cannot add');
+  assert.equal(w.document.querySelectorAll('[data-act="pmOpen"]').length, 1, 'branch sees its item');
+  S.mSub = 'req'; d.setVal('ownerView', 'dash'); await sleep(200);
+});

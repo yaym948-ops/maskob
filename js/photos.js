@@ -7,7 +7,7 @@
    collection/new) holding new and removed photos until the record is saved (phCommit); the checklist
    saves each photo at once (instant). Photos are made smaller before they are stored. */
 const PH_MAX=10;
-const PH_SHEETS=['expenses','supInvoices','vouchers','forms','leaves','visits'];   // forms in a pop-up window: their sets go when it closes
+const PH_SHEETS=['expenses','supInvoices','vouchers','forms','leaves','visits','pm'];   // forms in a pop-up window: their sets go when it closes
 const PH_STORE={
   async list(col,id){
     if(S.fb){const q=await db.collection(col+'/'+id+'/photos').get();return q.docs.map(d=>({pid:d.id,data:d.data().data})).sort((a,b)=>a.pid.localeCompare(b.pid))}
