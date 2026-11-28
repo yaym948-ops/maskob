@@ -26,17 +26,17 @@ async function fxImport(file){await ensureXlsx();const wb=XLSX.read(await file.a
   const aoa=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:''});const P=fxParse(aoa);if(!P||!P.rows.length)throw new Error('format');
   if(!P.from||!P.to)throw new Error('range');
   const at=nowIso(),by=S.userName||roleL(S.realRole||S.role),unmatched=[];let n=0;
-  for(const r of P.rows){const b=fxBranch(r.ref,r.name);if(!b){unmatched.push(r);continue}
+  for(const r of P.rows){const b=fxBranch(r.ref,r.name);if(!b){unmatched.push(r);if(P.from===P.to)continue}
     if(P.from===P.to){const id=b+'_'+P.from,old=(S.sales||[]).find(x=>x.id===id);
       const data=old&&old.dsr?{foodics:r.f}:{branch:b,date:P.from,sales:r.f.netVat||r.f.gross||0,invoices:Math.round(r.f.orders||0),foodics:r.f,src:'foodics',at};
       if(S.fb){if(old)await db.doc('sales/'+id).update(data);else await db.doc('sales/'+id).set(data)}
       else MEMSET('sales',MEM('sales').filter(x=>x.id!==id).concat([Object.assign({},old||{},data,{id})]))}
-    else{const id=(r.ref||b)+'_'+P.from+'_'+P.to,data={ref:r.ref,name:r.name,branch:b,from:P.from,to:P.to,f:r.f,at,by};
+    else{const id=(r.ref||b||r.name)+'_'+P.from+'_'+P.to,data={ref:r.ref,name:r.name,branch:b||'',from:P.from,to:P.to,f:r.f,at,by};
       if(S.fb)await db.doc('fsales/'+id).set(data);else MEMSET('fsales',MEM('fsales').filter(x=>x.id!==id).concat([Object.assign({id},data)]))}
-    n++}
+    if(b)n++}
   if(!S.fb)xLoadDemo();S.fxPending=unmatched.length?{P,rows:unmatched}:null;return{n,day:P.from===P.to,unmatched:unmatched.length}}
 /* matching a Foodics period with the daily closings */
-function fxMatchRows(){return(S.fsales||[]).map(x=>{const own=(S.sales||[]).filter(r=>r.branch===x.branch&&r.date>=x.from&&r.date<=x.to);
+function fxMatchRows(){return(S.fsales||[]).filter(x=>x.branch).map(x=>{const own=(S.sales||[]).filter(r=>r.branch===x.branch&&r.date>=x.from&&r.date<=x.to);
   const ours=own.reduce((s0,r)=>s0+(+r.sales||0),0),theirs=+x.f.netVat||0;return Object.assign({},x,{ours,theirs,days:own.length,diff:ours-theirs,pct:theirs?(ours-theirs)/theirs*100:null})})
   .sort((a,c)=>String(c.to).localeCompare(String(a.to))||String(a.branch).localeCompare(String(c.branch),'ar'))}
 function fxSection(){const L=fxMatchRows(),P=S.fxPending,fin=S.role==='finance';
@@ -44,7 +44,8 @@ function fxSection(){const L=fxMatchRows(),P=S.fxPending,fin=S.role==='finance';
   <p class="hint">${esc(t('fx_hint'))}</p>
   ${P?`<div class="box" style="border-color:var(--late)"><b>${esc(t('fx_unmatched',{n:P.rows.length}))}</b>${P.rows.map((r,i)=>`<div class="row" style="gap:8px;margin-top:6px"><span style="flex:1">${esc(r.name)} <span class="hint num" dir="ltr">${esc(r.ref)}</span></span><select class="field" data-in="fxMap" data-i="${i}" style="width:auto"><option value="">${esc(t('inv_pick'))}</option>${S.branches.map(b=>`<option>${esc(b)}</option>`).join('')}</select></div>`).join('')}
     <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn btn-sun rp-btn" data-act="fxMapSave">${t('fx_mapSave')}</button></div></div>`:''}
-  ${L.length?`<div class="scroll"><table class="tbl fn-tbl"><thead><tr><th>${t('r_branch')}</th><th>${t('fx_period')}</th><th>${t('fx_theirs')}</th><th>${t('fx_ours')}</th><th>${t('fx_diff')}</th></tr></thead><tbody>
+  ${fxPeriodTable()}
+  ${L.length?`<h4 class="hr-sub">${t('fx_matchTitle')}</h4><div class="scroll"><table class="tbl fn-tbl"><thead><tr><th>${t('r_branch')}</th><th>${t('fx_period')}</th><th>${t('fx_theirs')}</th><th>${t('fx_ours')}</th><th>${t('fx_diff')}</th></tr></thead><tbody>
   ${L.map(x=>`<tr><td><b>${esc(x.branch)}</b><div class="hint">${esc(x.name)}</div></td><td class="hint">${esc(x.from)} → ${esc(x.to)}<div>${esc(t('kp_days',{n:x.days}))}</div></td><td class="n">${esc(sar2(x.theirs))}</td><td class="n">${esc(sar2(x.ours))}</td>
     <td class="n"><span class="kpi-v ${x.pct==null?'':Math.abs(x.pct)<=1?'ok':Math.abs(x.pct)<=3?'mid':'bad'}">${esc(sar2(x.diff))}${x.pct!=null?' ('+esc(sar2(x.pct))+'%)':''}</span></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">${esc(t('fx_none'))}</div>`}</div>`}
 /* export: our sales in the Foodics columns for the chosen month */
@@ -67,7 +68,7 @@ Object.assign(A,{
       const keep=P.rows.filter((r,i)=>!sel[i]);for(const r of P.rows.filter((r,i)=>sel[i])){const b=map[r.ref||r.name];
         if(P.P.from===P.P.to){const id=b+'_'+P.P.from,old=(S.sales||[]).find(x=>x.id===id),data=old&&old.dsr?{foodics:r.f}:{branch:b,date:P.P.from,sales:r.f.netVat||0,invoices:Math.round(r.f.orders||0),foodics:r.f,src:'foodics',at:nowIso()};
           if(S.fb){if(old)await db.doc('sales/'+id).update(data);else await db.doc('sales/'+id).set(data)}else MEMSET('sales',MEM('sales').filter(x=>x.id!==id).concat([Object.assign({},old||{},data,{id})]))}
-        else{const id=(r.ref||b)+'_'+P.P.from+'_'+P.P.to,data={ref:r.ref,name:r.name,branch:b,from:P.P.from,to:P.P.to,f:r.f,at:nowIso(),by:S.userName||''};
+        else{const id=(r.ref||b||r.name)+'_'+P.P.from+'_'+P.P.to,data={ref:r.ref,name:r.name,branch:b,from:P.P.from,to:P.P.to,f:r.f,at:nowIso(),by:S.userName||''};
           if(S.fb)await db.doc('fsales/'+id).set(data);else MEMSET('fsales',MEM('fsales').filter(x=>x.id!==id).concat([Object.assign({id},data)]))}}
       if(!S.fb)xLoadDemo();S.fxPending=keep.length?{P:P.P,rows:keep}:null;S.fxSel={}},()=>t('st_saved'))}
 });
@@ -82,4 +83,20 @@ document.addEventListener('change',async ev=>{const el=ev.target;
   catch(e){toast(t(String(e&&e.message)==='range'?'fx_noRange':String(e&&e.message)==='format'?'fx_badFile':'saveFail'))}el.value='';render()});
 
 /* the sales report shows the Foodics matching under the month summary */
-if(typeof salesAllView==='function'){const _sa=salesAllView;salesAllView=function(){const h=_sa();return S.slView==='days'?h:h+fxSection()}}
+if(typeof salesAllView==='function'){const _sa=salesAllView;salesAllView=function(){const h=_sa();if(S.slView==='days')return h;
+  if(!(S.fsales||[]).length)return h+fxSection();const i=h.indexOf('</div>')+6;return h.slice(0,i)+fxSection()+h.slice(i)}}
+
+/* the imported periods, newest first, and the report of the chosen one with all its figures */
+function fxPeriods(){const m={};(S.fsales||[]).forEach(x=>{const k=x.from+'_'+x.to;(m[k]||(m[k]={from:x.from,to:x.to,rows:[]})).rows.push(x)});return Object.values(m).sort((a,c)=>String(c.to).localeCompare(String(a.to))||String(c.from).localeCompare(String(a.from)))}
+function fxPeriodTable(){const Ps=fxPeriods();if(!Ps.length)return'';const k=S.fxPer&&Ps.find(p=>p.from+'_'+p.to===S.fxPer)?S.fxPer:Ps[0].from+'_'+Ps[0].to,P=Ps.find(p=>p.from+'_'+p.to===k);
+  const rows=[...P.rows].sort((a,c)=>(+c.f.netVat||0)-(+a.f.netVat||0)),sum=f=>rows.reduce((s0,x)=>s0+(+x.f[f]||0),0),totN=sum('netVat');
+  const cols=[['netVat','fx_c_netVat'],['tax','fx_c_tax'],['disc','fx_c_disc'],['net','fx_c_net'],['orders','fx_c_orders'],['avgOrder','fx_c_avg'],['visitors','fx_c_visitors'],['ret','fx_c_ret'],['cancel','fx_c_cancel']];
+  const cell=(f,v)=>f==='orders'||f==='visitors'?sar(Math.round(v)):sar2(v);
+  return`<div class="filters">${Ps.map(p=>`<button class="chip" aria-pressed="${p.from+'_'+p.to===k}" data-act="fxPer" data-k="${esc(p.from+'_'+p.to)}">${esc(p.from)} → ${esc(p.to)}</button>`).join('')}</div>
+  <div class="stats">${kpi(t('fx_c_netVat'),sar2(totN)+' '+t('sar'))}${kpi(t('fx_c_orders'),sar(Math.round(sum('orders'))))}${kpi(t('fx_c_avg'),sum('orders')?sar2(totN/sum('orders')):'—')}${kpi(t('fx_c_disc'),sar2(sum('disc')))}</div>
+  <div class="scroll"><table class="tbl fn-tbl"><thead><tr><th>${t('r_branch')}</th>${cols.map(([,l])=>`<th>${esc(t(l))}</th>`).join('')}<th>%</th></tr></thead><tbody>
+  ${rows.map(x=>`<tr><td><b>${esc(x.branch||x.name)}</b>${x.branch&&x.branch!==x.name?`<div class="hint">${esc(x.name)}</div>`:''}${x.branch?'':` <span class="tag">${esc(t('fx_noBranch'))}</span>`}</td>${cols.map(([f])=>`<td class="n">${esc(cell(f,+x.f[f]||0))}</td>`).join('')}<td class="n">${totN?esc(sar2((+x.f.netVat||0)/totN*100)):'—'}</td></tr>`).join('')}
+  <tr class="pc-sum"><td>${t('pr_total')}</td>${cols.map(([f])=>`<td class="n">${f==='avgOrder'?(sum('orders')?esc(sar2(totN/sum('orders'))):'—'):esc(cell(f,sum(f)))}</td>`).join('')}<td class="n">100</td></tr></tbody></table></div>`}
+/* a Foodics report covering exactly one month for a branch */
+function fxMonthOf(b,mk){const last=mk+'-'+String(daysInMonth(mk)).padStart(2,'0');return(S.fsales||[]).find(x=>x.branch===b&&x.from===mk+'-01'&&x.to===last)||null}
+A.fxPer=el=>{S.fxPer=el.dataset.k;render()};

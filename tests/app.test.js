@@ -1172,3 +1172,22 @@ test('Foodics report through the general import menu of the sales report goes to
   const src = w.eval('ioRead.toString()');
   assert.ok(src.includes('fxParse') && src.includes('fxImport'), 'the general sales import recognises the Foodics report');
 });
+
+test('Foodics in the sales report: a long period shows as its own full table (unlinked branches too); a whole month fills that month for branches without closings', async () => {
+  const d = driver(w), S = w.eval('S'), [b1, b2] = w.eval('S.branches').slice(0, 2);
+  w.eval('MEMSET')('sales', [{ id: b1 + '_2026-09-03', branch: b1, date: '2026-09-03', sales: 500, invoices: 40 }]);
+  w.eval('MEMSET')('fsales', [
+    { id: 'B01_2026-05-01_2026-10-31', ref: 'B01', name: 'فرع ' + b1, branch: b1, from: '2026-05-01', to: '2026-10-31', f: { netVat: 9000, orders: 600, tax: 1173.9, disc: 10 } },
+    { id: 'B99_2026-05-01_2026-10-31', ref: 'B99', name: 'فرع غير مربوط', branch: '', from: '2026-05-01', to: '2026-10-31', f: { netVat: 1000, orders: 70 } },
+    { id: 'B02_2026-09-01_2026-09-30', ref: 'B02', name: 'x', branch: b2, from: '2026-09-01', to: '2026-09-30', f: { netVat: 3000, orders: 200 } },
+    { id: 'B01_2026-09-01_2026-09-30', ref: 'B01', name: 'y', branch: b1, from: '2026-09-01', to: '2026-09-30', f: { netVat: 7777, orders: 1 } }]);
+  await d.signIn('9191'); d.setVal('ownerView', 'finance'); await sleep(200);
+  assert.equal(w.eval('salesStats')(b2, '2026-09').sales, 3000, 'month filled from Foodics');
+  assert.ok(w.eval('salesStats')(b2, '2026-09').foodics);
+  assert.equal(w.eval('salesStats')(b1, '2026-09').sales, 500, 'own closings win');
+  d.click('[data-act="tab"][data-k="salesAll"]'); S.fxPer = '2026-05-01_2026-10-31'; w.eval('render()');
+  const txt = w.document.getElementById('view') ? w.document.getElementById('view').textContent : w.document.body.textContent;
+  assert.ok(txt.includes('فرع غير مربوط'), 'unlinked Foodics branch listed in the period table');
+  assert.ok(txt.includes('10,000') || txt.includes('10٬000') || txt.includes('10000'), 'period total shown');
+  S.fxPer = null; d.setVal('ownerView', 'dash'); await sleep(200);
+});

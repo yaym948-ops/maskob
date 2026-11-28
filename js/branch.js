@@ -186,12 +186,13 @@ function xStop(){(S._xUnsub||[]).forEach(f=>{try{f()}catch(e){}});S._xUnsub=[];S
 /* ---------- sales: numbers for a branch and month ---------- */
 function salesStats(branch,mk){
   const rows=(S.sales||[]).filter(r=>r.branch===branch&&String(r.date).startsWith(mk));
-  const sales=rows.reduce((a,r)=>a+(+r.sales||0),0),inv=rows.reduce((a,r)=>a+(+r.invoices||0),0);
+  let sales=rows.reduce((a,r)=>a+(+r.sales||0),0),inv=rows.reduce((a,r)=>a+(+r.invoices||0),0);
+  const fx=!rows.length&&typeof fxMonthOf==='function'?fxMonthOf(branch,mk):null;if(fx){sales=+fx.f.netVat||0;inv=Math.round(+fx.f.orders||0)}
   const td=(S.targets&&S.targets[branch])||{};const tg=(td.m&&td.m[mk])||{};
   const dim=daysInMonth(mk),today=dayKey(Date.now());
   const daysLeft=mk===today.slice(0,7)?dim-(+today.slice(8))+1:(mk>today.slice(0,7)?dim:0);
   const remain=tg.sales?Math.max(0,tg.sales-sales):null;
-  return{rows,sales,inv,avg:inv?sales/inv:0,days:rows.length,target:+tg.sales||0,targetInv:+tg.invoices||0,
+  return{rows,sales,inv,avg:inv?sales/inv:0,days:fx?daysInMonth(mk):rows.length,foodics:!!fx,target:+tg.sales||0,targetInv:+tg.invoices||0,
     pct:tg.sales?sales/tg.sales:null,pctInv:tg.invoices?inv/tg.invoices:null,remain,
     perDay:remain&&daysLeft>0?remain/daysLeft:null,dim,daysLeft};
 }
@@ -276,7 +277,7 @@ function salesAllView(){
   <div class="rp-sec"><h3>${t('tg_cards')}</h3><div class="tg-cards">${rows.map(r=>targetCard(r.b,r.st)).join('')}</div></div>
   <div class="rp-sec"><h3>${t('sl_byBranch')}</h3><div class="cmp">${rows.map(r=>`<div class="cmp-row"><b>${esc(r.b)}</b><div class="cmp-bar"><i style="width:${Math.round(r.st.sales/maxS*100)}%"></i>${r.st.target?`<u style="inset-inline-start:${Math.round(r.st.target/maxS*100)}%"></u>`:''}</div><span class="num">${sar(r.st.sales)}</span></div>`).join('')}</div></div>
   <div class="rp-sec"><div class="scroll"><table class="tbl"><thead><tr><th>${t('r_branch')}</th><th style="text-align:center">${t('sl_sales')}</th><th style="text-align:center">${t('sl_inv')}</th><th style="text-align:center">${t('sl_avg')}</th><th style="text-align:center">${t('sl_target')}</th><th style="text-align:center">${t('sl_remain')}</th><th style="text-align:center">%</th><th style="text-align:center">${t('ck_today')}</th></tr></thead><tbody>
-  ${rows.map(r=>`<tr><td><b>${esc(r.b)}</b>${r.st.days?'':`<div class="hint">${t('sl_noData')}</div>`}</td><td class="n">${sar(r.st.sales)}</td><td class="n">${sar(r.st.inv)}</td><td class="n">${r.st.inv?sar2(r.st.avg):'—'}</td><td class="n">${r.st.target?sar(r.st.target):'—'}</td><td class="n">${r.st.remain==null?'—':sar(r.st.remain)}</td><td class="n ${r.st.pct!=null&&r.st.pct<0.5&&mk===today.slice(0,7)&&+today.slice(8)>15?'mis':''}">${r.st.pct==null?'—':Math.round(r.st.pct*100)+'%'}</td><td class="n">${r.ck==null?'—':Math.round(r.ck*100)+'%'}</td></tr>`).join('')}</tbody></table></div></div>${targetsView()}`;
+  ${rows.map(r=>`<tr><td><b>${esc(r.b)}</b>${r.st.foodics?` <span class="tag">${esc(t('fx_from'))}</span>`:''}${r.st.days?'':`<div class="hint">${t('sl_noData')}</div>`}</td><td class="n">${sar(r.st.sales)}</td><td class="n">${sar(r.st.inv)}</td><td class="n">${r.st.inv?sar2(r.st.avg):'—'}</td><td class="n">${r.st.target?sar(r.st.target):'—'}</td><td class="n">${r.st.remain==null?'—':sar(r.st.remain)}</td><td class="n ${r.st.pct!=null&&r.st.pct<0.5&&mk===today.slice(0,7)&&+today.slice(8)>15?'mis':''}">${r.st.pct==null?'—':Math.round(r.st.pct*100)+'%'}</td><td class="n">${r.ck==null?'—':Math.round(r.ck*100)+'%'}</td></tr>`).join('')}</tbody></table></div></div>${targetsView()}`;
 }
 
 /* ---------- maintenance ---------- */
