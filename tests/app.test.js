@@ -1148,3 +1148,22 @@ test('menu fix: old mint/basil/wazzab products become free add-ons of Maskob tea
   assert.ok(Math.abs(w.eval('prodCost')(w.eval('S.products').find((p) => p.name === 'عراقي')) - 2.15) < 1e-9, '150 ml × 0.012 + 0.35');
   d.setVal('ownerView', 'dash'); await sleep(200);
 });
+
+test('Foodics sales-by-branch report: a day becomes daily sales (own closing kept), a period is matched against closings; export in the same columns', async () => {
+  const d = driver(w), S = w.eval('S'), b = w.eval('S.branches')[0];
+  const hdr = ['الفرع', 'مرجع الفرع', 'إجمالي المبيعات', '(إجمالي المبيعات %)', 'صافي المبيعات مع الضريبة', 'الضرائب', 'مبلغ الخصم', 'إجمالي المبيعات من غير ضريبة', 'صافي المبيعات', '(صافي المبيعات %)', 'عدد الطلبات', 'متوسط الطلب'];
+  const P = w.eval('fxParse')([['المبيعات حسب الفرع Report'], ['Title', 'Value'], ['النطاق الزمني', '2026-11-20 - 2026-11-20'], hdr, ['فرع ' + b + ' - جديد', 'B02', '1,150.5', '100 %', '1150', '150', '0.5', '1,000.43', '1000', '100 %', '80', '14.37']]);
+  assert.equal(P.from, '2026-11-20'); assert.equal(P.rows[0].ref, 'B02'); assert.equal(P.rows[0].f.netVat, 1150); assert.equal(P.rows[0].f.orders, 80);
+  assert.equal(w.eval('fxBranch')('B02', P.rows[0].name), b, 'branch matched by name');
+  // a period summary against closings
+  w.eval('MEMSET')('sales', [{ id: b + '_2026-10-01', branch: b, date: '2026-10-01', sales: 990, invoices: 70 }]);
+  w.eval('MEMSET')('fsales', [{ id: 'B02_2026-10-01_2026-10-31', ref: 'B02', name: 'x', branch: b, from: '2026-10-01', to: '2026-10-31', f: { netVat: 1000 } }]);
+  await d.signIn('9191'); d.setVal('ownerView', 'finance'); await sleep(200);
+  const m = w.eval('fxMatchRows()')[0];
+  assert.equal(m.diff, -10); assert.equal(m.pct, -1);
+  d.click('[data-act="tab"][data-k="salesAll"]');
+  assert.ok(w.document.querySelector('#fxFile'), 'import button on the sales report');
+  const R = w.eval('fxExportRows')('2026-10').find((x) => x.b === b);
+  assert.equal(R.f.netVat, 990); assert.equal(R.f.orders, 70);
+  d.setVal('ownerView', 'dash'); await sleep(200);
+});

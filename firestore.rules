@@ -323,6 +323,9 @@ service cloud.firestore {
         allow create: if brOwn(request.resource.data.branch) || isMgr();
       }
     }
+    // ---- Foodics sales-by-branch summaries and the branch name map ----
+    match /fsales/{id} { allow read: if isRole('finance') || isMgr(); allow write: if isRole('finance'); }
+    match /config/foodicsMap { allow read: if isRole('finance') || isMgr(); allow write: if isRole('finance'); }
     match /config/supList { allow read: if valid(); allow write: if isRole('finance'); }
     // ---- monthly product sales from Foodics (menu engineering) and the monthly close ----
     match /psales/{id} { allow read, write: if isMgr() || isRole('finance'); }
@@ -404,8 +407,11 @@ service cloud.firestore {
     // daily sales: finance reads every branch for the monthly summary
     match /sales/{id} {
       allow read: if isRole('finance');
+      // finance imports days from Foodics (a branch's own closing keeps its figures; Foodics ones sit beside them)
+      allow create: if isRole('finance');
       // finance marks a day as checked against its closing report photo (only the review field)
-      allow update: if isRole('finance') && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['review']);
+      allow update: if isRole('finance') && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['review', 'foodics'])
+                    || (!('dsr' in resource.data) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['review', 'foodics', 'sales', 'invoices', 'at', 'src'])));
     }
 
     // payment vouchers: HR and finance
